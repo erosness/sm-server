@@ -86,3 +86,8 @@
 (vhost-map `((".*" . ,(lambda _ (handler)))))
 ;; (thread-start! (lambda () (start-server port: 5055)))
 (eval-when (load) (start-server port: 5055))
+
+;; for your repl pleasure:
+;; you should see a UDP NOTIFY with this:
+;; (set! ((find-accessor "/player/volume")) 21)
+
