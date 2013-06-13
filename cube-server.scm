@@ -59,13 +59,13 @@
                 (uri-tree->alist *uri-tree* "" (cut conc <> "/" <>))
                 test: equal?))
 
-(define (find-getter uri #!optional (uris *uris*))
+(define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
 (define (handler)
   (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
     (print "incoming " uri)
-    (let ((handler (find-getter uri)))
+    (let ((handler (find-accessor uri)))
       (if handler
           (wrap-json handler)
           (send-json `#((error       . ,(conc "not found: " uri))
