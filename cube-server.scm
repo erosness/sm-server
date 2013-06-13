@@ -1,24 +1,12 @@
-(use spiffy medea matchable intarweb uri-common)
+(use spiffy json matchable intarweb uri-common)
 
 (include "broadcast.scm")
+(include "uri-handler.scm")
 ;; (include "debug.scm")
-
-(define *version* "n/a")
-
-
-;; volume getter/setter (volume) => 50, (set! (volume) 100) => stores
-;; new volume. getter/setters should work well with external variables
-;; too (like dsp volume)
-(define volume
-  (let ((v 50))
-    (getter-with-setter (lambda () v)
-                        (lambda (new-volume)
-                          ;; TODO: assert new-volume is [0 - 100]
-                          (set! v new-volume)))))
 
 (define (send-json x #!optional (status 'ok))
   (send-response headers: `((content-type "application/json"))
-                 body: (conc (json->string x) "\n")
+                 body: (conc (with-output-to-string (lambda () (json-write x))) "\n")
                  status: status))
 
 (define (request-string!)
@@ -26,20 +14,59 @@
                                  (request-headers (current-request))) 0)
                (request-port (current-request))))
 
-(define (volume-handler)
+;; send HTTP "100 Continue" (iff client-headers Expect: 100-continue)
+;; without this, some clients wait before sending PUT/POST payload
+(define (send-continue?!)
+  (if (header-value 'expect (request-headers (current-request)))
+      (write-response
+       (make-response port: (response-port (current-response))
+                      status: 'continue))))
+
+
+(define (make-accessor #!optional (initial (void)))
+  (let ((v initial))
+    (getter-with-setter (lambda () v)
+                        (lambda (n) (set! v n)))))
+
+
+(define (wrap-json accessor)
   (case (request-method (current-request))
-    [(GET) (send-json (volume))]
+    [(GET) (send-json (accessor))]
     [(PUT)
-     (let ((vol (string->number (request-string!))))
-       (set! (volume) vol)
-       (udp-broadcast (conc "NOTIFY /player/volume\n\n" vol))
-       (send-json (volume)))]))
+     (send-continue?!)
+     (handle-exceptions exn
+       (send-response status: 'bad-request
+                      body: (conc ((condition-property-accessor 'exn 'message) exn)
+                                  "\n"
+                                  ((condition-property-accessor 'exn 'location) exn)
+                                  (with-output-to-string
+                                    (lambda () (print-call-chain)))))
+       ;; call the actual setter procedure:
+       (set! (accessor) (json-read (open-input-string (request-string!))))
+       (send-response status: 'ok))]))
+
+(define *uri-tree*
+  `((player (mute      ,(make-accessor #f))
+            (volume    ,(make-accessor 50))
+            (eq        ,(make-accessor '#(0 0 0 0 0)))
+            (radio      (info    ,(make-accessor "Classics"))
+                        (current ,(make-accessor "NRK MP3"))))))
+
+(define *uris* (alist->hash-table
+                (uri-tree->alist *uri-tree* "" (cut conc <> "/" <>))
+                test: equal?))
+
+(define (find-getter uri #!optional (uris *uris*))
+  (hash-table-ref/default uris uri #f))
 
 (define (handler)
-  (match (uri-path (request-uri (current-request)))
-    [('/ "player" "volume") (volume-handler)]
-    [('/ "system" "version") (send-json *version*)]
-    [else (send-json `((error . "unknown url")) 'not-found)]))
+  (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
+    (print "incoming " uri)
+    (let ((handler (find-getter uri)))
+      (if handler
+          (wrap-json handler)
+          (send-json `#((error       . ,(conc "not found: " uri))
+                        (valid-urls  . ,(hash-table-keys *uris*))) 'not-found)))))
 
 
 (vhost-map `((".*" . ,(lambda _ (handler)))))
