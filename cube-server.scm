@@ -31,6 +31,12 @@
     (getter-with-setter (lambda () v)
                         (lambda (n) (set! v n)))))
 
+;; wrap getter/setter with a UDP NOTIFY for url
+(define (with-setter-broadcast url accessor)
+  (getter-with-setter accessor
+                      (lambda (new)
+                        (set! (accessor) new)
+                        (udp-broadcast (conc "NOTIFY " url "\n\n" (->json new))))))
 
 (define (wrap-json accessor)
   (case (request-method (current-request))
@@ -55,9 +61,14 @@
             (radio      (info    ,(make-accessor "Classics"))
                         (current ,(make-accessor "NRK MP3"))))))
 
-(define *uris* (alist->hash-table
-                (uri-tree->alist *uri-tree* "" (cut conc <> "/" <>))
-                test: equal?))
+;; TODO: clean this up a bit
+(define *uris*
+  (alist->hash-table
+   (map (lambda (pair)
+          (let ((url (car pair)))
+            (cons url (with-setter-broadcast url (cdr pair)))))
+        (uri-tree->alist *uri-tree* "" (cut conc <> "/" <>)))
+   test: equal?))
 
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
