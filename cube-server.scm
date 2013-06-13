@@ -4,9 +4,12 @@
 (include "uri-handler.scm")
 ;; (include "debug.scm")
 
+(define (->json x)
+  (with-output-to-string (lambda () (json-write x))))
+
 (define (send-json x #!optional (status 'ok))
   (send-response headers: `((content-type "application/json"))
-                 body: (conc (with-output-to-string (lambda () (json-write x))) "\n")
+                 body: (conc (->json x) "\n")
                  status: status))
 
 (define (request-string!)
