@@ -3,6 +3,9 @@
 (include "broadcast.scm")
 ;; (include "debug.scm")
 
+(define *version* "n/a")
+
+
 ;; volume getter/setter (volume) => 50, (set! (volume) 100) => stores
 ;; new volume. getter/setters should work well with external variables
 ;; too (like dsp volume)
@@ -35,6 +38,7 @@
 (define (handler)
   (match (uri-path (request-uri (current-request)))
     [('/ "player" "volume") (volume-handler)]
+    [('/ "system" "version") (send-json *version*)]
     [else (send-json `((error . "unknown url")) 'not-found)]))
 
 
