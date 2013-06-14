@@ -3,7 +3,6 @@
 (include "broadcast.scm")
 (include "uri-handler.scm")
 (include "dsp/dsp.scm")
-;; (include "debug.scm")
 
 (define (->json x)
   (with-output-to-string (lambda () (json-write x))))
@@ -26,6 +25,9 @@
        (make-response port: (response-port (current-response))
                       status: 'continue))))
 
+;; make an getter-with-setter that caches any set! calls and returns the
+;; cache when the getter is called. this is useful for parameters that
+;; are writeable but not readable (like our current dsp volume parameter).
 
 (define (make-accessor #!optional (initial (void)) (set-proc (lambda (v) (void))))
   (let ((v initial))
@@ -75,6 +77,7 @@
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
+;; main http request entry-point
 (define (handler)
   (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
     (print "incoming " uri)
