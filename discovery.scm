@@ -1,8 +1,21 @@
 (use socket udp)
 
+(include "broadcast.scm")
+
 ;; (define port 5055)
 ;; TODO: proper logging
 (define *prefix* "> ")
+
+(define heartbeat-packet "HEARTBEAT /device\n\nHello friends")
+(define (heartbeat intervall)
+  (let loop ()
+    (udp-broadcast heartbeat-packet)
+    (print "Heartbeat")
+    (thread-sleep! intervall)
+    (loop)))
+
+;; (define t (thread-start! (lambda () (heartbeat 1))))
+;; (thread-terminate! t)
 
 (define (make-multicast-listen-socket multicast-group port)
   (define s (socket af/inet sock/dgram))
