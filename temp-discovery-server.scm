@@ -1,4 +1,4 @@
 (include "discovery.scm")
 
 (eval-when (load)
-           (start-discovery 5055))
+           (start-discovery 5055 360))
