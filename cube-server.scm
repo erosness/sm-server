@@ -28,8 +28,7 @@
 ;; make an getter-with-setter that caches any set! calls and returns the
 ;; cache when the getter is called. this is useful for parameters that
 ;; are writeable but not readable (like our current dsp volume parameter).
-
-(define (make-accessor #!optional (initial (void)) (set-proc (lambda (v) (void))))
+(define (setter-with-cache initial #!optional (set-proc (lambda (v) (void))))
   (let ((v initial))
     (getter-with-setter (lambda () v)
                         (lambda (n) (set! v n) (set-proc n)))))
@@ -58,12 +57,12 @@
        (send-response status: 'ok))]))
 
 (define *uri-tree*
-  `((player (mute      ,(make-accessor #f))
-            (volume    ,(make-accessor 50 dsp-volume-set!))
-            (eq        ,(make-accessor '#(0 0 0 0 0)))
-            (radio      (info     ,(make-accessor "Classics"))
-                        (current  ,(make-accessor "NRK MP3"))
-                        (channels ,(make-accessor '("NRK P1" "NRK P2" "NRK Hordaland")))))))
+  `((player (mute      ,(setter-with-cache #f))
+            (volume    ,(setter-with-cache 50 dsp-volume-set!))
+            (eq        ,(setter-with-cache '#(0 0 0 0 0)))
+            (radio      (info     ,(setter-with-cache "Classics"))
+                        (current  ,(setter-with-cache "NRK MP3"))
+                        (channels ,(setter-with-cache '("NRK P1" "NRK P2" "NRK Hordaland")))))))
 
 ;; TODO: clean this up a bit
 (define *uris*
