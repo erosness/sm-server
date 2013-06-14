@@ -2,6 +2,7 @@
 
 (include "broadcast.scm")
 (include "uri-handler.scm")
+(include "dsp/dsp.scm")
 ;; (include "debug.scm")
 
 (define (->json x)
@@ -26,10 +27,10 @@
                       status: 'continue))))
 
 
-(define (make-accessor #!optional (initial (void)))
+(define (make-accessor #!optional (initial (void)) (set-proc (lambda (v) (void))))
   (let ((v initial))
     (getter-with-setter (lambda () v)
-                        (lambda (n) (set! v n)))))
+                        (lambda (n) (set! v n) (set-proc n)))))
 
 ;; wrap getter/setter with a UDP NOTIFY for url
 (define (with-setter-broadcast url accessor)
@@ -56,7 +57,7 @@
 
 (define *uri-tree*
   `((player (mute      ,(make-accessor #f))
-            (volume    ,(make-accessor 50))
+            (volume    ,(make-accessor 50 dsp-volume-set!))
             (eq        ,(make-accessor '#(0 0 0 0 0)))
             (radio      (info    ,(make-accessor "Classics"))
                         (current ,(make-accessor "NRK MP3"))))))
