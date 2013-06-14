@@ -22,7 +22,7 @@
             (let ((reply-socket (socket af/inet sock/dgram))
                   (host (sockaddr-address addr)))
               (print *prefix* "Sending answer to " host ":" port)
-              (socket-send-to reply-socket "NOTIFY /\n\nADD VERSION HERE"
+              (socket-send-to reply-socket "NOTIFY /device\n\nADD VERSION HERE"
                               (inet-address host port))))
         )
       loop
