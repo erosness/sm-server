@@ -36,7 +36,7 @@
   (getter-with-setter accessor
                       (lambda (new)
                         (set! (accessor) new)
-                        (udp-broadcast (conc "NOTIFY " url "\n\n" (->json new))))))
+                        (udp-broadcast (conc "NOTIFY " url "\n\n" (->json new) "\n")))))
 
 (define (wrap-json accessor)
   (case (request-method (current-request))
