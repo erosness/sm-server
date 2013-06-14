@@ -59,8 +59,9 @@
   `((player (mute      ,(make-accessor #f))
             (volume    ,(make-accessor 50 dsp-volume-set!))
             (eq        ,(make-accessor '#(0 0 0 0 0)))
-            (radio      (info    ,(make-accessor "Classics"))
-                        (current ,(make-accessor "NRK MP3"))))))
+            (radio      (info     ,(make-accessor "Classics"))
+                        (current  ,(make-accessor "NRK MP3"))
+                        (channels ,(make-accessor '("NRK P1" "NRK P2" "NRK Hordaland")))))))
 
 ;; TODO: clean this up a bit
 (define *uris*
