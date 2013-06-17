@@ -5,4 +5,3 @@
   (set-socket-option s sol/socket so/broadcast 1)
   (socket-send-to s msg saddr)
   (socket-close s))
- 
