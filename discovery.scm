@@ -42,3 +42,4 @@
         (thread-sleep! 0.005))
     (loop)))
 ;;(start-discovery 5055 360)
+;;(socket-close s)
