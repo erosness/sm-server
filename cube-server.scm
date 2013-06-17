@@ -3,6 +3,7 @@
 (include "broadcast.scm")
 (include "uri-handler.scm")
 (include "dsp/dsp.scm")
+(include "discovery.scm")
 
 (define (->json x)
   (with-output-to-string (lambda () (json-write x))))
@@ -89,7 +90,10 @@
 
 (vhost-map `((".*" . ,(lambda _ (handler)))))
 ;; (thread-start! (lambda () (start-server port: 5055)))
-(eval-when (load) (start-server port: 5055))
+;; (thread-start! (lambda () (start-discovery 5055 360)))
+(eval-when (load)
+           (thread-start! (lambda () (start-discovery 5055 360)))
+           (start-server port: 5055))
 
 ;; for your repl pleasure:
 ;; you should see a UDP NOTIFY with this:
