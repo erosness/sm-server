@@ -5,3 +5,10 @@
   (set-socket-option s sol/socket so/broadcast 1)
   (socket-send-to s msg saddr)
   (socket-close s))
+
+(define (udp-broadcast-headers rq)
+  (let ((echo (header-value 'echo (request-headers rq))))
+    (if echo
+        (conc "\n" "Echo: " echo)
+        "")))
+
