@@ -5,6 +5,12 @@
 (include "dsp/dsp.scm")
 (include "discovery.scm")
 
+(define get-sequence-header
+  (let ((seq 0))
+    (lambda ()
+      (set! seq (add1 seq))
+      seq)))
+
 (define (->json x)
   (with-output-to-string (lambda () (json-write x))))
 
@@ -40,6 +46,7 @@
                       (lambda (new)
                         (set! (accessor) new)
                         (udp-broadcast (conc "NOTIFY " url
+                                             (get-sequence-header)
                                              (udp-broadcast-headers (current-request))
                                              "\n\n" (->json new) "\n")))))
 
