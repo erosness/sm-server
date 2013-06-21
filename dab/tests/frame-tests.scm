@@ -97,6 +97,11 @@
  (test '((error expected-eof "\x00"))
        (unpack-status-codes 0 (bitstring-of-any "\x00"))))
 
+(test "set-itemnotify-response"
+      '(frame 1 (item-setnotify-response ok (error expected-eof "\x10")))
+      (parse-frame "\x00\x01\x86\x01\x00\x10"))
+(parse-frame "\x00\x01\x86\x01\x00\x10")
+
 
 
 ;;; ********** testing serialization

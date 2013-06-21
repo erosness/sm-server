@@ -85,6 +85,24 @@
               `(notification ,(describe-node address)
                              ,(blob->string (bitstring->blob payload)) ))))
 
+(define (parse-item-set-responses num bs)
+  (if (> num 0)
+      (bitmatch bs
+                ( (( sc 8) (rest bitstring))
+                  `(,(integer->status-code sc) ,@(parse-item-set-responses (sub1 num) rest))))
+      (if (= 0 (bitstring-length bs))
+          '()
+          `((error expected-eof ,(blob->string (bitstring->blob bs)))))))
+
+(define (parse-item-setnotify-responses num bs)
+  (if (> num 0)
+      (bitmatch bs
+                ( ((sc 8) (rest bitstring))
+                  `(,(integer->status-code sc) ,@(parse-item-setnotify-responses (sub1 num) rest))))
+      (if (= 0 (bitstring-length bs))
+          '()
+          `((error expected-eof ,(blob->string (bitstring->blob bs)))))))
+
 (define (parse-command bs)
   (bitmatch bs
             ( ((#x84 8) (num-responses 8)
@@ -96,7 +114,12 @@
                (responses bitstring))
               `(item-get-response ,@(parse-item-get-responses num-responses responses)))
 
-            ;; TODO: #x83 item-set-response
+            ( ((#x84 8) (num-item-sets 8)
+               (set-responses bitstring))
+              `(item-set-response ,@(parse-item-set-responses num-item-sets set-responses)))
+
+            ( ((#x86 8) (num 8) (rest bitstring))
+              `(item-setnotify-response ,@(parse-item-setnotify-responses num rest)))
 
             ( ((#x81 8) (rest bitstring))
               `(list-get-response ,@(parse-list-get-responses rest)))
