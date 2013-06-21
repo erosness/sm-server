@@ -113,6 +113,18 @@
  (bitstring->blob (dab-set-state 100 #t)))
 
 (test
+ "set dab-state off"
+ (blob ff ee       ;; id
+       04          ;; itemset
+       01          ;; item-count
+       02 01 00 00 ;; node address (dab_state)
+       00 01       ;; count
+       00          ;; on/off
+       ef          ;; checksum
+       )
+ (bitstring->blob (dab-set-state #xffee #f)))
+
+(test
  "set get-list-item"
  (blob 00 68       ;; fid
        01          ;; cmd / type
