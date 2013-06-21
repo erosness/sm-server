@@ -60,3 +60,17 @@
             ((symbol->node-address 'scan-state) 32)
             (#x001 16) ;; payload length in bytes
             ((if on? 1 0) 8))) ))
+
+;; 3.3.5
+(define ($item-setnotify adr on?)
+  (bitconstruct
+   (#x06 8)   ;; type (item_setnotify
+   (1 8)      ;; number of nodes
+   (adr 32)   ;; node address
+   ((if on? 1 0) 8)))
+
+(define (dab-set-udls fid on?)
+  ($frame fid ($item-setnotify (symbol->node-address 'udls) on?) ))
+
+(define (dab-set-tune-status fid on?)
+  ($frame fid ($item-setnotify (symbol->node-address 'tune-status) on?) ))

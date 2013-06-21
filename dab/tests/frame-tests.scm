@@ -177,3 +177,34 @@
        ef          ;; checksum
        )
  (bitstring->blob (dab-set-station 4 23)))
+
+(test
+ "item-setnotify udls on"
+ (blob 00 64       ;; blob
+       06          ;; item_setnotify
+       01          ;; num notifications
+       02 11 00 00 ;; node address
+       01          ;; on / off
+       ef)
+ (bitstring->blob (dab-set-udls #x64 #t)))
+
+(test
+ "item-setnotify udls off"
+ (blob 12 34       ;; blob
+       06          ;; item_setnotify
+       01          ;; num notifications
+       02 11 00 00 ;; node address
+       00          ;; on / off
+       ef)
+ (bitstring->blob (dab-set-udls #x1234 #f)))
+
+(test
+ "item-setnotify tune-status on"
+ (blob 23 45       ;; blob
+       06          ;; item_setnotify
+       01          ;; num notifications
+       02 06 00 00 ;; node address
+       01          ;; on / off
+       ef)
+ (bitstring->blob (dab-set-tune-status #x2345 #t)))
+
