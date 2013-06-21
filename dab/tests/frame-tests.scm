@@ -125,6 +125,32 @@
  (bitstring->blob (dab-set-state #xffee #f)))
 
 (test
+ "set dab-scan-state on"
+ (blob 00 65       ;; id
+       04          ;; itemset
+       01          ;; item-count
+       02 0a 01 00 ;; node address (dab_scan_state)
+       00 01       ;; count (bytes)
+       01          ;; on/off
+       ef          ;; checksum
+       )
+ (bitstring->blob (dab-set-scan-state 101 #t)))
+
+(test
+ "set dab-scan-state off"
+ (blob 11 22       ;; id
+       04          ;; itemset
+       01          ;; item-count
+       02 0a 01 00 ;; node address (dab_scan_state)
+       00 01       ;; count (bytes)
+       00          ;; on/off
+       ef          ;; checksum
+       )
+ (bitstring->blob (dab-set-scan-state #x1122 #f)))
+
+
+
+(test
  "set get-list-item"
  (blob 00 68       ;; fid
        01          ;; cmd / type

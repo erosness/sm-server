@@ -53,3 +53,10 @@
 (define (dab-set-state fid on?)
   ($frame fid (item-set ($dab-state on?))))
 
+(define (dab-set-scan-state fid on?)
+  ($frame fid
+          (item-set
+           (bitconstruct
+            ((symbol->node-address 'scan-state) 32)
+            (#x001 16) ;; payload length in bytes
+            ((if on? 1 0) 8))) ))
