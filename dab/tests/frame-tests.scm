@@ -170,7 +170,6 @@
        ef)
  (bitstring->blob (dab-get-uservice #x0068 #x0017)))
 
-
 (test
  "set dab-station"
  (blob 00 04       ;; fid

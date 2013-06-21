@@ -67,7 +67,7 @@
                         (parse-fields (sub1 num) rest))))
       '()))
 
-(define (parse-list-get-responses  bs)
+(define (parse-list-get-responses bs)
   (bitmatch bs
             ( ((sc 8)
                (key 32)
