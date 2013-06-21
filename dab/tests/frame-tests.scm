@@ -73,6 +73,15 @@
  `(frame 3 (list-get-response fail "\231"))
  (parse-frame "\x00\x03\x81\205\231"))
 
+(test-group
+ "parse-status-codes"
+ (test '(fail ok fail) (unpack-status-codes 3 "\x85\x00\x85"))
+ (test '(ok)           (unpack-status-codes 1 "\x00"))
+ (test '(1) (unpack-status-codes 1 "\x01"))
+ (test-error (unpack-status-codes 2 "\x00"))
+ (test-error (unpack-status-codes 0 (bitstring-of-any "\x00"))))
+
+
 
 ;;; ********** testing serialization
 
@@ -89,14 +98,6 @@
        00          ;; sort-count
        ef)
  (bitstring->blob (dab-get-uservice #x0068 #x0017)))
-
-(test-group
- "parse-status-codes"
- (test '(fail ok fail) (unpack-status-codes 3 "\x85\x00\x85"))
- (test '(ok)           (unpack-status-codes 1 "\x00"))
- (test '(1) (unpack-status-codes 1 "\x01"))
- (test-error (unpack-status-codes 2 "\x00"))
- (test-error (unpack-status-codes 0 (bitstring-of-any "\x00"))))
 
 
 (test
