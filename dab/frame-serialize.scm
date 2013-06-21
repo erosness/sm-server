@@ -44,3 +44,11 @@
 
 (define (dab-set-station fid channel)
   ($frame fid (item-set (dab-station channel))))
+
+(define ($dab-state on?)
+  (bitconstruct ((symbol->node-address 'state) 32)
+                (#x001 16)
+                ((if on? 1 0) 8)))
+
+(define (dab-set-state on?)
+  ($frame 100 (item-set ($dab-state on?))))

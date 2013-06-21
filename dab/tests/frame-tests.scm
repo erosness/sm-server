@@ -101,6 +101,18 @@
 ;;; ********** testing serialization
 
 (test
+ "set dab-state on"
+ (blob 00 64       ;; id
+       04          ;; itemset
+       01          ;; item-count
+       02 01 00 00 ;; node address (dab_state)
+       00 01       ;; count
+       01          ;; on/off
+       ef          ;; checksum
+       )
+ (bitstring->blob (dab-set-state #t)))
+
+(test
  "set get-list-item"
  (blob 00 68       ;; fid
        01          ;; cmd / type
