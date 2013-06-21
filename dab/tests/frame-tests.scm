@@ -110,7 +110,7 @@
        01          ;; on/off
        ef          ;; checksum
        )
- (bitstring->blob (dab-set-state #t)))
+ (bitstring->blob (dab-set-state 100 #t)))
 
 (test
  "set get-list-item"

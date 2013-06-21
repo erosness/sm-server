@@ -50,5 +50,6 @@
                 (#x001 16)
                 ((if on? 1 0) 8)))
 
-(define (dab-set-state on?)
-  ($frame 100 (item-set ($dab-state on?))))
+(define (dab-set-state fid on?)
+  ($frame fid (item-set ($dab-state on?))))
+
