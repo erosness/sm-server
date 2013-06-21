@@ -53,31 +53,33 @@
               `(,(integer->status-code sc) ,(blob->string (bitstring->blob rest))))))
 
 
+
 ;; OBS! Nodes are 32-bit addresses, but Chicken, on a 32-bit system,
 ;; has only 27-bit for fixnums. As long as all nodes are <=
 ;; #x03FFFFFF (most-positive-fixnum), then we'll be fine
 (define node-addresses
   '((state            . #x02010000)
-    (scan_state       . #x020a0100)
-    (scan_update      . #x020a0200)
-    (tunestatus       . #x02060000)
+    (scan-state       . #x020a0100)
+    (scan-update      . #x020a0200)
+    (tune-status       . #x02060000)
     (udls             . #x02110000)
-    (sl_uService_list . #x02100d00)
-    (sl_station       . #x02100100)))
+    (sl-uservice-list . #x02100d00)
+    (sl-station       . #x02100100)))
 
+;; if not found, return integer 
 (define (symbol->node-address label)
   (alist-ref label node-addresses))
 
-(define (node-address->symbol adr)
+(define (describe-node adr)
   (define (swap pair) (cons (cdr pair) (car pair)))
-  (alist-ref adr (map swap node-addresses)))
+  (alist-ref adr (map swap node-addresses) eq? adr))
 
 
 
 (define (parse-notification body)
   (bitmatch body
             ( ((address 32) (payload bitstring))
-              `(notification ,(node-address->symbol address)
+              `(notification ,(describe-node address)
                              ,(blob->string (bitstring->blob payload)) ))))
 
 (define (parse-command bs)

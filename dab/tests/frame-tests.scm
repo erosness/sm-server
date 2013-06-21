@@ -25,10 +25,10 @@
 
 (test-group
  "node addresses"
- (test 'sl_station (node-address->symbol #x02100100))
- (test #f (node-address->symbol #x0fffffff))
+ (test 'sl-station (describe-node #x02100100))
+ (test #x0fFFffFF (describe-node #x0fFFffFF))
 
- (test #x02100100 (symbol->node-address 'sl_station))
+ (test #x02100100 (symbol->node-address 'sl-station))
  (test #f (symbol->node-address 'unknown-node!)))
 
 
