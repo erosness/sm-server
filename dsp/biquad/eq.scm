@@ -12,6 +12,15 @@
      buffer gain f0 Fs Q)
     buffer))
 
+;; the ADAU1701 sigmadsp stores a0 and a1 negated, which is what
+;; the tablegen displays. 
+(define (invert-a-coefficients vector)
+  (define (r idx) (f64vector-ref vector idx))
+  (f64vector (r 0)
+             (r 1)
+             (r 2)
+             (- (r 3))
+             (- (r 4))))
 ;; usage:
 ;;                      db   hz  samples/s   ?
 ;; (biquad-coefficients  1  150  44100      0.7)
