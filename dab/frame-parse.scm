@@ -14,7 +14,7 @@
                        (unpack-status-codes (sub1 num) rest))))
       (if (= 0 (bitstring-length bs))
           '()
-          (error "expecting empty bitstring" bs))))
+          `((error expected-eof ,(blob->string (bitstring->blob bs)))))))
 
 (define (parse-item-get-responses num bs)
   (if (> num 0)
@@ -29,7 +29,7 @@
                 )
       (if (= 0 (bitstring-length bs))
           '()
-          (error "expecting empty bitstring" bs))))
+          `((error expected-eof ,(blob->string (bitstring->blob bs)))))))
 
 ;; FSAPI protocol reference 3.4.5
 (define (parse-fields num bs)
