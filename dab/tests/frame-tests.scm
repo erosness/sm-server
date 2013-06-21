@@ -17,6 +17,15 @@
     ((_ hex ...) (string->blob (blob-string hex ...)))))
 
 
+(test-group
+ "node addresses"
+ (test 'sl_station (node-address->symbol #x02100100))
+ (test #f (node-address->symbol #x0fffffff))
+
+ (test #x02100100 (symbol->node-address 'sl_station))
+ (test #f (symbol->node-address 'unknown-node!)))
+
+
 (test
  "parse item-set-response"
  '(frame #x0362 (item-set-response ok))

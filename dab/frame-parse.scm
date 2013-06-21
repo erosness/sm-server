@@ -54,18 +54,24 @@
 
 
 ;; OBS! Nodes are 32-bit addresses, but Chicken, on a 32-bit system,
-;; has only 27-bit for fixnums. As long as all nodes are <= #x03FFFFFF
-;; then we'll be fine.
+;; has only 27-bit for fixnums. As long as all nodes are <=
+;; #x03FFFFFF (most-positive-fixnum), then we'll be fine
+(define node-addresses
+  '((state            . #x02010000)
+    (scan_state       . #x020a0100)
+    (scan_update      . #x020a0200)
+    (tunestatus       . #x02060000)
+    (udls             . #x02110000)
+    (sl_uService_list . #x02100d00)
+    (sl_station       . #x02100100)))
+
+(define (symbol->node-address label)
+  (alist-ref label node-addresses))
+
 (define (node-address->symbol adr)
-  (case adr
-    ((#x02010000) 'state)
-    ((#x020a0100) 'scan_state)
-    ((#x020a0200) 'scan_update)
-    ((#x02060000) 'tunestatus)
-    ((#x02110000) 'udls)
-    ((#x02100d00) 'sl_uService_list)
-    ((#x02100100) 'sl_station)
-    (else adr)))
+  (define (swap pair) (cons (cdr pair) (car pair)))
+  (alist-ref adr (map swap node-addresses)))
+
 
 
 (define (parse-notification body)
