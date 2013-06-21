@@ -17,6 +17,12 @@
     ((_ hex ...) (string->blob (blob-string hex ...)))))
 
 
+(test "bitstring default endian"
+      "\x00\xff\x00\xff"
+      (blob->string
+       (bitstring->blob
+        (bitconstruct (#xff00ff 32)))))
+
 (test-group
  "node addresses"
  (test 'sl_station (node-address->symbol #x02100100))
