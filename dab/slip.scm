@@ -35,32 +35,3 @@
 
 
 
-(define port (open-input-file "/home/klm/cube/cs/dab-uart-lib/data/channel.uart"))
-(parse-frame (let ((i (with-input-from-port port (lambda () (read-slip)))))
-               (set! x i) i))
-
-
-(define (readable? fd)
-  (let-values (((rd wr) (file-select fd #f 0))) rd))
-(define (writable? fd)
-  (let-values (((rd wr) (file-select #f fd 0))) wr))
-
-
-(define dab-fd (file-open "/dev/ttymxc0" open/rdwr))
-
-(readable? dab-fd)
-(writable? dab-fd)
-
-(file-write dab-fd "\300\x00\x01\x04\x01\x02\x10\x01\x00\x00\x04\x00\x00\x00\x01\357\357\300")
-(file-read dab-fd 1)
-
-(define tmp-fd (file-open "/cache/tmp" (+ open/rdwr open/creat)))
-(file-write tmp-fd "hello")
-(set! (file-position tmp-fd) 1)
-(file-read  tmp-fd 3)
-(file-select tmp-fd #f 0)
-
-
-
-
-(define frame (blob->string (bitstring->blob (dab-set-station 1 1))))
