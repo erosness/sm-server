@@ -1,1 +1,4 @@
 /cube-server
+/dsp/biquad/biquad.so
+/dsp/biquad/biquad.import.scm
+/dsp/biquad/biquad.import.so
