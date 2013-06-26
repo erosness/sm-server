@@ -2,3 +2,6 @@
 /dsp/biquad/biquad.so
 /dsp/biquad/biquad.import.scm
 /dsp/biquad/biquad.import.so
+/dsp/q523/q523.so
+/dsp/q523/q523.import.so
+/dsp/q523/q523.import.scm
