@@ -4,7 +4,7 @@
 (use srfi-4)
 
 #>
-#include "fxconv.c"
+#include "q523-impl.c"
 <#
 
 (define fp->q523! (foreign-lambda void "To523" u8vector float))

@@ -22,6 +22,12 @@ void To523(byte* param_hex, float param_dec)
   //get byte 0 (MSBs) of parameter value
   param_hex[0]=(byte)(param227>>24);
   //invert sign bit to get correct sign
-  param_hex[0] = param_hex[0] ^ 0x08;
+
+  param_hex[0] = (param_hex[0] ^ 0x08) | 
+    // (patch: sigmatel always outputs 0xf on the 4 first bits
+    // these are ignored in q523 but for testing purposes, it's easier
+    // to use the same convension as Sigma Studio)
+    (param_dec < 0 ? 0xF0 : 0x00) ;
+
   //param_hex[1] = 0xef;
 }
