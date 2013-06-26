@@ -9,7 +9,7 @@
   (let ((seq 0))
     (lambda ()
       (set! seq (add1 seq))
-      seq)))
+      (conc "\n" "Seq: " seq))))
 
 (define (->json x)
   (with-output-to-string (lambda () (json-write x))))
