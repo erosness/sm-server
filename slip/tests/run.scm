@@ -39,3 +39,4 @@
                    (map integer->char (iota 256))))
  (test-end))
 
+(test-exit)
