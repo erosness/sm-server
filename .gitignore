@@ -11,3 +11,10 @@
 /dsp/dsp.so
 /dsp/dsp.import.scm
 /dsp/dsp.import.so
+/dab/dab.import.scm
+/dab/dab.import.so
+/dab/dab.so
+/dab/slip.import.scm
+/i2c/i2c.import.scm
+/i2c/i2c.import.so
+/i2c/i2c.so
