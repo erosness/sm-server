@@ -1,4 +1,4 @@
-(use bitstring)
+(use bitstring data-structures)
 
 (define (integer->status-code int)
   (case int
