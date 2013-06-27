@@ -1,0 +1,10 @@
+
+* dsp project
+** TODO make biquad module (must be compiled, it's mostly C)
+So that we can do (use biquad) (biquad-coefficients 150hz ...)
+
+* dsp (ADAU1701) interface
+** TODO set music/voice mode
+** TODO set EQ
+** TODO safeload write volume
+** TODO getters for volume / mute ?
