@@ -1,19 +1,21 @@
-(module slip *
+(module slip (slip-read
+              slip-write)
 
 (import chicken scheme)
-(use srfi-4)
+(use srfi-4   ;; homogeneous lists
+     srfi-13) ;; strings
 
 ;; Scheme implementation of SLIP (http://tools.ietf.org/html/rfc1055)
 ;; The reference implementation was not used because it did not allow
 ;; signalling a full buffer, neither did it handle EOF.
 ;; We only need the byte-stream --> packet conversion which is
 ;; implemented below.
+(define END     (integer->char #o300))
+(define ESC     (integer->char #o333))
+(define ESC_END (integer->char #o334))
+(define ESC_ESC (integer->char #o335))
 
 (define (slip-read #!optional (port (current-input-port)))
-  (define END     (integer->char #o300))
-  (define ESC     (integer->char #o333))
-  (define ESC_END (integer->char #o334))
-  (define ESC_ESC (integer->char #o335))
   ;; read from port recursively until we hit END or #!eof
   ;; if we END with empty packet, we just continue.
   ;; hitting eof with empty packet, we return #f to signal eof.
