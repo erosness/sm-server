@@ -21,6 +21,7 @@
  (parse-frame (blob 03 62 ;; fid
                     84    ;; item-set-response
                     01 00 ;; status: 00 => ok
+                    ef))) ;; magic checksum
                     )))
 
 (test
@@ -32,7 +33,7 @@
                     00       ;; status: ok
                     00 03    ;; blob-length
                     41 42 43 ;; blob body
-                    )))
+                    ef)))    ;; magic checksum
 
 (test-group
  "parse notification"
@@ -52,12 +53,13 @@
   (parse-frame (blob 13 14
                      c6
                      02 11 00 00
-                     41 42 43))))
+                     41 42 43
+                     ef))))
 
 (test
  "parse unknown frame"
  `(frame #x0102 (unknown #x11 "ABC"))
- (parse-frame (blob 01 02 11 41 42 43)))
+ (parse-frame (blob 01 02 11 41 42 43 ef)))
 
 (test-error (parse-frame "\x00\x01"))
 
@@ -69,7 +71,7 @@
 (test
  "parse list-get-response fail"
  `(frame 3 (list-get-response fail "\231"))
- (parse-frame "\x00\x03\x81\205\231"))
+ (parse-frame "\x00\x03\x81\205\231\xef")) ;; \xef : magic checksum
 
 (test-group
  "parse-status-codes"
@@ -81,7 +83,7 @@
        (unpack-status-codes 0 (bitstring-of-any "\x00"))))
 
 (test "set-itemnotify-response"
-      '(frame 1 (item-setnotify-response ok (error expected-eof "\x10")))
+      '(frame 1 (item-setnotify-response ok))
       (parse-frame "\x00\x01\x86\x01\x00\x10"))
 (parse-frame "\x00\x01\x86\x01\x00\x10")
 

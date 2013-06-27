@@ -84,7 +84,9 @@
   (if (> num 0)
       (bitmatch bs
                 ( (( sc 8) (rest bitstring))
-                  `(,(integer->status-code sc) ,@(parse-item-set-responses (sub1 num) rest))))
+                  `(,(integer->status-code sc) ,@(parse-item-set-responses (sub1 num) rest)))
+                
+                (else `((error unexpected-eof)) ))
       (if (= 0 (bitstring-length bs))
           '()
           `((error expected-eof ,(blob->string (bitstring->blob bs)))))))
@@ -127,11 +129,24 @@
 
             ))
 
-(define (parse-frame data)
-  (bitmatch data
-            ;; TODO: check crc!
-            ( ((fid 16) (rest bitstring))
-              `(frame ,fid ,(parse-command rest)))
+(define (bitstring-drop-right bs bits)
+  (let ((bs (bitstring-of-any bs)))
+   (make-bitstring (bitstring-offset bs)
+                   (- (bitstring-numbits bs) bits)
+                   (bitstring-buffer bs)
+                   (bitstring-getter bs)
+                   #f ;; no bitstring-setter !
+                   )))
 
-            (else (error "expected 16-bit fid and 8-bit type"
-                         (bitstring->blob (bitstring-of-any data)))))  )
+
+(define (parse-frame frame)
+  ;; the last byte is always the checksum
+  ;; TODO: verify package data with checksum byte!
+  (let ((checksumless-frame (bitstring-drop-right frame 8)))
+    (bitmatch checksumless-frame
+              ( ((fid 16) (rest bitstring))
+                `(frame ,fid ,(parse-command rest)))
+
+              (else (error "expected 16-bit fid and 8-bit type"
+                           (bitstring->blob (bitstring-of-any checksumless-frame))))))  )
+
