@@ -8,3 +8,6 @@
 /blobbery/blobbery.so
 /blobbery/blobbery.import.scm
 /blobbery/blobbery.import.so
+/dsp/dsp.so
+/dsp/dsp.import.scm
+/dsp/dsp.import.so
