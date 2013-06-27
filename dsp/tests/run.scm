@@ -33,4 +33,4 @@
   (blob-string 08 14 00 FF 90 82 1A )
   (blob-string 08 19 01 28 )
   (blob-string 08 1C 00 3C ))
- (set-eq 1 5 1000))
+ (eq-packets 1 5 1000))

@@ -9,11 +9,11 @@
 (define *eq-addresses* (include "sigma-eq-addresses.scm"))
 (define *band-frequencies* '(63 120 500 2000 10000)) ;; hz
 
-(define (set-eq band-index gain
-                #!optional
-                (hz (list-ref *band-frequencies* band-index))
-                (samplerate 48000)
-                (slope 0.71))
+(define (eq-packets band-index gain
+                    #!optional
+                    (hz (list-ref *band-frequencies* band-index))
+                    (samplerate 48000)
+                    (slope 0.71))
   ;; band-index is 0-4 and addresses which of the 5 eq-sliders we're
   ;; chaning. we need this index for register addresses and hz for
   ;; coefficient calculations.
