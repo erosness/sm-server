@@ -18,3 +18,6 @@
 /i2c/i2c.import.scm
 /i2c/i2c.import.so
 /i2c/i2c.so
+/uart/uart.import.scm
+/uart/uart.import.so
+/uart/uart.so
