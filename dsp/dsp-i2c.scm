@@ -7,6 +7,6 @@
 (let-syntax ((maybe-include
               (ir-macro-transformer
                (lambda _ (if (feature? 'android)
-                        `(include-relative "dsp-android.scm")
+                        `(include-relative "dsp-i2c-android.scm")
                         `(void))))))
   (maybe-include))
