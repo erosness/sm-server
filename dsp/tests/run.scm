@@ -34,3 +34,22 @@
   (blob-string 08 19 01 28 )
   (blob-string 08 1C 00 3C ))
  (eq-packets 1 5 1000))
+
+(test
+ "volume safeload packets"
+ '("\b\x10\x00\x00\200\x00\x00" ;; val data
+   "\b\x15\x00K"                ;; val adr
+   "\b\x11\x00\x00\x00\b\x00"   ;; step data
+   "\b\x16\x00L"                ;; step adr
+   "\b\x1c\x00<")               ;; ist
+ (volume-packets 1))
+
+(test
+ "mute packet"
+ '("\x00S\x00\x00\x00\x00")
+ (mute-packets #t))
+
+(test
+ "unmute packet"
+ '("\x00S\x00\x80\x00\x00")
+ (mute-packets #f))
