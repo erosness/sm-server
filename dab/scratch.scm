@@ -1,10 +1,7 @@
-(use posix srfi-18)
+(use posix srfi-18 bitstring
+     uart dab slip)
 
-
-;; configure serial communication, see serial.scm or uart.c
-;; (uart-init dab-fd)
-
-(define dab-fd (file-open "/dev/ttymxc0" open/rdwr))
+(define dab-fd (uart-open "/dev/ttymxc0"))
 
 (define my-port (make-input-port (lambda ()
                                    (thread-wait-for-i/o! dab-fd #:input)
@@ -32,9 +29,10 @@
 
 ;; next available packet or #f (non-blocking)
 (if (file-select dab-fd #f 0)
-    (parse-frame (read-slip my-port))
+    (parse-frame (slip-read my-port))
     'would-block)
 
+(uart-close dab-fd)
 
 ;; read it all: (crashes when you C-c C-c)
 ;; (let loop () (pp (parse-frame (read-slip my-port))) (loop))
