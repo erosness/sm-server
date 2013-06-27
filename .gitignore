@@ -21,3 +21,6 @@
 /uart/uart.import.scm
 /uart/uart.import.so
 /uart/uart.so
+/slip/slip.import.scm
+/slip/slip.import.so
+/slip/slip.so
