@@ -29,6 +29,12 @@
 
  (test "bigger string " "\300ABCD\300" (sw "ABCD"))
 
+ (test "uses explicit port argument"
+       "\300A\333\334B\333\335C\300"
+  (let ((p (open-output-string)))
+    (slip-write "A\300B\333C" p)
+    (get-output-string p)))
+
  (test-begin "byterange unchange (except END and ESC)")
  (for-each (lambda (char)
              (test (conc "slip-write char "(char->integer char)) ;; <- description
