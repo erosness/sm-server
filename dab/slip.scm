@@ -1,3 +1,6 @@
+(module slip *
+
+(import chicken scheme)
 (use srfi-4)
 
 ;; Scheme implementation of SLIP (http://tools.ietf.org/html/rfc1055)
@@ -33,5 +36,6 @@
                          c)
                      r)))))))
 
+;; TODO: write slip-write
 
-
+)
