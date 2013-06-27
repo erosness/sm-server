@@ -1,4 +1,4 @@
-(use test bitstring blobbery)
+(use test bitstring blobbery dab)
 
 (test "bitstring default endian"
       "\x00\xff\x00\xff"
@@ -85,8 +85,6 @@
 (test "set-itemnotify-response"
       '(frame 1 (item-setnotify-response ok))
       (parse-frame "\x00\x01\x86\x01\x00\x10"))
-(parse-frame "\x00\x01\x86\x01\x00\x10")
-
 
 
 ;;; ********** testing serialization
@@ -197,3 +195,5 @@
        ef)
  (bitstring->blob (dab-set-tune-status #x2345 #t)))
 
+
+(test-exit)
