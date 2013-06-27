@@ -38,6 +38,14 @@
                          c)
                      r)))))))
 
-;; TODO: write slip-write
+(define (slip-write string #!optional (port (current-output-port)))
+  (define (w char) (write-char char port))
+  (w END)
+  (string-for-each (lambda (char)
+                     (cond ((eq? END char) (w ESC) (w ESC_END))
+                           ((eq? ESC char) (w ESC) (w ESC_ESC))
+                           (else (w char))))
+                   string)
+  (w END))
 
 )
