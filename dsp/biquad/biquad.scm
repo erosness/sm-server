@@ -24,6 +24,12 @@
              (r 2)
              (- (r 3))
              (- (r 4))))
+
+(define (sigma-eq-coefficients gain f0_ samplingrate slope)
+  (f64vector->list
+   (invert-a-coefficients
+    (biquad-coefficients gain f0_ samplingrate slope))))
+
 ;; usage:
 ;;                      db   hz  samples/s   ?
 ;; (biquad-coefficients  1  150  44100      0.7)
