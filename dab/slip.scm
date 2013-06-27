@@ -6,7 +6,7 @@
 ;; We only need the byte-stream --> packet conversion which is
 ;; implemented below.
 
-(define (read-slip #!optional (port (current-input-port)))
+(define (slip-read #!optional (port (current-input-port)))
   (define END     (integer->char #o300))
   (define ESC     (integer->char #o333))
   (define ESC_END (integer->char #o334))
