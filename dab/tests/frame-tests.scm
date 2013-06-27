@@ -22,6 +22,14 @@
                     84    ;; item-set-response
                     01 00 ;; status: 00 => ok
                     ef))) ;; magic checksum
+
+(test
+ "parse faulty item-set-response"
+ `(frame #x1234 (item-set-response (error unexpected-eof)))
+ (parse-frame (blob 12 34 ;;fid
+                    84    ;; item-set-response
+                    02    ;; number of responses
+                    ef    ;; magic checksum
                     )))
 
 (test
