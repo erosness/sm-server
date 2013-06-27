@@ -38,9 +38,6 @@
   (define (swap pair) (cons (cdr pair) (car pair)))
   (alist-ref adr (map swap node-addresses) eq? adr))
 
-
-
-
 (define (parse-item-get-responses num bs)
   (if (> num 0)
       (bitmatch bs
@@ -76,8 +73,6 @@
               `(,(integer->status-code sc) ,(parse-fields num-fields rest)))
             ( (( sc 8) (rest bitstring))
               `(,(integer->status-code sc) ,(blob->string (bitstring->blob rest))))))
-
-
 
 (define (parse-notification body)
   (bitmatch body
