@@ -130,7 +130,7 @@
             ))
 
 (define (bitstring-drop-right bs bits)
-  (let ((bs (bitstring-of-any bs)))
+  (let ((bs (->bitstring bs)))
    (make-bitstring (bitstring-offset bs)
                    (- (bitstring-numbits bs) bits)
                    (bitstring-buffer bs)
@@ -148,5 +148,5 @@
                 `(frame ,fid ,(parse-command rest)))
 
               (else (error "expected 16-bit fid and 8-bit type"
-                           (bitstring->blob (bitstring-of-any checksumless-frame))))))  )
+                            ,(bitstring->blob (->bitstring checksumless-frame))))))  )
 

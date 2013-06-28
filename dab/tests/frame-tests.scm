@@ -88,7 +88,7 @@
  (test '(1) (unpack-status-codes 1 "\x01"))
  (test-error (unpack-status-codes 2 "\x00"))
  (test '((error expected-eof "\x00"))
-       (unpack-status-codes 0 (bitstring-of-any "\x00"))))
+       (unpack-status-codes 0 (->bitstring "\x00"))))
 
 (test "set-itemnotify-response"
       '(frame 1 (item-setnotify-response ok))
