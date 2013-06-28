@@ -147,6 +147,5 @@
               ( ((fid 16) (rest bitstring))
                 `(frame ,fid ,(parse-command rest)))
 
-              (else (error "expected 16-bit fid and 8-bit type"
-                            ,(bitstring->blob (->bitstring checksumless-frame))))))  )
+              (else `(error invalid-frame-header ,frame))))  )
 

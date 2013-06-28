@@ -69,7 +69,7 @@
  `(frame #x0102 (unknown #x11 "ABC"))
  (parse-frame (blob 01 02 11 41 42 43 ef)))
 
-(test-error (parse-frame "\x00\x01"))
+(test '(error invalid-frame-header "\x00\x01") (parse-frame "\x00\x01"))
 
 (test
  "parse list-get-response ok"
