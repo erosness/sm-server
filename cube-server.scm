@@ -2,7 +2,6 @@
 
 (include "broadcast.scm")
 (include "uri-handler.scm")
-(include "dsp/dsp.scm")
 (include "discovery.scm")
 
 (define get-sequence-header
