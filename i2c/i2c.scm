@@ -1,7 +1,7 @@
 (module i2c *
 
 (import chicken scheme foreign)
-(use ioctl posix)
+(use posix)
 
 #>
 #include <sys/ioctl.h>
