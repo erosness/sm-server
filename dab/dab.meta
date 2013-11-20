@@ -1,1 +1,6 @@
-((author "Adellica"))
+;; -*- scheme -*-
+((author "Adellica")
+ (depends bitstring blobbery test s48-modules)
+ (test-depends test)
+ (license proprietary)
+ (category parsing))
