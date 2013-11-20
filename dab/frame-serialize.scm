@@ -2,9 +2,7 @@
 
 (define ($frame fid body)
   (bitconstruct (fid 16)
-                (body bitstring)
-                (#xef 8) ;; magic checksum
-                ))
+                (body bitstring)))
 
 (define ($list-get list-item)
   (bitconstruct (#x01 8) ;; header

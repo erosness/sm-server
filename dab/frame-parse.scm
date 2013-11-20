@@ -127,25 +127,15 @@
             ( ((command-type 8) (rest bitstring))
               `(unknown ,command-type ,(blob->string (bitstring->blob rest))))
 
-            ))
-
-(define (bitstring-drop-right bs bits)
-  (let ((bs (->bitstring bs)))
-   (make-bitstring (bitstring-offset bs)
-                   (- (bitstring-numbits bs) bits)
-                   (bitstring-buffer bs)
-                   (bitstring-getter bs)
-                   #f ;; no bitstring-setter !
-                   )))
+            (else (error "no command found for " bs))))
 
 
 (define (parse-frame frame)
   ;; the last byte is always the checksum
   ;; TODO: verify package data with checksum byte!
-  (let ((checksumless-frame (bitstring-drop-right frame 8)))
-    (bitmatch checksumless-frame
-              ( ((fid 16) (rest bitstring))
-                `(frame ,fid ,(parse-command rest)))
+  (bitmatch frame
+            ( ((fid 16) (rest bitstring))
+              `(frame ,fid ,(parse-command rest)))
 
-              (else `(error invalid-frame-header ,frame))))  )
+            (else `(error invalid-frame-header ,frame)))  )
 
