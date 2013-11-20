@@ -19,7 +19,7 @@
   (ioctl-int fd I2C_SLAVE i2c-addr))
 
 (define (i2c-open path #!optional (i2c-addr #x34))
-  (define fd (file-open "/dev/i2c-2" open/rdwr))
+  (define fd (file-open path open/rdwr))
   (i2c-set-slave-addr fd i2c-addr)
   fd)
 
