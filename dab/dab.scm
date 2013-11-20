@@ -1,7 +1,11 @@
 (module dab *
 (import extras chicken scheme)
 
-(include "frame-parse.scm")
-(include "frame-serialize.scm")
+
+(use s48-modules)
+
+
+(include-relative "frame-parse.scm")
+(include-relative "frame-serialize.scm")
 
 )
