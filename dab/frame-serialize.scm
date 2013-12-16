@@ -35,14 +35,14 @@
    (#x01 8) ;; number of items
    (item bitstring)))
 
-(define (dab-station channel)
+(define ($dab-station channel)
   (bitconstruct ("\x02\x10\x01\x00" bitstring) ;; node address
                 (#x0004 16)                    ;; payload length
                 (channel 32)                   ;; payload
                 ))
 
 (define (dab-set-station fid channel)
-  ($frame fid ($item-set (dab-station channel))))
+  ($frame fid ($item-set ($dab-station channel))))
 
 (define ($dab-state on?)
   (bitconstruct ((symbol->node-address 'state) 32)
