@@ -1,21 +1,9 @@
 (use posix srfi-18 bitstring
-     uart dab slip)
+     dab i2c uart slip
+     )
 
-(define dab-fd (uart-open "/dev/ttymxc0"))
-
-(define my-port (make-input-port (lambda ()
-                                   (thread-wait-for-i/o! dab-fd #:input)
-                                   (string-ref (car (file-read dab-fd 1)) 0))
-                                 (lambda () (file-select dab-fd #f 0))
-                                 (lambda () (file-close dab-fd))))
-
-;; TODO: fix slip.scm to write packets to ports
-;; important! must escape ESC and END bytes in packet body
-(define (send-dab-packet packet)
-  (file-write dab-fd (conc "\300"
-                           (blob->string (bitstring->blob packet))
-                           "\300")))
-
+(include "dab-init.uart.scm")
+;; (include "dab-init.i2c.scm")
 
 (send-dab-packet (dab-set-state 127 #t))
 (send-dab-packet (dab-set-scan-state 200 #t))
