@@ -28,7 +28,8 @@
                                         ($field-short-label)))))
 
 
-(define (item-set item)
+
+(define ($item-set item)
   (bitconstruct
    (#x04 8) ;; type
    (#x01 8) ;; number of items
@@ -41,7 +42,7 @@
                 ))
 
 (define (dab-set-station fid channel)
-  ($frame fid (item-set (dab-station channel))))
+  ($frame fid ($item-set (dab-station channel))))
 
 (define ($dab-state on?)
   (bitconstruct ((symbol->node-address 'state) 32)
@@ -49,11 +50,11 @@
                 ((if on? 1 0) 8)))
 
 (define (dab-set-state fid on?)
-  ($frame fid (item-set ($dab-state on?))))
+  ($frame fid ($item-set ($dab-state on?))))
 
 (define (dab-set-scan-state fid on?)
   ($frame fid
-          (item-set
+          ($item-set
            (bitconstruct
             ((symbol->node-address 'scan-state) 32)
             (#x001 16) ;; payload length in bytes
