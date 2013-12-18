@@ -135,7 +135,9 @@
   ;; TODO: verify package data with checksum byte!
   (bitmatch frame
             ( ((fid 16) (rest bitstring))
-              `(frame ,fid ,(parse-command rest)))
+              (if (zero? (bitstring-length rest))
+                  `(error invalid-frame ,frame)
+                  `(frame ,fid ,(parse-command rest))))
 
             (else `(error invalid-frame-header ,frame)))  )
 
