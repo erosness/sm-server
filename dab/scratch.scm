@@ -25,10 +25,15 @@
 
 
 (dab-send (fm.state #t))
+
 (dab-send (fm.frequency))
+(dab-send (fm.frequency #:notify #t))
+(dab-send (fm.frequency 87500))
+(dab-send (fm.frequency 97500))
+
 (dab-send (fm.tuneStatus))
 
-(dab-send (fm.frequency #t))
+(dab-send (fm.frequency 100000))
 
 
 ;; ==============================
