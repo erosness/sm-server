@@ -5,24 +5,31 @@
 (include "dab-init.uart.scm")
 ;; (include "dab-init.i2c.scm")
 
-(send-dab-packet (dab-set-state 127 #t))
-(send-dab-packet (dab-set-scan-state 200 #t))
-(send-dab-packet (dab-set-udls 102 #t))
-(send-dab-packet (dab-set-tune-status 66 #t))
-(send-dab-packet (dab-set-station 105 14))
 
-(for-each (lambda (i)
-            (send-dab-packet (dab-get-uservice (+ 1000 i) i)))
-          (iota 50))
+(send-dab-packet (dab.state 1 #t))
+(send-dab-packet (dab.scan.state 127 #t))
+(send-dab-packet (dab.udls 102 #t))
+(send-dab-packet (dab.tune.status 66 #t))
+(send-dab-packet (dab.station 105 14))
 
-;; next available packet or #f (non-blocking)
-(if (file-select dab-fd #f 0)
-    (parse-frame (slip-read my-port))
-    'would-block)
+(send-dab-packet (misc.clock.localTime 111))
 
-(uart-close dab-fd)
+(send-dab-packet (audio.sampleRate 112))
 
-;; read it all: (crashes when you C-c C-c)
-;; (let loop () (pp (parse-frame (read-slip my-port))) (loop))
+;; (send-dab-packet ($frame 998 ($item-get "\x02\x10\x0d\x00")))
 
+;; repl helper that prints incoming frames:
+;; (thread-terminate! thread)
+(define thread
+  (thread-start!
+   (lambda ()
+     (let loop ()
+       (thread-wait-for-i/o! dab-fd #:input)
+       (pp (read-dab-packet))
+       (thread-sleep! 0.1)
+       (loop)))))
 
+(send-dab-packet (fm.state 776 #f))
+(send-dab-packet (fm.frequency 776))
+
+(integer->status-code #x83)
