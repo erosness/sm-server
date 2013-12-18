@@ -2,7 +2,15 @@
 
 (define (integer->status-code int)
   (case int
-    ((#x00) 'ok)
+    ((#x00) 'FS_OK)
+    ((#x85) 'FS_FAIL)
+    ((#x01) 'FS_LIST_END)
+    ((#x80) 'FS_PACKET_BAD)
+    ((#x81) 'FS_NODE_DOES_NOT_EXIST)
+    ((#x82) 'FS_ITEM_DOES_NOT_EXIST)
+    ((#x83) 'FS_NODE_BLOCKED)
+    ((#x84) 'FS_REPLY_TOO_BIG)
+    ((#x86) 'FS_REQUEST_INVALID)
     ((#x85) 'fail)
     (else int)))
 
@@ -25,7 +33,7 @@
   '((state            . #x02010000)
     (scan-state       . #x020a0100)
     (scan-update      . #x020a0200)
-    (tune-status       . #x02060000)
+    (tune-status      . #x02060000)
     (udls             . #x02110000)
     (sl-uservice-list . #x02100d00)
     (sl-station       . #x02100100)))
