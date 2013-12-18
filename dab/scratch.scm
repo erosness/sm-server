@@ -34,8 +34,21 @@
 (dab-send (fm.tuneStatus))
 
 (dab-send (fm.frequency 100000))
+(dab-send (fm.search))
+(dab-send (fm.search 'down))
+(dab-send (fm.search 'up))
 
+(dab-send (fm.signalStrength))
+(dab-send (fm.rds.active))
 
+(dab-send (fm.rds.ps))
+(dab-send (fm.rds.pty))
+(dab-send (fm.rds.radioText))
+(dab-send (fm.rds.radioText #:notify #t))
+
+(dab-send (fm.searchLevel))
+
+;; (thread-sleep! 1)
 ;; ==============================
 ;; repl helper that prints incoming frames:
 ;; (thread-terminate! thread)

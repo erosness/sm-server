@@ -47,6 +47,10 @@
   (or (alist-ref x alist) ;; OBS: won't work if #f is in the alist
       (error (conc x " not in enum " (map car alist)))))
 
+(define-syntax nt:e8
+  (syntax-rules ()
+    ((_ adr enums ...) (nt:single adr x (#x0001 16)
+                                  ((alist-ref/error x (indexify-list enums ...)) 8)))))
 
 
 ;; ============================== bitstring constructs
@@ -110,11 +114,14 @@
 
 ;; fm
 (define fm.state           (nt:b8  "\x03\x01\x00\x00"))
+(define fm.search          (nt:e8  "\x03\x04\x00\x00" idle up down))
 (define fm.signalStrength  (nt:u8  "\x03\x06\x00\x00"))
 (define fm.frequency       (nt:u32 "\x03\x03\x00\x00"))
 (define fm.tuneStatus      (nt:b8  "\x03\x08\x00\x00"))
+(define fm.searchLevel     (nt:e8 "\x03\x05\x00\x00" all strong))
 
 ;; fm rds
+(define fm.rds.active      (nt:e8  "\x03\x09\x01\x00" idle decoding))
 (define fm.rds.ps          (nt:c8  "\x03\x09\x02\x00"))
 (define fm.rds.pty         (nt:u8  "\x03\x09\x03\x00"))
 (define fm.rds.radioText   (nt:c8  "\x03\x09\x04\x00"))

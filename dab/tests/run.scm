@@ -196,4 +196,14 @@
  (bitstring->blob (dab.tune.status #:notify #t)))
 
 
+(test
+ "e8 (fm.search)"
+ (blob 04 ;; item-set
+       01 ;; num items
+       03 04 00 00 ;; node address
+       00 01 ;; payload length (1 byte)
+       01 ;; enum up => 1
+       )
+ (bitstring->blob (fm.search 'up)))
+
 (test-exit)
