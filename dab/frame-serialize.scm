@@ -22,7 +22,7 @@
 (define ($field-label)       (bitconstruct (#x04 8)))
 (define ($field-short-label) (bitconstruct (#x05 8)))
 
-(define (dab-get-uservice uservice-index)
+(define (dab.sl.uService uservice-index)
   ($list-get ($dab-sl-uservice uservice-index
                                ($field-label)
                                ($field-short-label))))
