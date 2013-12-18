@@ -5,19 +5,33 @@
 (include "dab-init.uart.scm")
 ;; (include "dab-init.i2c.scm")
 
+;; parameters are thread-local. (current-frame)
+(define current-frame (make-parameter 1))
 
-(send-dab-packet (dab.state 1 #t))
-(send-dab-packet (dab.scan.state 127 #t))
-(send-dab-packet (dab.udls 102 #t))
-(send-dab-packet (dab.tune.status 66 #t))
-(send-dab-packet (dab.station 105 14))
+(define (dab-send frameless-msg)
+  (let ((response (send-dab-packet ($frame (current-frame) frameless-msg))))
+    (current-frame (add1 (current-frame)))
+    response))
 
-(send-dab-packet (misc.clock.localTime 111))
+;; (dab-send (fm.state #f))
+(dab-send (dab.state #t))
 
-(send-dab-packet (audio.sampleRate 112))
+(dab-send (dab.scan.state #t))
+(dab-send (dab.udls))
+(dab-send (dab.tune.status))
+(dab-send (dab.station 14))
+(dab-send (misc.clock.localTime))
+(dab-send (audio.sampleRate))
 
-;; (send-dab-packet ($frame 998 ($item-get "\x02\x10\x0d\x00")))
 
+(dab-send (fm.state #t))
+(dab-send (fm.frequency))
+(dab-send (fm.tuneStatus))
+
+(dab-send (fm.frequency #t))
+
+
+;; ==============================
 ;; repl helper that prints incoming frames:
 ;; (thread-terminate! thread)
 (define thread
@@ -29,7 +43,3 @@
        (thread-sleep! 0.1)
        (loop)))))
 
-(send-dab-packet (fm.state 776 #f))
-(send-dab-packet (fm.frequency 776))
-
-(integer->status-code #x83)
