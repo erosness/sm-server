@@ -22,4 +22,4 @@
   (thread-wait-for-i/o! dab-fd #:input)
   (and (file-select dab-fd #f 0)
        ;; remove crc checksum:
-       (parse-frame (string-drop-right (slip-read my-port) 1))))
+       (string-drop-right (slip-read my-port) 1)))

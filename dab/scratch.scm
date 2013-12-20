@@ -2,7 +2,7 @@
      dab slip )
 
 (include "dab-init.uart.scm")
-;; (include "dab-init.i2c.scm")
+(include "dab-init.i2c.scm")
 
 ;; parameters are thread-local. (current-frame)
 (define current-frame (make-parameter 1))
@@ -55,7 +55,13 @@
   (thread-start!
    (lambda ()
      (let loop ()
-       (pp (dab-read-packet))
-       (thread-sleep! 0.1)
+       (or
+        (and-let* ((packet (dab-read-packet))
+                   ((string-null? packet)))
+          ;; only print if packet isn't empty
+          (pp (parse-frame packet)))
+        ;; sleep a little if we didn't get any packets. if we did, try
+        ;; reading the next one immediately
+        (thread-sleep! 0.1))
        (loop)))))
 
