@@ -1,6 +1,5 @@
-(use posix srfi-18 bitstring
-     dab i2c uart slip
-     )
+(use srfi-18 bitstring
+     dab slip )
 
 (include "dab-init.uart.scm")
 ;; (include "dab-init.i2c.scm")
@@ -56,8 +55,7 @@
   (thread-start!
    (lambda ()
      (let loop ()
-       (thread-wait-for-i/o! dab-fd #:input)
-       (pp (read-dab-packet))
+       (pp (dab-read-packet))
        (thread-sleep! 0.1)
        (loop)))))
 

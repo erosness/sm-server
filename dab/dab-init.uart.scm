@@ -1,4 +1,4 @@
-
+(use posix uart)
 
 (define dab-fd (uart-open "/dev/ttymxc0"))
 
@@ -17,8 +17,9 @@
             ;; add magic checksum
             (conc (bitstring->string packet) "\xef"))))))
 
-(define (read-dab-packet)
+(define (dab-read-packet)
   ;; make sure we don't block:
+  (thread-wait-for-i/o! dab-fd #:input)
   (and (file-select dab-fd #f 0)
        ;; remove crc checksum:
        (parse-frame (string-drop-right (slip-read my-port) 1))))
