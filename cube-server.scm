@@ -89,11 +89,20 @@
 (define (handler)
   (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
     (print "incoming " uri)
-    (let ((handler (find-accessor uri)))
-      (if handler
-          (wrap-json handler)
-          (send-json `#((error       . ,(conc "not found: " uri))
-                        (valid-urls  . ,(hash-table-keys *uris*))) 'not-found)))))
+    (if (eq? 'POST (request-method (current-request)))
+        (send-json (list->vector
+                    (hash-table-map
+                     *uris*
+                     (lambda (k v)
+                       (cons k (let ((x (v)))
+                                 (if (vector? x)
+                                     (vector->list x)
+                                     x)))))))
+        (let ((handler (find-accessor uri)))
+          (if handler
+              (wrap-json handler)
+              (send-json `#((error       . ,(conc "not found: " uri))
+                            (valid-urls  . ,(hash-table-keys *uris*))) 'not-found))))))
 
 
 (vhost-map `((".*" . ,(lambda _ (handler)))))
