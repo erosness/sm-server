@@ -65,6 +65,9 @@
        (set! (accessor) (json-read (open-input-string (request-string!))))
        (send-response status: 'ok))]))
 
+(define dsp-volume-set! (lambda a (print "set volume: " a)))
+
+
 (define *uri-tree*
   `((player (mute      ,(setter-with-cache #f))
             (volume    ,(setter-with-cache 50 dsp-volume-set!))
