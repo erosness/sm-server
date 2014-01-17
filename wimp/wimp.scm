@@ -55,7 +55,9 @@
 
 ;; construct a wimp url, using the current *wimp-login-params*
 (define (wimp-url name #!optional params)
-  (update-uri (wimp-base-url name) query: (append (or (*wimp-login-params*) '()) (or params '()))))
+  (update-uri (wimp-base-url name) query: (append (or (*wimp-login-params*)
+                                                      (error "wimp-login! not ran"))
+                                                  (or params '()))))
 
 ;; Perform the actual server-request, return json.
 ;; (call-wimp '() "tracks" 1234)
