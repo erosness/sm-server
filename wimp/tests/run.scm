@@ -27,10 +27,10 @@
                 (*wimp-base-url* "http://a.com"))
 
    (test "http://a.com/albums/1234/tracks?ape=yes"
-         (URL (wimp-album-track 1234)))
+         (URL (wimp-album-tracks 1234)))
 
    (test "http://a.com/albums/1234/tracks?ape=yes&custom=true"
-         (URL (wimp-album-track 1234 `((custom . true)))))))
+         (URL (wimp-album-tracks 1234 `((custom . true)))))))
 
 (test "login returns sessionId & countryCode"
       2
