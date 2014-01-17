@@ -21,16 +21,20 @@
        body ...))))
 
 
-(parameterize ((*wimp-login-params* '((ape . "yes")))
-               (*wimp-base-url* "http://a.com"))
+(test-group
+ "wimp urls"
+ (parameterize ((*wimp-login-params* '((ape . "yes")))
+                (*wimp-base-url* "http://a.com"))
 
-  (test "http://a.com/albums/1234/tracks?ape=yes"
-        (URL (wimp-album-track 1234)))
+   (test "http://a.com/albums/1234/tracks?ape=yes"
+         (URL (wimp-album-track 1234)))
 
-  (test "http://a.com/albums/1234/tracks?ape=yes&custom=true"
-        (URL (wimp-album-track 1234 `((custom . true))))))
+   (test "http://a.com/albums/1234/tracks?ape=yes&custom=true"
+         (URL (wimp-album-track 1234 `((custom . true)))))))
 
-(test 2 (length (wimp-login! "97670550" "herrowimp")))
+(test "login returns sessionId & countryCode"
+      2
+      (length (wimp-login! "97670550" "herrowimp")))
 
 (test "Artist 606 is MJ"
       "Michael Jackson"
@@ -44,7 +48,10 @@
 
 (test "Billie Jean is 76690"
       76690
-      (alist-ref 'id (vector-ref (alist-ref 'items (wimp-search-track "billie jean")) 0)))
+      (->> (wimp-search-track "billie jean")
+           (alist-ref 'items)
+           ((flip vector-ref) 0)
+           (alist-ref 'id )))
 
 ;; just test that nothing errors and that there is an http url in
 ;; there somewhere:
@@ -56,3 +63,4 @@
 
 (test-end)
 ;; ************************************************** done
+(test-exit)
