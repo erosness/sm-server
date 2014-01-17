@@ -61,6 +61,58 @@
                       (alist-ref 'url))
                  0 7))
 
+(test "Wimp album 20889219 is MJ's"
+      606
+      (->> (wimp-album 20889219)
+           (alist-ref 'artist)
+           (alist-ref 'id)))
+
+;; TODO: fix this
+;; (wimp-search-album "Thriller")
+
+(test 3 (->> (wimp-search-playlist "foo" `((limit . 3)))
+             (alist-ref 'items)
+             (vector-length)))
+
+(test 3 (->> (wimp-artist-albums 606 '((limit . 3)))
+             (alist-ref 'items)
+             (vector-length)))
+
+(test 3 (->> (wimp-artist-toptracks 606 `((limit . 3)))
+             (alist-ref 'items)
+             (vector-length)))
+
+(test 2 (->> (wimp-user-playlists 1006 `((limit . 2)))
+             (alist-ref 'items)
+             (vector-length)))
+
+
+;; search for any easy playlist, pick the first result, query it and
+;; check that its uuid is the same. if we complete this loop
+;; successfully, things are probably working, no?
+(let ((uuid  (->> (wimp-search-playlist "easy" `((limit . 10)))
+                  (alist-ref 'items)
+                  ((flip vector-ref) 0)
+                  (alist-ref 'uuid))))
+
+  (test "what goes around comes around"
+        uuid
+        (->> (wimp-playlist uuid)
+             (alist-ref 'uuid)))
+
+  (test "playlist contains many tracks"
+        10
+        (->> (wimp-playlist-tracks uuid)
+             (alist-ref 'items)
+             (vector-length))))
+
+
+(test "Madrugada has playlists"
+      #t
+      (>= (->> (wimp-artist-playlists-by 9000)
+               (alist-ref 'totalNumberOfItems))
+          1))
+
 (test-end)
 ;; ************************************************** done
 (test-exit)
