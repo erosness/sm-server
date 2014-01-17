@@ -25,3 +25,6 @@
 /slip/slip.import.so
 /slip/slip.so
 /.module-sources
+/wimp/wimp.so
+/wimp/wimp.import.so
+/wimp/wimp.import.scm
