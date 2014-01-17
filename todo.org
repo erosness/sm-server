@@ -1,0 +1,9 @@
+
+
+* Todo Cube-Server
+** Build
+*** TODO Build everything with one `make`
+*** TODO fix socket egg problem
+*** TODO keep versioning of deps under control
+** cube-server
+*** TODO make start without network interfaces robust
