@@ -23,7 +23,7 @@
 
 (test-group
  "wimp urls"
- (parameterize ((*wimp-login-params* '((ape . "yes")))
+ (parameterize ((*wimp-session-params* '((ape . "yes")))
                 (*wimp-base-url* "http://a.com"))
 
    (test "http://a.com/albums/1234/tracks?ape=yes"

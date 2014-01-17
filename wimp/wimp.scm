@@ -6,7 +6,7 @@
 
 ;; typically holds current sessionId and countryCode
 (define *wimp-base-url*     (make-parameter "http://stage.api.wimpmusic.com/v1/"))
-(define *wimp-login-params* (make-parameter #f))
+(define *wimp-session-params* (make-parameter #f))
 (define *wimp-query*        (make-parameter with-input-from-request))
 
 ;; most servers don't allow ; as query separator, even though it's in
@@ -41,21 +41,17 @@
        (absolute-uri)))
 
 (define (wimp-login! username password)
-  (let ((params
-         (select-keys
-          (with-input-from-request
-           (wimp-base-url "login")
-           `((username . ,username)
-             (password . ,password)
-             (clientName . "iOS_WiMP-2.5.1.no"))
-           read-json)
-          '(sessionId countryCode))))
-    (*wimp-login-params* params)
-    params))
+  (let ((params `((username . ,username)
+                  (password . ,password)
+                  (clientName . "iOS_WiMP-2.5.1.no"))))
+    (*wimp-session-params* (-> (with-input-from-request (wimp-base-url "login")
+                                                        params
+                                                        read-json)
+                             (select-keys '(sessionId countryCode))))))
 
-;; construct a wimp url, using the current *wimp-login-params*
+;; construct a wimp url, using the current *wimp-session-params*
 (define (wimp-url name #!optional params)
-  (update-uri (wimp-base-url name) query: (append (or (*wimp-login-params*)
+  (update-uri (wimp-base-url name) query: (append (or (*wimp-session-params*)
                                                       (error "wimp-login! not ran"))
                                                   (or params '()))))
 
@@ -104,4 +100,3 @@
 
 
 ;; (wimp-login! "97670550" "herrowimp")
-;; (*wimp-login-params*)
