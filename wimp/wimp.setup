@@ -1,0 +1,6 @@
+;; -*- scheme -*-
+(compile -s wimp-module.scm -o wimp.so -J)
+(compile -s wimp.import.scm)
+
+(install-extension 'wimp
+                   '("wimp.so" "wimp.import.so"))
