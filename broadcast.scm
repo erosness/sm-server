@@ -1,4 +1,4 @@
-(use socket)
+(use socket intarweb)
 
 (define (udp-broadcast msg #!optional (saddr (inet-address "239.255.255.250" 5055)))
   (define s (socket af/inet sock/dgram 0))
