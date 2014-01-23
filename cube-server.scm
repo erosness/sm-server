@@ -3,6 +3,7 @@
 (include "broadcast.scm")
 (include "uri-handler.scm")
 (include "discovery.scm")
+(include "job-util.scm")
 
 (define get-sequence-header
   (let ((seq 0))
@@ -112,7 +113,9 @@
 ;; (thread-start! (lambda () (start-server port: 5055)))
 ;; (thread-start! (lambda () (start-discovery 5055 360)))
 
-(thread-start! (lambda () (start-discovery 5055 360)))
+(define *thread-heartbeat*
+  (thread-start! (lambda () (job-auto-respawn (lambda () (start-discovery 5055 360))))))
+
 (start-server port: 5055)
 
 ;; for your repl pleasure:
