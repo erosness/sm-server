@@ -62,6 +62,7 @@
     ;; pick up exceptions, read server-response (json), and re-throw
     ;; error as parsed js on
     (raise (or ((condition-property-accessor 'client-error 'body) exn)
+               ((condition-property-accessor 'server-error 'body) exn)
                exn))
     ((*wimp-query*) (wimp-url (append-urls urls) params) #f read-json)))
 
