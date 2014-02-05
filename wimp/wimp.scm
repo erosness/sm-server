@@ -44,9 +44,9 @@
   (let ((params `((username . ,username)
                   (password . ,password)
                   (clientName . "iOS_WiMP-2.5.1.no"))))
-    (*wimp-session-params* (-> (with-input-from-request (wimp-base-url "login")
-                                                        params
-                                                        read-json)
+    (*wimp-session-params* (-> ((*wimp-query*) (wimp-base-url "login")
+                                params
+                                read-json)
                              (select-keys '(sessionId countryCode))))))
 
 ;; construct a wimp url, using the current *wimp-session-params*
