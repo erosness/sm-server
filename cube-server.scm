@@ -1,4 +1,4 @@
-(use spiffy json matchable intarweb uri-common)
+(use spiffy medea matchable intarweb uri-common)
 
 (include "broadcast.scm")
 (include "uri-handler.scm")
@@ -12,7 +12,7 @@
       (conc "\n" "Seq: " seq))))
 
 (define (->json x)
-  (with-output-to-string (lambda () (json-write x))))
+  (with-output-to-string (lambda () (write-json x))))
 
 (define (send-json x #!optional (status 'ok))
   (send-response headers: `((content-type "application/json"))
@@ -105,8 +105,8 @@
         (let ((handler (find-accessor uri)))
           (if handler
               (wrap-json handler)
-              (send-json `#((error       . ,(conc "not found: " uri))
-                            (valid-urls  . ,(hash-table-keys *uris*))) 'not-found))))))
+              (send-json `((error       . ,(conc "not found: " uri))
+                           (valid-urls  . ,(list->vector (hash-table-keys *uris*)))) 'not-found))))))
 
 
 (vhost-map `((".*" . ,(lambda _ (handler)))))
