@@ -1,0 +1,8 @@
+;; -*- scheme -*-
+
+(compile -O0 cube-server-program.scm -o cube-server)
+
+(install-program 'cube-server
+                 '("cube-server"))
+
+
