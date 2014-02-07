@@ -1,0 +1,5 @@
+
+(compile -O0 tone-generator.scm)
+
+(install-program 'tone-generator
+                 '("tone-generator"))
