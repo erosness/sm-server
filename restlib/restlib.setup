@@ -1,0 +1,6 @@
+;;; ******************** restlib
+(compile -s -O0 restlib/restlib-module.scm -o restlib.so -J)
+(compile -s -O0 restlib.import.scm)
+
+(install-extension 'restlib
+                   '("restlib.so" "restlib.import.so"))
