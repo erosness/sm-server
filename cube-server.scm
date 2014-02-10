@@ -53,11 +53,11 @@
           `((error       . ,(conc "not found: " uri))
             (valid-urls  . ,(list->vector (hash-table-keys *uris*))))))))
 
-(define handler (->> (lambda _ (json-handler))
+(define handler (->> (lambda () (json-handler))
                      (wrap-json)
                      (wrap-errors)))
 
-(vhost-map `((".*" . ,(lambda _ (handler)))))
+(vhost-map `((".*" . ,(lambda (continue) (handler)))))
 
 ;; for your repl pleasure:
 ;; (define thread (thread-start! (lambda () (start-server port: 5055))))
