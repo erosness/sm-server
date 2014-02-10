@@ -23,18 +23,18 @@
               (let ((hz (* hz 100)))
                 `((title . ,(conc hz " hertz"))
                   (duration . 1)
-                  (turi . ,(conc "tone://sine/" hz)))))
+                  (turi . ,(conc "tr://tone/" hz)))))
             (map add1 (iota 100)))
        (filter (lambda (alist) (irregex-search q (alist-ref 'turi alist))))))
 
-(test `("tone://sine/1000" "tone://sine/10000")
+(test `("tr://tone/1000" "tr://tone/10000")
       (map (cut alist-ref 'turi <>) (tone-search "1000")))
 
 (define (search)
   (or
    (and-let* ((query (alist-ref 'q (uri-query (request-uri (current-request))))))
      (paginate (tone-search query) (current-limit) (current-offset)))
-   (error "no search (try /search?q=1)")))
+   (error "no search query (try /search?q=1)")))
 
 
 ;; (hash-table->alist *uris*)
@@ -53,7 +53,9 @@
           `((error       . ,(conc "not found: " uri))
             (valid-urls  . ,(list->vector (hash-table-keys *uris*))))))))
 
-(define handler (wrap-errors (wrap-json (lambda _ (json-handler)))))
+(define handler (->> (lambda _ (json-handler))
+                     (wrap-json)
+                     (wrap-errors)))
 
 (vhost-map `((".*" . ,(lambda _ (handler)))))
 
