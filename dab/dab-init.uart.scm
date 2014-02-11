@@ -9,7 +9,7 @@
                                  (lambda () (file-select dab-fd #f 0))
                                  (lambda () (file-close dab-fd))))
 
-(define (send-dab-packet packet)
+(define (dab-send-packet packet)
   (file-write
    dab-fd
    (with-output-to-string

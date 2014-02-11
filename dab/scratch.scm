@@ -8,7 +8,7 @@
 (define current-frame (make-parameter 1))
 
 (define (dab-send frameless-msg)
-  (let ((response (send-dab-packet ($frame (current-frame) frameless-msg))))
+  (let ((response (dab-send-packet ($frame (current-frame) frameless-msg))))
     (current-frame (add1 (current-frame)))
     response))
 
@@ -56,8 +56,8 @@
    (lambda ()
      (let loop ()
        (or
-        (and-let* ((packet (dab-read-packet))
-                   ((string-null? packet)))
+        (let* ((packet (dab-read-packet))
+               (_ (string-null? packet)))
           ;; only print if packet isn't empty
           (pp (parse-frame packet)))
         ;; sleep a little if we didn't get any packets. if we did, try

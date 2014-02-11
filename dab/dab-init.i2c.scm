@@ -4,7 +4,7 @@
 
 ;; Add 2-byte "length" field, see FSAPI protocol reference API section
 ;; 4.3.3 on SCB framing
-(define (send-dab-packet bs)
+(define (dab-send-packet bs)
   (let* ((len (/ (bitstring-length bs) 8))
          (zbs (bitconstruct (len 16) (bs bitstring))))
     (file-write dab-fd (bitstring->string zbs))))
