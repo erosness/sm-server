@@ -23,9 +23,9 @@
    (conc "tone-generator " hz " 30000 1")))
 
 ;; (audio-hosts)
-(define audio-hosts
-  (make-parameter `(("tone" . ,play-command/tone)
-                    ("wimp" . ,play-command/wimp))))
+(define *audio-hosts*
+  `(("tone" . ,play-command/tone)
+    ("wimp" . ,play-command/wimp)))
 
 (define play-command/default play-command/ffmpeg)
 
@@ -38,7 +38,7 @@
                    (if (equal? (uri-host uri) (car pair))
                        ((cdr pair) uri)
                        #f))
-                 (audio-hosts))
+                 *audio-hosts*)
             (error (conc "unknown host: " (uri-host uri))))
         (error (conc "don't know how to open " turi)))))
 
