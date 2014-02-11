@@ -41,5 +41,7 @@
                                 (inet-address host port)))))
         (thread-sleep! 0.005))
     (loop)))
-;;(start-discovery 5055 360)
-;;(socket-close s)
+
+;; (start-discovery 5055 360)
+;; (socket-close s)
+;; (thread-start! (lambda () (start-discovery 5055 360)))
