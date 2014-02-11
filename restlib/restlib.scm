@@ -91,6 +91,15 @@
        (uri-query)
        (alist-ref key)))
 
+(define (argumentize query-param handler)
+  (lambda ()
+    (or
+     (and-let* ((parameter (current-query-param query-param)))
+       (handler parameter))
+     (error (conc "parameter " query-param " missing in "
+                  (uri->string (request-uri (current-request))))))))
+
+
 
 ;;; ******************** pagination ********************
 
@@ -130,3 +139,9 @@
   (or (and-let* ((str (current-query-param 'limit)))  (string->number str)) 10))
 (define (current-offset)
   (or (and-let* ((str (current-query-param 'offset))) (string->number str)) 0))
+
+
+(define (pagize handler)
+  (lambda () (paginate (handler)
+                  (current-limit)
+                  (current-offset))))

@@ -3,6 +3,7 @@
      clojurian-syntax)
 
 
+(include "rest-wimp.scm")
 (include "player.scm")
 
 (define play
@@ -38,7 +39,8 @@
 
 
 ;; (hash-table->alist *uris*)
-(define *uris* (alist->hash-table `(("/search" . ,(lambda a (apply search a)))
+(define *uris* (alist->hash-table `(("/search/tone" . ,(pagize (argumentize 'q tone-search)))
+                                    ("/search/wimp" . ,(pagize (argumentize 'q wimp-search)))
                                     ("/play" .   ,(lambda a (apply play a))))))
 
 ;; (find-accessor "/search")

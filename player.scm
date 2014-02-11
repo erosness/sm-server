@@ -22,8 +22,10 @@
  (let ((hz (second (uri-path uri))))
    (conc "tone-generator " hz " 30000 1")))
 
+;; (audio-hosts)
 (define audio-hosts
-  (make-parameter `(("tone" . ,tone-command))))
+  (make-parameter `(("tone" . ,tone-command)
+                    ("wimp" . ,wimp-command))))
 
 (define default-command ffmpeg-command)
 
@@ -42,6 +44,9 @@
 
 
 (test "tone-generator 1234 30000 1" (play-command "tr://tone/1234"))
+
+;; (play! (play-command "tr://wimp/tid/12345"))
+
 
 (test-error (play-command "filename"))
 (test-error (play-command "file:///filename"))
