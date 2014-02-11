@@ -31,12 +31,6 @@
 (test `("tr://tone/1000" "tr://tone/10000")
       (map (cut alist-ref 'turi <>) (tone-search "1000")))
 
-(define (search)
-  (or
-   (and-let* ((query (alist-ref 'q (uri-query (request-uri (current-request))))))
-     (paginate (tone-search query) (current-limit) (current-offset)))
-   (error "no search query (try /search?q=1)")))
-
 
 ;; (hash-table->alist *uris*)
 (define *uris* (alist->hash-table `(("/search/tone" . ,(pagize (argumentize 'q tone-search)))

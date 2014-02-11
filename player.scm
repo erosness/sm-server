@@ -29,18 +29,18 @@
 
 (define default-command ffmpeg-command)
 
-(define play-command
-  (lambda (turi) ;; <-- string
-    (let ((uri (uri-reference turi)))
-      (if (and uri (eq? (uri-scheme uri) 'tr))
-          ;; find a match among all audio hosts
-          (or (any (lambda (pair)
-                     (if (equal? (uri-host uri) (car pair))
-                         ((cdr pair) uri)
-                         #f))
-                   (audio-hosts))
-              (error (conc "unknown host: " (uri-host uri))))
-          (error (conc "don't know how to open " turi))))))
+(define (play-command turi #| <-- string |#)
+
+  (let ((uri (uri-reference turi)))
+    (if (and uri (eq? (uri-scheme uri) 'tr))
+        ;; find a match among all audio hosts
+        (or (any (lambda (pair)
+                   (if (equal? (uri-host uri) (car pair))
+                       ((cdr pair) uri)
+                       #f))
+                 (audio-hosts))
+            (error (conc "unknown host: " (uri-host uri))))
+        (error (conc "don't know how to open " turi)))))
 
 
 (test "tone-generator 1234 30000 1" (play-command "tr://tone/1234"))
