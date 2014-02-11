@@ -1,4 +1,4 @@
-(use posix uart)
+(use posix uart srfi-18 slip bitstring)
 
 (define dab-fd (uart-open "/dev/ttymxc0"))
 
