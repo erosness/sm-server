@@ -1,6 +1,6 @@
 (use fmt)
 
-(define (ffmpeg-command uri)
+(define (play-command/ffmpeg uri)
   (fmt #f "ffmpeg -i \""
        (slashified (uri->string uri))
        "\" -ac 2 -ar 44100 -f s16le -"))
@@ -18,16 +18,16 @@
 ;; TODO generic interface for stop playback (and maybe seek etc)
 
 ;; (define ffmpeg-exit (play! (ffmpeg "/home/klm/music/The Beatles/The Beatles - Yesterday.mp3")))
-(define (tone-command uri)
+(define (play-command/tone uri)
  (let ((hz (second (uri-path uri))))
    (conc "tone-generator " hz " 30000 1")))
 
 ;; (audio-hosts)
 (define audio-hosts
-  (make-parameter `(("tone" . ,tone-command)
-                    ("wimp" . ,wimp-command))))
+  (make-parameter `(("tone" . ,play-command/tone)
+                    ("wimp" . ,play-command/wimp))))
 
-(define default-command ffmpeg-command)
+(define play-command/default play-command/ffmpeg)
 
 (define (play-command turi #| <-- string |#)
 

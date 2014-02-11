@@ -33,7 +33,7 @@
 (define (turi->suri turi)
   (alist-ref 'url (wimp-track-streamurl (wimp-turi-tid turi))))
 
-(define (wimp-command uri)
+(define (play-command/wimp uri)
   (let ((suri (turi->suri uri)))
     (ffmpeg-command (uri-reference suri))))
 
