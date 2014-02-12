@@ -91,7 +91,7 @@
 (define wimp-artist-toptracks      (wimp-lambda ()      "artists"   aid "toptracks"))
 (define wimp-playlist              (wimp-lambda ()      "playlists" uuid))
 (define wimp-playlist-tracks       (wimp-lambda ()      "playlists" uuid "tracks"))
-(define wimp-search-album          (wimp-lambda (query) "search"    "album"))
+(define wimp-search-album          (wimp-lambda (query) "search"    "albums"))
 (define wimp-search-artist         (wimp-lambda (query) "search"    "artists"))
 (define wimp-search-playlist       (wimp-lambda (query) "search"    "playlists"))
 (define wimp-search-track          (wimp-lambda (query) "search"    "tracks"))
