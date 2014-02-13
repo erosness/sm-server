@@ -1,37 +1,42 @@
 DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt socket udp
 
+# install for tradio:
+# ci=aosp-chicken-install
+
+ci=chicken-install
+
 all: blobbery tone-generator dab dsp i2c restlib wimp
-	chicken-install -s
+	$(ci) -s
 
 deps:
-	chicken-install -s $(DEPS)
+	$(ci) -s $(DEPS)
 
 blobbery:
-	cd blobbery; chicken-install -s
+	cd blobbery; $(ci) -s
 
 tone-generator:
-	cd tone-generator; chicken-install -s
+	cd tone-generator; $(ci) -s
 
 dab:
-	cd dab; chicken-install -s
+	cd dab; $(ci) -s
 
 q523:
-	cd dsp/q523; chicken-install -s
+	cd dsp/q523; $(ci) -s
 
 biquad:
-	cd dsp/biquad; chicken-install -s
+	cd dsp/biquad; $(ci) -s
 
 dsp: biquad q523
-	cd dsp; chicken-install -s
+	cd dsp; $(ci) -s
 
 i2c:
-	cd i2c; chicken-install -s
+	cd i2c; $(ci) -s
 
 restlib:
-	cd restlib; chicken-install -s
+	cd restlib; $(ci) -s
 
 wimp:
-	cd wimp; chicken-install -s
+	cd wimp; $(ci) -s
 
 
 .PHONY: restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all
