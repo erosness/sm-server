@@ -10,7 +10,7 @@
   (let ((aid (->> track
                   (alist-ref 'album)
                   (alist-ref 'id))))
-    (conc "http://images.osl.wimpmusic.com/im/im?w=100&h=100&albumid=" aid)))
+    (wimp-cover-url aid)))
 
 (define (track->artist track)
   (->> track
