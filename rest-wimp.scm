@@ -18,10 +18,10 @@
        (alist-ref 'name)))
 
 (define (track->search-result track)
-  `((turi . ,(track->turi track))
-    (title . ,(alist-ref 'title track))
+  `((turi   . ,(track->turi track))
+    (title  . ,(alist-ref 'title track))
     (artist . ,(track->artist track))
-    (cover . ,(cover-uri track))))
+    (cover  . ,(cover-uri track))))
 
 (define (wimp-process-query-result result)
   (list->vector
