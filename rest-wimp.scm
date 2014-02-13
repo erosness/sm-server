@@ -35,7 +35,7 @@
 
 (define (play-command/wimp uri)
   (let ((suri (turi->suri uri)))
-    (ffmpeg-command (uri-reference suri))))
+    (play-command/ffmpeg (uri-reference suri))))
 
 ;; (wimp-command (uri-reference "tr://wimp/tid/12345"))
 
