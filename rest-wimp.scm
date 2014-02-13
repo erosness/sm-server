@@ -8,9 +8,22 @@
 (define (track->turi track)
   (conc "tr://wimp/tid/" (alist-ref 'id track)))
 
+(define (cover-uri track)
+  (let ((aid (->> track
+                  (alist-ref 'album)
+                  (alist-ref 'id))))
+    (conc "http://images.osl.wimpmusic.com/im/im?w=100&h=100&albumid=" aid)))
+
+(define (track->artist track)
+  (->> track
+       (alist-ref 'artist)
+       (alist-ref 'name)))
+
 (define (track->search-result track)
   `((turi . ,(track->turi track))
-    (title . ,(alist-ref 'title track))))
+    (title . ,(alist-ref 'title track))
+    (artist . ,(track->artist track))
+    (cover . ,(cover-uri track))))
 
 (define (wimp-search q)
   (map track->search-result
