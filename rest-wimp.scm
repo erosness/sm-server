@@ -57,14 +57,3 @@
   (let ((suri (turi->suri uri)))
     (play-command/ffmpeg (uri-reference suri))))
 
-
-(test
- "wimp track -> turi"
- `((turi . "tr://wimp/tid/4073803")
-   (title . "Queen"))
- (track->search-result
-  `((id . 4073803)
-    (title . "Queen")
-    (album (id . 4073801) (title . "Stoner Witch"))
-    (artist (id . 14845) (name . "Melvins"))
-    (duration . 187))))
