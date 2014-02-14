@@ -3,8 +3,6 @@
 ;; leaving the beuty of what is session management till later:
 (wimp-login! "97670550" "herrowimp")
 
-(wimp-search-track "queen")
-
 (define (track->turi track)
   (conc "tr://wimp/tid/" (alist-ref 'id track)))
 
@@ -49,8 +47,6 @@
 (define (play-command/wimp uri)
   (let ((suri (turi->suri uri)))
     (play-command/ffmpeg (uri-reference suri))))
-
-;; (wimp-command (uri-reference "tr://wimp/tid/12345"))
 
 
 (test
