@@ -120,6 +120,14 @@
     ((argumentize (lambda x x) 'j 'k)))))
 
 
+; ********************
+; Schema : Search result
+(define (make-search-result limit offset total items)
+  `((limit  . ,limit)
+    (offset . ,offset)
+    (total  . ,total)
+    (items  . ,items)))
+
 
 ;;; ******************** pagination ********************
 
@@ -149,10 +157,7 @@
                              (list->vector)))
           (else (error "cannot crop " data))))
 
-  `((limit  . ,limit)
-    (offset . ,offset)
-    (total  . ,((get-counter data) data))
-    (items  . ,(crop data))))
+  (make-search-result limit offset ((get-counter data) data) (crop data)))
 
 
 (define (current-limit)
