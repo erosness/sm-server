@@ -23,11 +23,20 @@
     (artist . ,(track->artist track))
     (cover . ,(cover-uri track))))
 
-(define (wimp-search q)
-  (map track->search-result
-       (->> (wimp-search-track q)
-            (alist-ref 'items)
-            (vector->list))))
+(define (wimp-process-query-result result)
+  (list->vector
+   (map track->search-result
+        (->> result
+             (alist-ref 'items)
+             (vector->list)))))
+
+(define (wimp-search q limit offset)
+  (let ((result (wimp-search-track q `((offset . ,offset)
+                                       (limit  . ,limit)))))
+    (make-search-result limit offset
+     (alist-ref 'totalNumberOfItems result)
+     (wimp-process-query-result result))))
+
 
 ;; extract tid (as string) from a wimp tr uri.
 (define (wimp-turi-tid uri)
