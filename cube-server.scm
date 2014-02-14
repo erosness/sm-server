@@ -33,8 +33,8 @@
 
 
 ;; (hash-table->alist *uris*)
-(define *uris* (alist->hash-table `(("/search/tone" . ,(pagize (argumentize 'q tone-search)))
-                                    ("/search/wimp" . ,(pagize (argumentize 'q wimp-search)))
+(define *uris* (alist->hash-table `(("/search/tone" . ,(pagize (argumentize tone-search 'q)))
+                                    ("/search/wimp" . ,(argumentize wimp-search 'q 'limit 'offset))
                                     ("/play" .   ,(lambda a (apply play a))))))
 
 ;; (find-accessor "/search")

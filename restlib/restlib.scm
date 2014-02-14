@@ -4,6 +4,7 @@
 (use clojurian-syntax           ;; util
      spiffy intarweb uri-common ;; web
      medea                      ;; json
+     test                       ;; well.. guess
      )
 
 ;;; ******************** misc ********************
@@ -91,13 +92,32 @@
        (uri-query)
        (alist-ref key)))
 
-(define (argumentize query-param handler)
+(define (argumentize handler . query-params)
   (lambda ()
-    (or
-     (and-let* ((parameter (current-query-param query-param)))
-       (handler parameter))
-     (error (conc "parameter " query-param " missing in "
-                  (uri->string (request-uri (current-request))))))))
+    (apply handler
+           (let loop ((query-params query-params)
+                      (result '()))
+             (if (pair? query-params)
+                 (or (and-let* ((q (car query-params))
+                                (parameter (current-query-param q)))
+                               (loop (cdr query-params) (cons parameter result)))
+                     (error (conc "parameter " (car query-params) " missing in "
+                                  (uri->string (request-uri (current-request))))))
+                 (reverse result))))))
+
+(test-group
+ "argumentize"
+ (parameterize ((current-request
+                 (make-request
+                  uri: (uri-reference "http://vg.no?q=2&h=4"))))
+   (test
+    '("2" "4")
+    ((argumentize (lambda x x) 'q 'h)))
+   (test
+    '("4")
+    ((argumentize (lambda x x) 'h)))
+   (test-error
+    ((argumentize (lambda x x) 'j 'k)))))
 
 
 
