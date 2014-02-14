@@ -1,4 +1,4 @@
-(use wimp uri-common test)
+(use wimp uri-common test clojurian-syntax restlib)
 
 ;; leaving the beuty of what is session management till later:
 (wimp-login! "97670550" "herrowimp")
