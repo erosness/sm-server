@@ -1,13 +1,11 @@
-(use fmt)
+(use fmt test uri-common)
 
-(define (play-command/ffmpeg uri)
-  (fmt #f "ffmpeg -i \""
-       (slashified (uri->string uri))
-       "\" -ac 2 -ar 44100 -f s16le -"))
 
-(define (aplay) "aplay -f s16_le -c 2 -r 44100")
-(define (pipe a b) (conc a " | " b))
-
+(define (cplay-command uri #!optional seek)
+  (conc "cplay "
+        "\""
+        (uri->string uri)
+        "\""))
 (define (play! command)
   (define-values (*play-ip* *play-op* *play-pid* *play-ep*)
     (process* (pipe command (aplay))))
@@ -27,32 +25,39 @@
   `(("tone" . ,play-command/tone)
     ("wimp" . ,play-command/wimp)))
 
-(define play-command/default play-command/ffmpeg)
+(define play-command/default cplay-command)
 
 (define (play-command turi #| <-- string |#)
 
   (let ((uri (uri-reference turi)))
-    (if (and uri (eq? (uri-scheme uri) 'tr))
-        ;; find a match among all audio hosts
-        (or (any (lambda (pair)
-                   (if (equal? (uri-host uri) (car pair))
-                       ((cdr pair) uri)
-                       #f))
-                 *audio-hosts*)
-            (error (conc "unknown host: " (uri-host uri))))
-        (error (conc "don't know how to open " turi)))))
+    (or
+     (and uri
+          (case (uri-scheme uri)
+            ((tr) ;; find a match among all audio hosts
+             (or (any (lambda (pair)
+                        (if (equal? (uri-host uri) (car pair))
+                            ((cdr pair) uri)
+                            #f))
+                      *audio-hosts*)
+                 (error (conc "unknown audio host: " (uri-host uri)))))
+            ((file) (cplay-command uri))
+            (else #f)))
+     (error (conc "don't know how to open " turi)))))
 
 
-(test "tone-generator 1234 30000 1" (play-command "tr://tone/1234"))
 
 ;; (play! (play-command "tr://wimp/tid/12345"))
 
 
-(test-error (play-command "filename"))
-(test-error (play-command "file:///filename"))
-(test-error (play-command "i l l e g a l"))
+(test-group
+ "play-command"
+
+ (test "tone-generator 1234 30000 1" (play-command "tr://tone/1234"))
+ (test "cplay \"file:///filename\"" (play-command "file:///filename"))
+
+ (test-error (play-command "filename"))
+ (test-error (play-command "i l l e g a l")))
 
 ;; (define stop (play! (play-command "tone://sine/440")))
 ;; (read-string #f stop)
 ;; (stop)
-
