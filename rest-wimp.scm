@@ -1,6 +1,7 @@
 (use wimp uri-common test clojurian-syntax restlib)
 
 ;; leaving the beuty of what is session management till later:
+(print "please wait while logging in to wimp...")
 (wimp-login! "97670550" "herrowimp")
 
 (define (track->turi track)
