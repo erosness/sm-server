@@ -10,7 +10,7 @@
 (include "rest-wimp.scm")
 
 
-(define play
+(define /play
   (let ((cache #f))
     (lambda ()
       (let ((json (current-json)))
@@ -23,7 +23,7 @@
             cache)))))
 
 
-(define (tone-search q)
+(define (/search/tone q)
   (->> (map (lambda (hz)
               (let ((hz (* hz 100)))
                 `((title . ,(conc hz " hertz"))
@@ -33,13 +33,13 @@
        (filter (lambda (alist) (irregex-search q (alist-ref 'turi alist))))))
 
 (test `("tr://tone/1000" "tr://tone/10000")
-      (map (cut alist-ref 'turi <>) (tone-search "1000")))
+      (map (cut alist-ref 'turi <>) (/search/tone "1000")))
 
 
 ;; (hash-table->alist *uris*)
-(define *uris* (alist->hash-table `(("/search/tone" . ,(pagize (argumentize tone-search 'q)))
+(define *uris* (alist->hash-table `(("/search/tone" . ,(pagize (argumentize /search/tone 'q)))
                                     ("/search/wimp" . ,(argumentize wimp-search 'q 'limit 'offset))
-                                    ("/play" .   ,(lambda a (apply play a))))))
+                                    ("/play" .   ,(lambda a (apply /play a))))))
 
 ;; (find-accessor "/search")
 (define (find-accessor uri #!optional (uris *uris*))
