@@ -3,8 +3,12 @@
      clojurian-syntax)
 
 
-(include "rest-wimp.scm")
+
 (include "player.scm")
+
+(include "audio-tone.scm")
+(include "rest-wimp.scm")
+
 
 (define play
   (let ((cache #f))

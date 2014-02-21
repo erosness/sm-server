@@ -1,63 +1,94 @@
 (use fmt test uri-common)
 
+(include "player-util.scm")
 
-(define (cplay-command uri #!optional seek)
+;; create shell string for launching `cplay` player daemon. launch it
+;; with play!.
+(define (cplay uri #!optional seek)
   (conc "cplay "
         "\""
         (uri->string uri)
         "\""))
-(define (play! command)
-  (define-values (*play-ip* *play-op* *play-pid* *play-ep*)
-    (process* (pipe command (aplay))))
-  ;(values (lambda () (display "q" *play-op*)))
-  *play-ep*)
 
-;; TODO propagate stderr from subprocess
-;; TODO generic interface for stop playback (and maybe seek etc)
+(test-group
+ "cplay"
+ (test "cplay \"filename\""
+       (cplay (uri-reference "filename"))))
 
-;; (define ffmpeg-exit (play! (ffmpeg "/home/klm/music/The Beatles/The Beatles - Yesterday.mp3")))
-(define (play-command/tone uri)
- (let ((hz (second (uri-path uri))))
-   (conc "tone-generator " hz " 30000 1")))
+;; Spawn a subprocess. Use its line-based cli on stdin/stdout as
+;; messaging interface. Returns a thread-safe cli procedure.
+(define (launch-cplay command)
+  (receive (pip pop pid)
+      ;; spawn process:
+      (process command)
 
-;; (audio-hosts)
-(define *audio-hosts*
-  `(("tone" . ,play-command/tone)
-    ("wimp" . ,play-command/wimp)))
+    (define (cmd* . strings)
+      (drain-input-port pip)
+      (display (apply conc (intersperse strings " ")) pop)
+      (display "\n" pop)
+      (read-line pip))
 
-(define play-command/default cplay-command)
+    ;; thread safety:
+    (define mx (make-mutex #|mutex label:|# `(play! ,command)))
+    (define cmd (with-mutex-lock mx cmd*))
 
-(define (play-command turi #| <-- string |#)
+    ;; (define cmd cmd*) <-- back to non-threadsafe if you want to test
 
-  (let ((uri (uri-reference turi)))
-    (or
-     (and uri
-          (case (uri-scheme uri)
-            ((tr) ;; find a match among all audio hosts
-             (or (any (lambda (pair)
-                        (if (equal? (uri-host uri) (car pair))
-                            ((cdr pair) uri)
-                            #f))
-                      *audio-hosts*)
-                 (error (conc "unknown audio host: " (uri-host uri)))))
-            ((file) (cplay-command uri))
-            (else #f)))
-     (error (conc "don't know how to open " turi)))))
+    (lambda (command . args)
+      (case command
+        ((#:stdout) pop)
+        ((#:stdin)  pip)
+        ((#:quit)  (process-signal pid))
+        (else (apply cmd (cons command args)))))))
 
+;; spawn command, killing the previous one if it's running
+(define play!
+  (let ((current #f))
+    (lambda (scommand)
+      (if current (current #:quit))
+      (set! current (launch-cplay scommand))
+      current)))
 
+;; provide an API for audio hosts / providers to plug into.
+(define *audio-hosts* `())
+(define (define-audio-host host handler)
+  (set! *audio-hosts*
+        (alist-update host handler *audio-hosts* equal?)))
 
-;; (play! (play-command "tr://wimp/tid/12345"))
-
+(define (play-command turi)
+  ;; uri may be #f if uri-ref can't parse turi
+  (let ((uri (if (uri? turi) turi (uri-reference turi))))
+    (case (and uri (uri-scheme uri))
+      ((tr) ((or
+              ;; pick the procedure registered for host:
+              (alist-ref (uri-host uri) *audio-hosts* equal?)
+              ;; error if none found:
+              (lambda _ (error "unknown audio host" (uri-host uri))))
+             ;; call audio-host procedure with one arg:
+             uri))
+      ;; default to cplay with any other scheme (file://, http:// etc)
+      (else (cplay (or uri (error "illegal uri" turi)))))))
 
 (test-group
  "play-command"
 
- (test "tone-generator 1234 30000 1" (play-command "tr://tone/1234"))
  (test "cplay \"file:///filename\"" (play-command "file:///filename"))
+ (test "cplay \"http://domain/file.mp3\"" (play-command "http://domain/file.mp3"))
 
- (test-error (play-command "filename"))
+ (test "cplay \"filename\"" (play-command "filename"))
  (test-error (play-command "i l l e g a l")))
 
-;; (define stop (play! (play-command "tone://sine/440")))
+;; (define stop (play! (cplay (uri-reference "tone://sine/440"))))
 ;; (read-string #f stop)
 ;; (stop)
+
+(define player)
+(when #f
+  (define player
+    (play! (cplay (uri-reference "file:///home/klm/cube/aosp-new/external/cplay/tones.m4a"))))
+
+  (player "seek" 100)
+  (player "pause")
+  (player "pos")
+  (player "unpause")
+  (player #:quit))

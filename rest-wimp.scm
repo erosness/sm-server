@@ -56,5 +56,9 @@
 
 (define (play-command/wimp uri)
   (let ((suri (turi->suri uri)))
-    (play-command/ffmpeg (uri-reference suri))))
+    (cplay (uri-reference suri))))
+
+(define-audio-host "wimp" play-command/wimp)
+
+;; (play-command "tr://wimp/tid/12345")
 
