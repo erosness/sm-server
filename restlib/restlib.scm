@@ -1,10 +1,10 @@
 ;;; Various helper utils for our rest server.
 
-
 (use clojurian-syntax           ;; util
      spiffy intarweb uri-common ;; web
      medea                      ;; json
      test                       ;; well.. guess
+     irregex                    ;; quess again!
      )
 
 ;;; ******************** misc ********************
@@ -166,3 +166,10 @@
   (lambda () (paginate (handler)
                   (current-limit)
                   (current-offset))))
+
+;; filter full-blown input-data with the returned procedure
+(define (querify data)
+  (assert (list? data))
+  (lambda (query)
+    (filter (lambda (item) (irregex-search query (conc item))) data)))
+

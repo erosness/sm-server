@@ -32,3 +32,7 @@
  (test '((limit . 1) (offset . 2) (total . 3) (items . #(c)))   (paginate '(a b c) 1 2))
  (test '((limit . 1) (offset . 3) (total . 3) (items . #()))    (paginate '(a b c) 1 3)))
 
+(test-group
+ "querify"
+ (test '(a aa ab ac ba ca) ((querify '(a b c aa ab ac ba bb bc ca cb cc)) "a")))
+

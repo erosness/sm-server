@@ -23,14 +23,13 @@
             cache)))))
 
 
-(define (/search/tone q)
-  (->> (map (lambda (hz)
-              (let ((hz (* hz 100)))
-                `((title . ,(conc hz " hertz"))
-                  (duration . 1)
-                  (turi . ,(conc "tr://tone/" hz)))))
-            (map add1 (iota 100)))
-       (filter (lambda (alist) (irregex-search q (alist-ref 'turi alist))))))
+(define /search/tone
+  (querify (map (lambda (hz)
+                  (let ((hz (* hz 100)))
+                    `((title . ,(conc hz " hertz"))
+                      (duration . 1)
+                      (turi . ,(conc "tr://tone/" hz)))))
+                (map add1 (iota 100)))))
 
 (test `("tr://tone/1000" "tr://tone/10000")
       (map (cut alist-ref 'turi <>) (/search/tone "1000")))
