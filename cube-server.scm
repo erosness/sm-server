@@ -3,6 +3,10 @@
      clojurian-syntax)
 
 
+(define *uris* (make-hash-table))
+(define (define-handler url thunk)
+  (assert (string? url))
+  (hash-table-set! *uris* url thunk))
 
 (include "player.scm")
 
@@ -23,24 +27,8 @@
             cache)))))
 
 
-(define /search/tone
-  (querify (map (lambda (hz)
-                  (let ((hz (* hz 100)))
-                    `((title . ,(conc hz " hertz"))
-                      (duration . 1)
-                      (turi . ,(conc "tr://tone/" hz)))))
-                (map add1 (iota 100)))))
+(define-handler "/play" /play)
 
-(test `("tr://tone/1000" "tr://tone/10000")
-      (map (cut alist-ref 'turi <>) (/search/tone "1000")))
-
-
-;; (hash-table->alist *uris*)
-(define *uris* (alist->hash-table `(("/search/tone" . ,(pagize (argumentize /search/tone 'q)))
-                                    ("/search/wimp" . ,(argumentize wimp-search 'q 'limit 'offset))
-                                    ("/play" .   ,(lambda a (apply /play a))))))
-
-;; (find-accessor "/search")
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
@@ -60,3 +48,4 @@
 
 ;; for your repl pleasure:
 ;; (define thread (thread-start! (lambda () (start-server port: 5055))))
+;; (hash-table->alist *uris*)
