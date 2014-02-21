@@ -145,19 +145,15 @@
 
 ;; currently data must be list
 (define (paginate data limit offset)
-
-  (define (get-counter data)
-    (cond ((list? data) length)
-          (else (error "cannot paginate " data))))
+  (assert (list? data))
 
   (define (crop data)
-    (cond ((list? data) (->> data
-                             (maybe-drop offset)
-                             (maybe-take limit)
-                             (list->vector)))
-          (else (error "cannot crop " data))))
+    (->> data
+         (maybe-drop offset)
+         (maybe-take limit)
+         (list->vector)))
 
-  (make-search-result limit offset ((get-counter data) data) (crop data)))
+  (make-search-result limit offset (length data) (crop data)))
 
 
 (define (current-limit)
