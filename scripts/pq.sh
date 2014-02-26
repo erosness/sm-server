@@ -5,16 +5,16 @@ track='{"turi" : "tr://wimp/tid/18771487","title" : "Bah (landing)","artist" : "
 case "$1" in
 
     "play")
-        curl -X POST -d "$track" $host/pq/play | json_pp
+        curl -X POST -d "$track" $host/pq/play
         ;;
     "get")
-        curl $host/pq | json_pp
+        curl $host/pq
         ;;
     "clear")
-        curl $host/pq/clear | json_pp
+        curl $host/pq/clear
         ;;
     "add")
-        curl -X POST -d "$track" $host/pq/add | json_pp
+        curl -X POST -d "$track" $host/pq/add
         ;;
     "del")
         shift
