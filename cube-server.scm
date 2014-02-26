@@ -14,22 +14,6 @@
 (include "rest-notes.scm")
 (include "rest-wimp.scm")
 
-
-(define /play
-  (let ((cache #f))
-    (lambda ()
-      (let ((json (current-json)))
-        (if json
-            (let ((song (alist-ref 'turi json)))
-              (begin (play! (play-command song))
-                     (print "playing " song)
-                     (set! cache song)
-                     `((status . "ok"))))
-            cache)))))
-
-
-(define-handler "/play" /play)
-
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
