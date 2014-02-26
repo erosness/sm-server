@@ -55,6 +55,19 @@
      (set! *cplay-proc* (launch-cplay scommand))
      *cplay-proc*)))
 
+(define (player-operation op)
+  (with-mutex-lock
+   *cplay-lock* (lambda () (and *cplay-proc* (*cplay-proc* op)))))
+
+;; Control operations
+(define (player-pause)
+ (player-operation #:pause))
+
+(define (player-unpause)
+ (player-operation #:unpause))
+
+(define (player-quit)
+  (player-operation #:quit))
 
 
 ;; provide an API for audio hosts / providers to plug into.
