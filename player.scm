@@ -60,13 +60,13 @@
    *cplay-lock* (lambda () (and *cplay-proc* (*cplay-proc* op)))))
 
 ;; Control operations
-(define (player-pause)
+(define player-pause
  (player-operation #:pause))
 
-(define (player-unpause)
+(define player-unpause
  (player-operation #:unpause))
 
-(define (player-quit)
+(define player-quit
   (player-operation #:quit))
 
 
