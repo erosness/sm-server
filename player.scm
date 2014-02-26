@@ -41,13 +41,21 @@
         ((#:quit)  (process-signal pid))
         (else (apply cmd (cons command args)))))))
 
+
+(define *cplay-lock* (make-mutex))
+(define *cplay-proc* #f)
+
 ;; spawn command, killing the previous one if it's running
 (define play!
-  (let ((current #f))
-    (lambda (scommand)
-      (if current (current #:quit))
-      (set! current (launch-cplay scommand))
-      current)))
+  (with-mutex-lock
+   *cplay-lock*
+   (lambda (scommand)
+     (print scommand)
+     (if *cplay-proc* (*cplay-proc* #:quit))
+     (set! *cplay-proc* (launch-cplay scommand))
+     *cplay-proc*)))
+
+
 
 ;; provide an API for audio hosts / providers to plug into.
 (define *audio-hosts* `())
