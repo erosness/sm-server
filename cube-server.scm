@@ -33,4 +33,4 @@
 
 ;; for your repl pleasure:
 ;; (define thread (thread-start! (lambda () (start-server port: 5055))))
-;; (hash-table->alist *uris*)
+;; (pp (hash-table->alist *uris*))
