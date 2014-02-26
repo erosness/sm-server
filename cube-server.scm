@@ -2,17 +2,19 @@
      srfi-69 restlib test
      clojurian-syntax)
 
-
 (define *uris* (make-hash-table))
 (define (define-handler url thunk)
   (assert (string? url))
   (hash-table-set! *uris* url thunk))
+
 
 (include "player.scm")
 
 (include "rest-tone.scm")
 (include "rest-notes.scm")
 (include "rest-wimp.scm")
+(include "rest-pq.scm")
+(include "rest-player.scm")
 
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
