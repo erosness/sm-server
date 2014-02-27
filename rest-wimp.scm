@@ -7,26 +7,51 @@
 (define (track->turi track)
   (conc "tr://wimp/tid/" (alist-ref 'id track)))
 
-(define (cover-uri track)
+
+;; ************ image getters
+(define (track->album-cover-uri track)
   (let ((aid (->> track
                   (alist-ref 'album)
                   (alist-ref 'id))))
-    (wimp-cover-url aid)))
+    (wimp-album-cover-url aid)))
 
-(define (track->artist track)
-  (->> track
+(define (album->album-cover-uri album)
+  (wimp-album-cover-url (alist-ref 'id album)))
+
+(define (artist->artist-image-uri artist)
+  (wimp-artist-image-url (alist-ref 'id artist)))
+
+
+
+(define (track/album->artist-name item)
+  (->> item
        (alist-ref 'artist)
        (alist-ref 'name)))
+
+
+;; *********** ->search-result
 
 (define (track->search-result track)
   `((turi   . ,(track->turi track))
     (title  . ,(alist-ref 'title track))
-    (artist . ,(track->artist track))
-    (cover  . ,(cover-uri track))))
+    (artist . ,(track/album->artist-name track))
+    (cover  . ,(track->album-cover-uri track))))
 
-(define (wimp-process-query-result result)
+(define (artist->search-result artist)
+  `((id    . ,(alist-ref 'id artist))
+    (name  . ,(alist-ref 'name artist))
+    (image . ,(artist->artist-image-uri artist))))
+
+(define (album->search-result album)
+  `((id     . ,(alist-ref 'id album))
+    (artist . ,(track/album->artist-name album))
+    (title  . ,(alist-ref 'title album))
+    (cover  . ,(album->album-cover-uri album))))
+
+
+(define (wimp-process-result result-proc result)
   (list->vector
-   (map track->search-result
+   (map result-proc
         (->> result
              (alist-ref 'items)
              (vector->list)))))
@@ -64,3 +89,12 @@
    (make-wimp-search-call wimp-search-track track->search-result)
    'q 'limit 'offset))
 
+(define-handler /search/wimp/artist
+  (argumentize
+   (make-wimp-search-call wimp-search-artist artist->search-result)
+   'q 'limit 'offset))
+
+(define-handler /search/wimp/album
+  (argumentize
+   (make-wimp-search-call wimp-search-album album->search-result)
+   'q 'limit 'offset))
