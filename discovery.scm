@@ -1,6 +1,7 @@
 (use socket udp)
 
 ;; (include "broadcast.scm")
+(import broadcast)
 
 ;; (define port 5055)
 ;; TODO: proper logging
