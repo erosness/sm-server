@@ -1,4 +1,5 @@
 (include "playqueue.scm")
+(import broadcast)
 
 ;; Adds an item to the back of the playqueue and starts it.
 ;; Returns: the passed in item with a unique id added
