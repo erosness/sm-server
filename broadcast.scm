@@ -1,4 +1,4 @@
-(use socket intarweb)
+(use socket intarweb medea)
 
 (define (udp-broadcast msg #!optional (saddr (inet-address "239.255.255.250" 5055)))
   (define s (socket af/inet sock/dgram 0))
@@ -11,4 +11,13 @@
     (if echo
         (conc "\n" "Echo: " echo)
         "")))
+
+(define (make-notify path json)
+  (conc "NOTIFY " path "\n\n" json))
+
+(define ((bc proc path) #!rest args)
+  (let* ((response (apply proc args))
+         (json (with-output-to-string (lambda () (write-json response)))))
+    (udp-broadcast (make-notify path json))
+    response))
 
