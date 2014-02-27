@@ -31,13 +31,12 @@
              (alist-ref 'items)
              (vector->list)))))
 
-(define (wimp-search q limit offset)
-  (let ((result (wimp-search-track q `((offset . ,offset)
-                                       (limit  . ,limit)))))
+(define ((make-wimp-search-call search process) q limit offset)
+  (let ((result (search q `((offset . ,offset)
+                            (limit  . ,limit)))))
     (make-search-result limit offset
-     (alist-ref 'totalNumberOfItems result)
-     (wimp-process-query-result result))))
-
+                        (alist-ref 'totalNumberOfItems result)
+                        (wimp-process-result process result))))
 
 ;; extract tid (as string) from a wimp tr uri.
 (define (wimp-turi-tid uri)
@@ -59,5 +58,9 @@
     (cplay (uri-reference suri))))
 
 (define-audio-host "wimp" play-command/wimp)
-(define-handler /search/wimp (argumentize wimp-search 'q 'limit 'offset))
+
+(define-handler /search/wimp/track
+  (argumentize
+   (make-wimp-search-call wimp-search-track track->search-result)
+   'q 'limit 'offset))
 
