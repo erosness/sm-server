@@ -13,7 +13,10 @@
         "")))
 
 (define (make-notify path json)
-  (conc "NOTIFY " path "\n\n" json))
+  (conc "NOTIFY "
+        path
+        (udp-broadcast-headers (current-request))
+        "\n\n" json))
 
 (define ((bc proc path) #!rest args)
   (let* ((response (apply proc args))
