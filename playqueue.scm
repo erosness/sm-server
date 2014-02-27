@@ -72,10 +72,12 @@
   (with-mutex-lock
    *pq-lock* (lambda (item)
                (assert-pq-item item)
-               (let ((item (alist-cons 'id (uuid-v4) item)))
-                 (pp item)
-                 (set! *pq* (add-back *pq* item))
-                 item))))
+               (if (find-with-id (alist-ref 'id item))
+                   item
+                 (let ((item (alist-cons 'id (uuid-v4) item)))
+                   (pp item)
+                   (set! *pq* (add-back *pq* item))
+                   item)))))
 
 (define pq-del
   (with-mutex-lock
