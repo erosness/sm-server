@@ -19,4 +19,4 @@
 
 ;; this is noisy:
 ;; (play! (play-command "tr://tone/440"))
-
+;; (player-quit)

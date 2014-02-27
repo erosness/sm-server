@@ -26,4 +26,4 @@
      (lambda (m) (conc "\\" (irregex-match-substring m 1))))))
 
 ;; (play! (play-command "tr://notes/"))
-
+;; (player-quit)
