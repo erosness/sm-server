@@ -7,7 +7,7 @@
   (assert (string? url))
   (hash-table-set! *uris* url thunk))
 
-
+(include "broadcast.scm")
 (include "player.scm")
 
 (include "rest-tone.scm")
