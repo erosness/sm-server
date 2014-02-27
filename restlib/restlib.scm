@@ -5,6 +5,8 @@
      medea                      ;; json
      test                       ;; well.. guess
      irregex                    ;; quess again!
+     srfi-13                    ;; for string-null? (chicken-install
+                                ;; complains if this is missing)
      )
 
 ;;; ******************** misc ********************
