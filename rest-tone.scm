@@ -7,7 +7,7 @@
              (turi . ,(conc "tr://tone/" hz)))))
        (map add1 (iota 100))))
 
-(define-handler "/search/tone" (pagize (argumentize (querify tones) 'q)))
+(define-handler /search/tone (pagize (argumentize (querify tones) 'q)))
 
 (define (play-command/tone uri)
  (let ((hz (second (uri-path uri))))

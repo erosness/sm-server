@@ -3,9 +3,17 @@
      clojurian-syntax)
 
 (define *uris* (make-hash-table))
-(define (define-handler url thunk)
+
+(define (set-handler! url thunk)
   (assert (string? url))
   (hash-table-set! *uris* url thunk))
+
+(define-syntax define-handler
+  (syntax-rules ()
+    ((define-handler path body ...)
+     (begin
+       (define path body ...)
+       (set-handler! (symbol->string 'path) path)))))
 
 (include "broadcast.scm")
 (include "player.scm")

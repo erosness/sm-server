@@ -59,5 +59,5 @@
     (cplay (uri-reference suri))))
 
 (define-audio-host "wimp" play-command/wimp)
-(define-handler "/search/wimp" (argumentize wimp-search 'q 'limit 'offset))
+(define-handler /search/wimp (argumentize wimp-search 'q 'limit 'offset))
 
