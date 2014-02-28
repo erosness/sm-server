@@ -15,6 +15,8 @@
        (define path body ...)
        (set-handler! (symbol->string 'path) path)))))
 
+(include "concurrent-utils.scm")
+
 (include "broadcast.scm")
 (include "player.scm")
 
