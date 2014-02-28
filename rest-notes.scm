@@ -1,7 +1,6 @@
 (use irregex)
 
-;; TODO: make this less tricky!
-(define-handler "/search/notes" (pagize (argumentize (querify `(((turi . "tr://notes/")))) 'q)))
+(define-handler /search/notes (pagize (argumentize (querify `(((turi . "tr://notes/")))) 'q)))
 
 ;; taken from http://trac.ffmpeg.org/wiki/FancyFilteringExamples
 (define-audio-host "notes"
@@ -26,4 +25,4 @@
      (lambda (m) (conc "\\" (irregex-match-substring m 1))))))
 
 ;; (play! (play-command "tr://notes/"))
-
+;; (player-quit)

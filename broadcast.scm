@@ -1,4 +1,7 @@
-(use socket intarweb)
+(module broadcast (bc udp-broadcast)
+
+(import chicken scheme ports data-structures)
+(use socket intarweb spiffy medea)
 
 (define (udp-broadcast msg #!optional (saddr (inet-address "239.255.255.250" 5055)))
   (define s (socket af/inet sock/dgram 0))
@@ -12,3 +15,15 @@
         (conc "\n" "Echo: " echo)
         "")))
 
+(define (make-notify path json)
+  (conc "NOTIFY "
+        path
+        (udp-broadcast-headers (current-request))
+        "\n\n" json))
+
+(define ((bc proc path) #!rest args)
+  (let* ((response (apply proc args))
+         (json (with-output-to-string (lambda () (write-json response)))))
+    (udp-broadcast (make-notify path json))
+    response))
+)

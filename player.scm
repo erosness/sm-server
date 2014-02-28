@@ -20,16 +20,35 @@
 
 
 
+
+(define *cplay-lock* (make-mutex))
+(define *cplay-proc* #f)
+
 ;; spawn command, killing the previous one if it's running
 ;; TODO: support on-exit callback
 (define play!
-  (let ((current #f))
-    (lambda (lcommand)
-      (if current (current #:quit))
-      (set! current (process-cli (car lcommand)
-                                 (cdr lcommand)
-                                 (lambda () (print "*** song finshed"))))
-      current)))
+  (with-mutex-lock *cplay-lock*
+   (lambda (scommand)
+     (print scommand)
+     (if *cplay-proc* (*cplay-proc* #:quit))
+     (set! *cplay-proc* (process-cli (car scommand)
+                                     (cdr scommand)
+                                     (lambda () (print "*** song finshed"))))
+     *cplay-proc*)))
+
+(define (player-operation op)
+  (with-mutex-lock
+   *cplay-lock* (lambda () (and *cplay-proc* (*cplay-proc* op)))))
+
+;; Control operations
+(define player-pause
+ (player-operation #:pause))
+
+(define player-unpause
+ (player-operation #:unpause))
+
+(define player-quit
+  (player-operation #:quit))
 
 ;; provide an API for audio hosts / providers to plug into.
 (define *audio-hosts* `())

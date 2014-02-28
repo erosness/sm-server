@@ -5,6 +5,8 @@
      medea                      ;; json
      test                       ;; well.. guess
      irregex                    ;; quess again!
+     srfi-13                    ;; for string-null? (chicken-install
+                                ;; complains if this is missing)
      )
 
 ;;; ******************** misc ********************
@@ -69,13 +71,16 @@
     ;; on GET, call handler with no args. on PUT, call it with parsed
     ;; json input. in both cases, return json-representation of
     ;; handler's return value
+    ;; (current-json) should return false on GET requests and a truthy
+    ;; value for PUT/POST
     (case (request-method (current-request))
       [(GET) (send-json (handler))]
       [(PUT POST)
        (let* ((req-string (request-string!))
               (json (or (read-json req-string)
+                        (string-null? req-string)
                         (error "invalid json" req-string))))
-         (current-json json) ;; <-- never #f
+         (current-json (or json '()))
          (send-json (handler)))]
       (else (error (conc "unsupported method " (request-method (current-request))))))))
 

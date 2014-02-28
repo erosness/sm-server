@@ -99,9 +99,11 @@
 (define wimp-track-streamurl       (wimp-lambda ()      "tracks"    tid "streamurl"))
 (define wimp-user-playlists        (wimp-lambda ()      "users"     uid "playlists"))
 
-(define (wimp-cover-url aid #!optional (w 100) (h 100))
+(define (wimp-album-cover-url aid #!optional (w 100) (h 100))
   (conc "http://images.osl.wimpmusic.com/im/im?w=" w "&h=" h "&albumid=" aid))
 
+(define (wimp-artist-image-url aid #!optional (w 100) (h 100))
+  (conc "http://images.osl.wimpmusic.com/im/im?w=" w "&h=" h "&artistid=" aid))
 
 
 ;; (wimp-login! "97670550" "herrowimp")

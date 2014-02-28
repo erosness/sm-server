@@ -2,33 +2,27 @@
      srfi-69 restlib test
      clojurian-syntax)
 
-
 (define *uris* (make-hash-table))
-(define (define-handler url thunk)
+
+(define (set-handler! url thunk)
   (assert (string? url))
   (hash-table-set! *uris* url thunk))
 
+(define-syntax define-handler
+  (syntax-rules ()
+    ((define-handler path body ...)
+     (begin
+       (define path body ...)
+       (set-handler! (symbol->string 'path) path)))))
+
+(include "broadcast.scm")
 (include "player.scm")
 
 (include "rest-tone.scm")
 (include "rest-notes.scm")
 (include "rest-wimp.scm")
-
-
-(define /play
-  (let ((cache #f))
-    (lambda ()
-      (let ((json (current-json)))
-        (if json
-            (let ((song (alist-ref 'turi json)))
-              (begin (play! (play-command song))
-                     (print "playing " song)
-                     (set! cache song)
-                     `((status . "ok"))))
-            cache)))))
-
-
-(define-handler "/play" /play)
+(include "rest-pq.scm")
+(include "rest-player.scm")
 
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
@@ -49,4 +43,4 @@
 
 ;; for your repl pleasure:
 ;; (define thread (thread-start! (lambda () (start-server port: 5055))))
-;; (hash-table->alist *uris*)
+;; (pp (hash-table->alist *uris*))
