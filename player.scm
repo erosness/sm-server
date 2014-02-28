@@ -4,16 +4,17 @@
 
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
-(define (cplay uri #!optional seek)
-  (conc "cplay "
-        "\""
-        (uri->string uri)
-        "\""))
+(define (cplay source #!optional (format #f))
+  (let ((lformat (if format (list "-f" format) '()))
+        (lsource (list (cond ((uri-reference? source) (uri->string source))
+                             (else source)))))
+    (append '("cplay") lformat lsource)))
 
 (test-group
  "cplay"
- (test "cplay \"filename\""
-       (cplay (uri-reference "filename"))))
+ (test '("cplay" "filename") (cplay "filename"))
+ (test '("cplay" "filename") (cplay (uri-reference "filename")))
+ (test '("cplay" "-f" "alsa" "file") (cplay "file" "alsa")))
 
 ;; Spawn a subprocess. Use its line-based cli on stdin/stdout as
 ;; messaging interface. Returns a thread-safe cli procedure.

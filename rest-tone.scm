@@ -11,11 +11,12 @@
 
 (define (play-command/tone uri)
  (let ((hz (second (uri-path uri))))
-   (conc "cplay -f lavfi aevalsrc=\"sin(" hz "*2*PI*t):s=8000\"")))
+   (cplay (conc "aevalsrc=sin(" hz "*2*PI*t):s=8000") "lavfi")))
 
 (define-audio-host "tone" play-command/tone)
 
-(test "cplay -f lavfi aevalsrc=\"sin(1234*2*PI*t):s=8000\"" (play-command "tr://tone/1234"))
+(test '("cplay" "-f" "lavfi" "aevalsrc=sin(1234*2*PI*t):s=8000")
+      (play-command "tr://tone/1234"))
 
 ;; this is noisy:
 ;; (play! (play-command "tr://tone/440"))
