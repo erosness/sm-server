@@ -1,6 +1,8 @@
 (use fmt test uri-common)
 
-(include "player-util.scm")
+(include "process-cli.scm")
+(import process-cli)
+
 
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
@@ -16,38 +18,17 @@
  (test '("cplay" "filename") (cplay (uri-reference "filename")))
  (test '("cplay" "-f" "alsa" "file") (cplay "file" "alsa")))
 
-;; Spawn a subprocess. Use its line-based cli on stdin/stdout as
-;; messaging interface. Returns a thread-safe cli procedure.
-(define (launch-cplay command)
-  (receive (pip pop pid)
-      ;; spawn process:
-      (process command)
 
-    (define (cmd* . strings)
-      (drain-input-port pip)
-      (display (apply conc (intersperse strings " ")) pop)
-      (display "\n" pop)
-      (read-line pip))
-
-    ;; thread safety:
-    (define mx (make-mutex #|mutex label:|# `(play! ,command)))
-    (define cmd (with-mutex-lock mx cmd*))
-
-    ;; (define cmd cmd*) <-- back to non-threadsafe if you want to test
-
-    (lambda (command . args)
-      (case command
-        ((#:stdout) pop)
-        ((#:stdin)  pip)
-        ((#:quit)  (process-signal pid))
-        (else (apply cmd (cons command args)))))))
 
 ;; spawn command, killing the previous one if it's running
+;; TODO: support on-exit callback
 (define play!
   (let ((current #f))
-    (lambda (scommand)
+    (lambda (lcommand)
       (if current (current #:quit))
-      (set! current (launch-cplay scommand))
+      (set! current (process-cli (car lcommand)
+                                 (cdr lcommand)
+                                 (lambda () (print "*** song finshed"))))
       current)))
 
 ;; provide an API for audio hosts / providers to plug into.
@@ -82,14 +63,3 @@
 ;; (define stop (play! (cplay (uri-reference "tone://sine/440"))))
 ;; (read-string #f stop)
 ;; (stop)
-
-(define player)
-(when #f
-  (define player
-    (play! (cplay (uri-reference "file:///home/klm/cube/aosp-new/external/cplay/tones.m4a"))))
-
-  (player "seek" 100)
-  (player "pause")
-  (player "pos")
-  (player "unpause")
-  (player #:quit))
