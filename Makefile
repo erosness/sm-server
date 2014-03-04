@@ -1,4 +1,4 @@
-DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt socket udp test
+DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt udp test
 
 # install for tradio:
 # ci=aosp-chicken-install
@@ -8,7 +8,7 @@ ci=chicken-install
 all: blobbery tone-generator dab dsp i2c restlib wimp
 	$(ci) -s
 
-deps:
+deps: socket
 	$(ci) -s $(DEPS)
 
 blobbery:
@@ -38,5 +38,8 @@ restlib:
 wimp:
 	cd wimp; $(ci) -s
 
+# we patched up socket so it compiles with aosp-chicken-install.
+socket:
+	cd socket; $(ci) -s
 
 .PHONY: restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all
