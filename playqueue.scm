@@ -144,13 +144,15 @@
    (test-error (pq-del* pq `((id . "no existe")))))
 
  (test "no pq-current" #f (pq-next* (make-pq)))
- (test "pq-next*"
-       `((id . "c"))
-       (pq-next* (make-pq `( ((id . "a"))
-                             ((id . "b"))
-                             ((id . "c")) )
-                          ;; current:
-                          `((id . "b")))))
+ (test "no pq-current" #f (pq-prev* (make-pq)))
+
+ (let ((pq (make-pq `( ((id . "a"))
+                       ((id . "b"))
+                       ((id . "c")) )
+                    ;; current:
+                    `((id . "b")))))
+   (test "pq-next*" `((id . "c")) (pq-next* pq))
+   (test "pq-prev*" `((id . "a")) (pq-prev* pq)))
 
 
  (test-error (pq-play* (make-pq) `((id . "a")))))
