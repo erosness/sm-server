@@ -78,6 +78,19 @@
   (pq-list-set! pq '())
   (pq-current-set! pq #f))
 
+(define (pq-next/lst* pq lst)
+  (and
+   (pq-current pq)
+   (let* ((id (alist-ref 'id (pq-current pq)))
+          (tail (find-tail
+                 (lambda (x) (equal? id (alist-ref 'id x)))
+                 lst)))
+     ;; return the next element of the first match
+     (and (pair? (cdr tail)) (cadr tail)))))
+
+(define (pq-next* pq) (pq-next/lst* pq (pq-list pq)))
+(define (pq-prev* pq) (pq-next/lst* pq (reverse (pq-list pq))))
+
 (define (pq-play* pq item)
   (let* ((item (or (pq-ref* pq item) (error "not found in pq" item)))
          (track (alist-ref 'turi item)))
@@ -85,6 +98,8 @@
     (print "playing " track)
     (pq-current-set! pq item)))
 
+(define (pq-play-next* pq) (pq-play* pq (pq-next* pq)))
+(define (pq-play-prev* pq) (pq-play* pq (pq-prev* pq)))
 
 ;; ==================== thread-safety ====================
 (define (with-pq-mutex proc)
@@ -92,24 +107,17 @@
   (lambda (pq . args)
     ((with-mutex-lock (pq-mutex pq) (lambda () (apply proc (cons pq args)))))))
 
-(define pq-ref   (with-pq-mutex pq-ref*))
-(define pq-add   (with-pq-mutex pq-add*))
-(define pq-del   (with-pq-mutex pq-del*))
-(define pq-clear (with-pq-mutex pq-clear*))
-(define pq-play  (with-pq-mutex pq-play*))
+(begin
+  (define pq-ref   (with-pq-mutex pq-ref*))
+  (define pq-add   (with-pq-mutex pq-add*))
+  (define pq-del   (with-pq-mutex pq-del*))
+  (define pq-clear (with-pq-mutex pq-clear*))
+  (define pq-next  (with-pq-mutex pq-next*))
+  (define pq-prev  (with-pq-mutex pq-prev*))
 
-;; (define pq-next
-;;   (with-mutex-lock
-;;    *pq-lock* (lambda ()
-;;                (let ((item (find-next *pq-current*)))
-;;                  (pq-play (alist-ref 'id item))))))
-
-;; (define pq-prev
-;;   (with-mutex-lock
-;;    *pq-lock* (lambda ()
-;;                (let ((item (find-prev *pq-current*)))
-;;                  (pq-play (alist-ref 'id item))))))
-
+  (define pq-play  (with-pq-mutex pq-play*))
+  (define pq-play-next  (with-pq-mutex pq-play-next*))
+  (define pq-play-prev  (with-pq-mutex pq-play-prev*)))
 
 
 (test-group
@@ -134,6 +142,15 @@
 
    (test-error (pq-add* pq `((id . "hello") (turi . "a"))))
    (test-error (pq-del* pq `((id . "no existe")))))
+
+ (test "no pq-current" #f (pq-next* (make-pq)))
+ (test "pq-next*"
+       `((id . "c"))
+       (pq-next* (make-pq `( ((id . "a"))
+                             ((id . "b"))
+                             ((id . "c")) )
+                          ;; current:
+                          `((id . "b")))))
 
 
  (test-error (pq-play* (make-pq) `((id . "a")))))

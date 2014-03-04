@@ -37,5 +37,20 @@
          `((status . "ok")))
       "/pq/clear"))
 
+(define-handler /pq/play/next
+  (bc (lambda () (let ((nx (pq-next *pq*)))
+              (pq-play-next *pq*)
+              nx))
+      "/pq/play/next"))
+
+(define-handler /pq/play/prev
+  (bc (lambda () (let ((nx (pq-prev *pq*)))
+              (pq-play-prev *pq*)
+              nx))
+      "/pq/play/prev"))
+
+;; (/pq/play/next)
+;; (/pq/play/prev)
+
 ;; Returns the playqueue
 (define-handler /pq (lambda () (list->vector (pq-list *pq*))))
