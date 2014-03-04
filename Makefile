@@ -5,7 +5,9 @@ DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt udp 
 
 ci=chicken-install
 
-all: blobbery tone-generator dab dsp i2c restlib wimp
+all: deps modules
+
+modules: blobbery tone-generator dab dsp i2c restlib wimp
 	$(ci) -s
 
 deps: socket
