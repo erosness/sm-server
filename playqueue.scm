@@ -21,26 +21,16 @@
 
 (test-group
  "add-back"
- (test
-  "add to empty list"
-  '(1)
-  (add-back '() 1))
- (test
-  "add to non-empty"
-  '(1 2 3)
-  (add-back '(1 2) 3)))
+ (test "add to empty list" '(1)     (add-back '()    1))
+ (test "add to non-empty"  '(1 2 3) (add-back '(1 2) 3)))
 
 (define (assert-pq-item item)
   (assert (alist-ref 'turi item)))
 
 (test-group
  "assert-pq-item"
- (test-assert
-  "valid item"
-  (assert-pq-item '((turi . "tr://wimp/play"))))
- (test-error
-  "wrong key"
-  (assert-pq-item `((foo . "tr://wimp/play")))))
+ (test-assert "valid item" (assert-pq-item '((turi . "tr://wimp/play"))))
+ (test-error  "wrong key"  (assert-pq-item `((foo . "tr://wimp/play")))))
 
 (define *pq-lock* (make-mutex))
 (define (make-pq) '())
