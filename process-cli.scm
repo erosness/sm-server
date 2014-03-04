@@ -12,7 +12,7 @@
 (module process-cli (process-cli)
 
 (import chicken scheme data-structures)
-(use extras ports srfi-13 srfi-18 posix srfi-1 clojurian-syntax)
+(use posix extras ports srfi-13 srfi-18 posix srfi-1 clojurian-syntax)
 
 ;; don't exit on signal/pipe!
 ;; see http://krokisplace.blogspot.no/2010/02/suppressing-sigpipe-in-library.htlm
