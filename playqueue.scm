@@ -43,10 +43,10 @@
   (current pq-current pq-current-set!))
 
 (define-record-printer (pq x port)
-  (display (conc "#<pq " (length (pq-list x)) ">") port))
+  (display (conc "#<pq " (length (pq-list x)) " current: " (pq-current x) ">") port))
 
-(define (make-pq) (%make-pq '() (make-mutex) #f))
-
+(define (make-pq #!optional (lst '()) (current #f))
+  (%make-pq lst (make-mutex) current))
 
 ;; ****************************
 ;; public api
