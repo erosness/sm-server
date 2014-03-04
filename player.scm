@@ -28,12 +28,12 @@
 ;; TODO: support on-exit callback
 (define play!
   (with-mutex-lock *cplay-lock*
-   (lambda (scommand)
+   (lambda (scommand #!optional (on-exit (lambda () (print "*** song finished"))))
      (print scommand)
      (if *cplay-proc* (*cplay-proc* #:quit))
      (set! *cplay-proc* (process-cli (car scommand)
                                      (cdr scommand)
-                                     (lambda () (print "*** song finshed"))))
+                                     on-exit))
      *cplay-proc*)))
 
 (define (player-operation op)
