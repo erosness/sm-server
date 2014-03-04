@@ -1,4 +1,4 @@
-DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt socket udp
+DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt socket udp test
 
 # install for tradio:
 # ci=aosp-chicken-install
