@@ -80,11 +80,10 @@
 
 (define (pq-play* pq item)
   (let* ((item (or (pq-ref* pq item) (error "not found in pq" item)))
-         (track (alist-ref 'turi item))
-         (uuid (alist-ref 'id item)))
+         (track (alist-ref 'turi item)))
     (play! (play-command track))
     (print "playing " track)
-    (pq-current-set! pq uuid)))
+    (pq-current-set! pq item)))
 
 
 ;; ==================== thread-safety ====================
