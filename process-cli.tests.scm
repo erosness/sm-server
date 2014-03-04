@@ -26,7 +26,7 @@
  
 
  (receive (pip pop pid)
-     (spawn* "echo" '()) ;; <-- exits immediately
+     (spawn* "sleep" '("0")) ;; <-- exits immediately
    (thread-sleep! 0.1)
    ;; we want to error here with "broken pipe"
    (test-error "check that sigpipe interrupt is disabled"
@@ -59,7 +59,7 @@
                     (lambda (ix)
                       (-> (lambda ()
                             (thread-yield!) ;; <-- for some action
-                            (= ix (string->number (cli (conc " " ix)))))
+                            (= ix (string->number (cli (number->string ix)))))
                         (thread-start!))))))
    (cli #:quit))
 
