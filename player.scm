@@ -73,10 +73,10 @@
 (test-group
  "play-command"
 
- (test "cplay \"file:///filename\"" (play-command "file:///filename"))
- (test "cplay \"http://domain/file.mp3\"" (play-command "http://domain/file.mp3"))
+ (test '("cplay" "file:///filename") (play-command "file:///filename"))
+ (test '("cplay" "http://domain/file.mp3") (play-command "http://domain/file.mp3"))
 
- (test "cplay \"filename\"" (play-command "filename"))
+ (test '("cplay" "filename") (play-command "filename"))
  (test-error (play-command "i l l e g a l")))
 
 ;; (define stop (play! (cplay (uri-reference "tone://sine/440"))))
