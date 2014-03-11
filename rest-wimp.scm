@@ -103,3 +103,14 @@
   (argumentize
    (make-wimp-search-call wimp-search-album album->search-result)
    'q 'limit 'offset))
+
+(define-handler /search/wimp/artist/albums
+  (argumentize
+   (make-wimp-search-call wimp-artist-albums album->search-result)
+   'q 'limit 'offset))
+
+(define-handler /search/wimp/album/tracks
+  (argumentize
+   (make-wimp-search-call wimp-album-tracks track->search-result)
+   'q 'limit 'offset))
+)
