@@ -1,5 +1,5 @@
+(import broadcast concurrent-utils)
 (include "playqueue.scm")
-(import broadcast)
 
 (define *pq* (make-pq))
 

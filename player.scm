@@ -1,7 +1,15 @@
-(use fmt test uri-common)
+(module player (cplay
+                play!
+                player-pause
+                player-unpause
+                player-quit)
 
-(include "process-cli.scm")
-(import process-cli)
+(import chicken scheme data-structures)
+(use fmt test uri-common srfi-18)
+
+;; (include "process-cli.scm")
+;; (include "concurrent-utils.scm")
+(import process-cli concurrent-utils)
 
 
 ;; create shell string for launching `cplay` player daemon. launch it
@@ -88,6 +96,7 @@
 
  (test '("cplay" "filename") (play-command "filename"))
  (test-error (play-command "i l l e g a l")))
+)
 
 ;; (define stop (play! (cplay (uri-reference "tone://sine/440"))))
 ;; (read-string #f stop)

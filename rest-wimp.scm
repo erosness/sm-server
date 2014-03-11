@@ -1,4 +1,9 @@
+(module rest-wimp ()
+
+(import chicken scheme data-structures)
 (use wimp uri-common test clojurian-syntax restlib)
+
+(import rest player)
 
 ;; leaving the beauty of what is session management till later:
 (print "please wait while logging in to wimp...")

@@ -1,3 +1,9 @@
+(module rest-tone ()
+
+(import chicken scheme data-structures)
+
+(use uri-common restlib test srfi-1)
+(import rest player)
 
 (define tones
   (map (lambda (hz)
@@ -17,6 +23,7 @@
 
 (test '("cplay" "-f" "lavfi" "aevalsrc=sin(1234*2*PI*t):s=8000")
       (play-command "tr://tone/1234"))
+)
 
 ;; this is noisy:
 ;; (play! (play-command "tr://tone/440"))

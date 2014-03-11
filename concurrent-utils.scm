@@ -1,4 +1,6 @@
-;; TODO: make into module?
+(module concurrent-utils (with-mutex-lock)
+
+(import chicken scheme ports)
 (use srfi-18 test)
 
 ;; simple mutex wrapper (don't nest it, it will error with deadlock!)
@@ -33,3 +35,4 @@
    (test "arguments are passed properly"
          '(1 2 3)
          (h 1 2 3))))
+)
