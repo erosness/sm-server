@@ -44,8 +44,13 @@
 
 (define (artist->search-result artist)
   `((id    . ,(alist-ref 'id artist))
-    (name  . ,(alist-ref 'name artist))
-    (image . ,(artist->artist-image-uri artist))))
+    ;; This was changed to make the artist/track/album results uniform for
+    ;; the client.
+    ;; TODO: Properly define what a result should look like
+    ;; -    (name  . ,(alist-ref 'name artist))
+    ;; -    (image . ,(artist->artist-image-uri artist))))
+    (title  . ,(alist-ref 'name artist))
+    (cover . ,(artist->artist-image-uri artist))))
 
 (define (album->search-result album)
   `((id     . ,(alist-ref 'id album))
