@@ -1,25 +1,14 @@
 (use spiffy intarweb uri-common
-     srfi-69 restlib test
+     srfi-69 restlib
      clojurian-syntax)
 
-(define *uris* (make-hash-table))
-
-(define (set-handler! url thunk)
-  (assert (string? url))
-  (hash-table-set! *uris* url thunk))
-
-(define-syntax define-handler
-  (syntax-rules ()
-    ((define-handler path body ...)
-     (begin
-       (define path body ...)
-       (set-handler! (symbol->string 'path) path)))))
-
 (include "concurrent-utils.scm")
+(include "process-cli.scm")
 
 (include "broadcast.scm")
 (include "player.scm")
 
+(include "rest.scm")
 (include "rest-tone.scm")
 (include "rest-notes.scm")
 (include "rest-wimp.scm")
@@ -46,3 +35,4 @@
 ;; for your repl pleasure:
 ;; (define thread (thread-start! (lambda () (start-server port: 5055))))
 ;; (pp (hash-table->alist *uris*))
+
