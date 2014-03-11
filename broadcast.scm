@@ -43,4 +43,6 @@
          (json (with-output-to-string (lambda () (write-json response)))))
     (udp-broadcast (make-udp-message path json))
     response))
+
+(include "broadcast.tests.scm")
 )
