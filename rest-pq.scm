@@ -1,5 +1,11 @@
-(import broadcast concurrent-utils)
-(include "playqueue.scm")
+(module rest-pq ()
+
+(import chicken scheme data-structures srfi-1)
+
+(use restlib)
+
+(import broadcast concurrent-utils rest player playqueue)
+;; (include "playqueue.scm")
 
 (define *pq* (make-pq))
 
@@ -54,3 +60,4 @@
 
 ;; Returns the playqueue
 (define-handler /pq (lambda () (list->vector (pq-list *pq*))))
+)

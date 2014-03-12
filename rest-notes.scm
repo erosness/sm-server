@@ -1,4 +1,9 @@
-(use irregex)
+(module rest-notes ()
+
+(import chicken scheme data-structures)
+
+(use irregex restlib)
+(import rest player)
 
 (define-handler /search/notes (pagize (argumentize (querify `(((turi . "tr://notes/")))) 'q)))
 
@@ -23,6 +28,7 @@
       "0.4*sin(2*ld(0)*ld(1)))*exp(-4*ld(1))"
       "\"")
      (lambda (m) (conc "\\" (irregex-match-substring m 1))))))
+)
 
 ;; (play! (play-command "tr://notes/"))
 ;; (player-quit)

@@ -9,6 +9,8 @@
 (include "player.scm")
 
 (include "rest.scm")
+(include "playqueue.scm")
+
 (include "rest-tone.scm")
 (include "rest-notes.scm")
 (include "rest-wimp.scm")

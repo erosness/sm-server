@@ -1,4 +1,19 @@
+(module playqueue (pq-list
+                   pq-prev
+                   pq-play-prev
+                   pq-next
+                   pq-play-next
+                   pq-clear
+                   pq-del
+                   pq-ref
+                   pq-add
+                   pq-play
+                   make-pq)
+
+(import chicken scheme data-structures srfi-1)
 (use srfi-18 uri-common test uuid)
+
+(import concurrent-utils player rest)
 
 ;; (include "concurrent-utils.scm")
 
@@ -156,3 +171,4 @@
 
 
  (test-error (pq-play* (make-pq) `((id . "a")))))
+)
