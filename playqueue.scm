@@ -169,6 +169,11 @@
    (test "pq-next*" `((id . "c")) (pq-next* pq))
    (test "pq-prev*" `((id . "a")) (pq-prev* pq)))
 
+ (let ((pq (make-pq `(((id . "a"))) '((id . "a")))))
+   (test "past last is #f"
+         #f (pq-next* pq))
+   (test "before first is #f"
+         #f (pq-prev* pq)))
 
  (test-error (pq-play* (make-pq) `((id . "a")))))
 )
