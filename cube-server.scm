@@ -17,6 +17,8 @@
 (include "rest-pq.scm")
 (include "rest-player.scm")
 
+(import rest)
+
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
