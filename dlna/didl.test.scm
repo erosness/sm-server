@@ -1,13 +1,25 @@
 
 
-(test "unbox-result"
-      '(*TOP* (a))
-      (unbox-result '(*TOP* (*PI* xml "version=\"1.0\" encoding=\"utf-8\"")
-                            (http://schemas.xmlsoap.org/soap/envelope/:Envelope
-                             (http://schemas.xmlsoap.org/soap/envelope/:Body
-                              (urn:schemas-upnp-org:service:ContentDirectory:1:BrowseResponse
-                               (Result "<a></a>")))))))
+(test-group
+ "unbox-result"
+ (test "browse result"
+       '(*TOP* (browse))
+       (unbox-result '(*TOP* (*PI* xml "version=\"1.0\" encoding=\"utf-8\"")
+                             (http://schemas.xmlsoap.org/soap/envelope/:Envelope
+                              (http://schemas.xmlsoap.org/soap/envelope/:Body
+                               (urn:schemas-upnp-org:service:ContentDirectory:1:BrowseResponse
+                                (Result "<browse></browse>")))))))
 
+ (test "search result"
+       '(*TOP* (search))
+       (unbox-result '(*TOP* (*PI* xml "version=\"1.0\" encoding=\"utf-8\"")
+                             (http://schemas.xmlsoap.org/soap/envelope/:Envelope
+                              (@ (http://schemas.xmlsoap.org/soap/envelope/:encodingStyle
+                                  "http://schemas.xmlsoap.org/soap/encoding/"))
+                              (http://schemas.xmlsoap.org/soap/envelope/:Body
+                               (urn:schemas-upnp-org:service:ContentDirectory:1:SearchResponse
+                                (Result
+                                 "<search></search>"))))))))
 (test-group
  "container sxml"
 

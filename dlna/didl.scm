@@ -77,8 +77,18 @@
 ;;
 ;; pick out the raw result body and returns it as sxml.
 (define (unbox-result doc)
-  (let* ((strs ((sxpath "//e:Envelope/e:Body/cd1:BrowseResponse/Result/text()" ns) doc))
-         (str (if (= 1 (length strs)) (car strs) (error "unexpected server response" strs))))
+
+  ;; sometimes it's here, sometimes it's there. find them both and
+  ;; return it all.
+  (define sr "//e:Envelope/e:Body/cd1:SearchResponse/Result/text()")
+  (define br "//e:Envelope/e:Body/cd1:BrowseResponse/Result/text()")
+
+  (let* ((strs (append ((sxpath sr ns) doc)
+                       ((sxpath br ns) doc)))
+         (str (if (= 1 (length strs))
+                  (car strs)
+                  (error (conc "unbox error (found " (length strs) ")")
+                         doc))))
     (ssax:xml->sxml (open-input-string str) '())))
 
 
