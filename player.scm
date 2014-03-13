@@ -100,6 +100,5 @@
  (test-error (play-command "i l l e g a l")))
 )
 
-;; (define stop (play! (cplay (uri-reference "tone://sine/440"))))
-;; (read-string #f stop)
-;; (stop)
+;; (define player (play! (play-command "tr://tone/440")))
+;; (player #:quit)
