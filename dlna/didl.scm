@@ -62,9 +62,9 @@
 
 ;; content-type and soapaction stolen from Coherence's UPnP inspector
 ;; (note the quotes, see with-soap-unparsers)
-(define (make-browse-request url)
+(define (make-soap-request soapaction url)
   (->> `((content-type "text/xml ;charset=\"utf-8\"")
-         (soapaction "urn:schemas-upnp-org:service:ContentDirectory:1#Browse"))
+         (soapaction ,soapaction))
        (headers)
        (make-request uri: (uri-reference url)
                      method: 'POST
@@ -93,17 +93,20 @@
 
 
 ;; query host for children/subfolders of container-id. returns sxml.
-(define (browse-query host container-id)
+(define (sxml-query request sxml)
   (->> (ssax:xml->sxml (open-input-string
                         (with-soap-unparsers
                          (lambda ()
                            (with-input-from-request
-                            (make-browse-request host)
-                            (serialize-sxml (browse-children/sxml container-id))
+                            request
+                            (serialize-sxml sxml)
                             read-string))))
                        '())
        (unbox-result)))
 
+(define (browse-query url container-id)
+  (sxml-query (make-soap-request "urn:schemas-upnp-org:service:ContentDirectory:1#Browse" url)
+              (browse-children/sxml container-id)))
 
 ;; ==================== search ====================
 ;; TODO
