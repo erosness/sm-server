@@ -13,7 +13,7 @@
 (import chicken scheme data-structures srfi-1)
 (use srfi-18 uri-common test uuid)
 
-(import concurrent-utils player rest)
+(import concurrent-utils player)
 
 ;; (include "concurrent-utils.scm")
 
@@ -133,7 +133,6 @@
   (define pq-play  (with-pq-mutex pq-play*))
   (define pq-play-next  (with-pq-mutex pq-play-next*))
   (define pq-play-prev  (with-pq-mutex pq-play-prev*)))
-
 
 (test-group
  "playqueue"
