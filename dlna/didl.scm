@@ -41,35 +41,8 @@
           (map item->talist      ((sxpath "//d:DIDL-Lite/d:item" ns) doc))))
 
 
-;; ==================== browse ====================
 
-;; construct sxml for media-browse request
-(define (browse-children/sxml parent-id)
-  `(*TOP* (@ (*NAMESPACES*
-              (e "http://schemas.xmlsoap.org/soap/envelope/")
-              (cd1 "urn:schemas-upnp-org:service:ContentDirectory:1")))
-          (*PI* xml "version=\"1.0\" encoding=\"utf-8\"")
-          (e:Envelope
-           (@ (e:encodingStyle "http://schemas.xmlsoap.org/soap/encoding/"))
-           (e:Body
-            (cd1:Browse
-             (ObjectID ,(conc parent-id))
-             (BrowseFlag "BrowseDirectChildren")
-             (Filter "*")
-             (StartingIndex "0")
-             (RequestedCount "0")
-             (SortCriteria))))))
-
-;; content-type and soapaction stolen from Coherence's UPnP inspector
-;; (note the quotes, see with-soap-unparsers)
-(define (make-soap-request soapaction url)
-  (->> `((content-type "text/xml ;charset=\"utf-8\"")
-         (soapaction ,soapaction))
-       (headers)
-       (make-request uri: (uri-reference url)
-                     method: 'POST
-                     major: 1 minor: 0
-                     headers: )))
+;; ==================== net ====================
 
 ;; soap wraps the response payload in XML. The response payload is
 ;; therefore escaped XML inside XML. So we need to parse the XML
@@ -104,12 +77,64 @@
                        '())
        (unbox-result)))
 
-(define (browse-query url container-id)
-  (sxml-query (make-soap-request "urn:schemas-upnp-org:service:ContentDirectory:1#Browse" url)
-              (browse-children/sxml container-id)))
+
+;; content-type and soapaction stolen from Coherence's UPnP inspector
+(define (make-soap-request soapaction url)
+  (->> `((content-type "text/xml ;charset=\"utf-8\"")
+         (soapaction ,soapaction))
+       (headers)
+       (make-request uri: (uri-reference url)
+                     method: 'POST
+                     major: 1 minor: 0
+                     headers: )))
+
+
+;; ==================== browse ====================
+
+;; construct sxml for media-browse request
+(define (browse/sxml parent-id)
+  `(*TOP* (@ (*NAMESPACES*
+              (e "http://schemas.xmlsoap.org/soap/envelope/")
+              (cd1 "urn:schemas-upnp-org:service:ContentDirectory:1")))
+          (*PI* xml "version=\"1.0\" encoding=\"utf-8\"")
+          (e:Envelope
+           (@ (e:encodingStyle "http://schemas.xmlsoap.org/soap/encoding/"))
+           (e:Body
+            (cd1:Browse
+             (ObjectID ,(conc parent-id))
+             (BrowseFlag "BrowseDirectChildren")
+             (Filter "*")
+             (StartingIndex "0")
+             (RequestedCount "0")
+             (SortCriteria))))))
+
 
 ;; ==================== search ====================
-;; TODO
+
+;; query is e.g.
+;; "(upnp:class = \"object.container.album.musicAlbum\" and dc:title contains \"lara\")"
+(define (search/sxml query parent)
+  `(*TOP* (*PI* xml "version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"")
+          (http://schemas.xmlsoap.org/soap/envelope/:Envelope
+           (@ (http://schemas.xmlsoap.org/soap/envelope/:encodingStyle
+               "http://schemas.xmlsoap.org/soap/encoding/"))
+           (http://schemas.xmlsoap.org/soap/envelope/:Body
+            (urn:schemas-upnp-org:service:ContentDirectory:1:Search
+             (ContainerID ,parent)
+             (SearchCriteria ,query)
+             (Filter "*")
+             (StartingIndex "0")
+             (RequestedCount "16")
+             (SortCriteria))))))
+
+
+(define (browse-query url container-id)
+  (sxml-query (make-soap-request "urn:schemas-upnp-org:service:ContentDirectory:1#Browse" url)
+              (browse/sxml container-id)))
+
+(define (search-query url query #!optional (parent "0"))
+  (sxml-query (make-soap-request "urn:schemas-upnp-org:service:ContentDirectory:1#Search" url)
+              (search/sxml query parent)))
 
 (include "didl.test.scm")
 
