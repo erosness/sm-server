@@ -80,4 +80,9 @@
                                    (urn:schemas-upnp-org:device-1-0:serviceId
                                     "urn:upnp-org:serviceId:ContentDirectory")
                                    (urn:schemas-upnp-org:device-1-0:controlURL
-                                    "http://other-example.com/cd")))))))))
+                                    "http://other-example.com/cd"))))))))
+
+ (test "absolute-control-url no content-directory service"
+       #f
+       (absolute-control-url "http://abc" '() )))
+

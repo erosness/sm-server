@@ -3,7 +3,8 @@
 ;; accept namespaces
 (define (sxpath/car search ns)
   (let ((proc (sxpath search ns)))
-    (lambda (doc) (car (proc doc)))))
+    (lambda (doc) (let ((r (proc doc)))
+               (and (pair? r) (car r))))))
 
 (define ns '((pe   . "http://purl.org/dc/elements/1.1/")
              (u    . "urn:schemas-upnp-org:metadata-1-0/upnp/")
