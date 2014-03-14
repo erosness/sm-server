@@ -17,11 +17,11 @@
 
 (define (play-command/tone uri)
  (let ((hz (second (uri-path uri))))
-   (cplay (conc "aevalsrc=sin(" hz "*2*PI*t):s=8000") "lavfi")))
+   (cplay (conc "aevalsrc=sin(" hz "*2*PI*t):s=8000:d=2") "lavfi")))
 
 (define-audio-host "tone" play-command/tone)
 
-(test '("cplay" "-f" "lavfi" "aevalsrc=sin(1234*2*PI*t):s=8000")
+(test '("cplay" "-f" "lavfi" "aevalsrc=sin(1234*2*PI*t):s=8000:d=2")
       (play-command "tr://tone/1234"))
 )
 
