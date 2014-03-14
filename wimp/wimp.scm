@@ -5,7 +5,7 @@
 
 
 ;; typically holds current sessionId and countryCode
-(define *wimp-base-url*     (make-parameter "http://stage.api.wimpmusic.com/v1/"))
+(define *wimp-base-url*     (make-parameter "https://api.wimpmusic.com/v1"))
 (define *wimp-query*        (make-parameter with-input-from-request))
 (define *wimp-session-params* #f)
 
