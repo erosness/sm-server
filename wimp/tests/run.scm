@@ -23,14 +23,14 @@
 
 (test-group
  "wimp urls"
- (parameterize ((*wimp-session-params* '((ape . "yes")))
-                (*wimp-base-url* "http://a.com"))
+ (fluid-let ((*wimp-session-params* '((ape . "yes"))))
+  (parameterize ((*wimp-base-url* "http://a.com"))
 
-   (test "http://a.com/albums/1234/tracks?ape=yes"
-         (URL (wimp-album-tracks 1234)))
+    (test "http://a.com/albums/1234/tracks?ape=yes"
+          (URL (wimp-album-tracks 1234)))
 
-   (test "http://a.com/albums/1234/tracks?ape=yes&custom=true"
-         (URL (wimp-album-tracks 1234 `((custom . true)))))))
+    (test "http://a.com/albums/1234/tracks?ape=yes&custom=true"
+          (URL (wimp-album-tracks 1234 `((custom . true))))))))
 
 (test "login returns sessionId & countryCode"
       2
@@ -82,7 +82,7 @@
              (alist-ref 'items)
              (vector-length)))
 
-(test 2 (->> (wimp-user-playlists 1006 `((limit . 2)))
+(test 1 (->> (wimp-user-playlists 1006 `((limit . 2)))
              (alist-ref 'items)
              (vector-length)))
 
