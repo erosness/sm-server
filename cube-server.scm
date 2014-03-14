@@ -2,6 +2,8 @@
      srfi-69 restlib
      clojurian-syntax)
 
+(include "debug-utils.scm")
+
 (include "concurrent-utils.scm")
 (include "process-cli.scm")
 
