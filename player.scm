@@ -7,7 +7,7 @@
                 play-command)
 
 (import chicken scheme data-structures)
-(use fmt test uri-common srfi-18)
+(use fmt test uri-common srfi-18 test)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
