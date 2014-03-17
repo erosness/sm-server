@@ -1,4 +1,18 @@
 
+
+ ;; to test our understanding of sxpath:
+ (test "control-url"
+       "/wan"
+       (control-url '(anything (urn:schemas-upnp-org:device-1-0:controlURL "/wan"))))
+
+
+(test "content-directory:1?"
+      '(#f #f #t)
+      (map content-directory:1?
+           '((a . "n")
+             (b . "n")
+             (urn:schemas-upnp-org:service:ContentDirectory:1 . "y"))))
+
 (test-group
  "extract from services"
 
