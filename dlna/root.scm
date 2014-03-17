@@ -22,7 +22,7 @@
 
 
 ;; control-url as an absolute url.
-(define (absolute-control-url rootdesc-url doc)
+(define (absolute-control-url doc rootdesc-url)
   (and-let* ( ;; eg "/ctr/ContentDir or "http://10.0.0.89/ctr"
              (ctr-url (control-url (services doc)))
              (ctr-uri (uri-reference ctr-url)))
