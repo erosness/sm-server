@@ -1,4 +1,4 @@
-(use ssax sxpath test)
+(use ssax sxpath test clojurian-syntax)
 
 (include "sxml-common.scm")
 
