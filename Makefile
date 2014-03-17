@@ -1,9 +1,10 @@
 DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt udp test uuid socket
 
 # install for tradio:
-# ci=aosp-chicken-install
+# ci=aosp-chicken-install make
 
-ci=chicken-install
+# default to host's chicken-install
+ci ?= chicken-install
 
 all: deps modules
 
