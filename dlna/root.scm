@@ -12,6 +12,10 @@
 ;; if #f, use the same hostname as root-description:
 (define base-url      (sxpath/car "*//dev:URLBase/text()" ns))
 
+(define (content-directory:1? pair)
+  (and (pair? pair)
+       (equal? (car pair) 'urn:schemas-upnp-org:service:ContentDirectory:1)))
+
 (define (url->base-url base #!optional (path '()))
   (uri->string (update-uri (uri-reference base) path: path)))
 
@@ -28,6 +32,13 @@
         (uri->string ctr-uri)
         (url->base-url baseurl (uri-path ctr-uri)))))
 
+
+(define (service-alist doc #!optional (baseurl (base-url doc)))
+  (map (lambda (s)
+         (cons (string->symbol (service-type s))
+               (absolute-control-url s baseurl)))
+       (services doc)))
+
 ;; perform a HTTP request against uri, returning response as sxml
 (define (rootdesc-query uri)
   (define (read-sxml) (ssax:xml->sxml (current-input-port) '()))
@@ -37,7 +48,11 @@
 ;; query an UPnP server's rootdescriptor for it's ContentDirectory:1
 ;; control urls. returns #f if none found. returned url is always
 ;; absolute.
-(define (query-control-url rootdesc-url)
-  (absolute-control-url rootdesc-url
-                        (rootdesc-query rootdesc-url)))
+(define (query-control-urls rootdesc-url)
+  (let ((doc (rootdesc-query rootdesc-url)))
+    (service-alist doc (or (base-url doc) ;; take base-url from doc if present
+                           rootdesc-url   ;; otherwise use request url
+                           ))))
+
+
 (include "root.test.scm")

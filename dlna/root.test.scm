@@ -100,3 +100,44 @@
        #f
        (absolute-control-url '() "http://abc" )))
 
+
+
+
+(test-group
+ "service-alist"
+
+ (define doc
+   '(*TOP* (*PI* xml "version=\"1.0\"")
+           (urn:schemas-upnp-org:device-1-0:root
+            (urn:schemas-upnp-org:device-1-0:specVersion
+             (urn:schemas-upnp-org:device-1-0:major "1")
+             (urn:schemas-upnp-org:device-1-0:minor "0"))
+            (urn:schemas-upnp-org:device-1-0:URLBase "http://base/")
+            (urn:schemas-upnp-org:device-1-0:device
+             (urn:schemas-upnp-org:device-1-0:serviceList
+              (urn:schemas-upnp-org:device-1-0:service
+               (urn:schemas-upnp-org:device-1-0:serviceType "fw")
+               (urn:schemas-upnp-org:device-1-0:controlURL "/fw")))
+             (urn:schemas-upnp-org:device-1-0:deviceList
+              (urn:schemas-upnp-org:device-1-0:device
+               (urn:schemas-upnp-org:device-1-0:serviceList
+                (urn:schemas-upnp-org:device-1-0:service
+                 (urn:schemas-upnp-org:device-1-0:serviceType "lan")
+                 (urn:schemas-upnp-org:device-1-0:controlURL "/lan"))))
+              (urn:schemas-upnp-org:device-1-0:device
+               (urn:schemas-upnp-org:device-1-0:serviceList
+                (urn:schemas-upnp-org:device-1-0:service
+                 (urn:schemas-upnp-org:device-1-0:serviceType "wan")
+                 (urn:schemas-upnp-org:device-1-0:controlURL "/wan")))))))))
+
+ (test "with base url from doc"
+       '((fw  . "http://base/fw")
+         (lan . "http://base/lan")
+         (wan . "http://base/wan"))
+       (service-alist doc))
+
+ (test "with base from arg"
+       '((fw . "/fw")
+         (lan . "/lan")
+         (wan . "/wan"))
+       (service-alist doc "")))
