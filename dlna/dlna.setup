@@ -1,0 +1,5 @@
+
+;; -*- scheme -*-
+
+(compile cli.scm -o dlna-client)
+(install-program 'dlna-client '("dlna-client"))
