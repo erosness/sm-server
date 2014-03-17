@@ -46,4 +46,4 @@ wimp:
 socket:
 	cd socket; $(ci) $(ciflags)
 
-.PHONY: restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all
+.PHONY: socket restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all
