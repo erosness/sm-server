@@ -1,4 +1,4 @@
-(module broadcast (bc udp-broadcast)
+(module broadcast (udp-broadcast make-udp-message)
 
 (import chicken scheme ports data-structures)
 (use socket intarweb spiffy medea)
@@ -37,12 +37,6 @@
     (if (< max-udp-packet-size (string-length message))
         (make-alert path)
         message)))
-
-(define ((bc proc path) #!rest args)
-  (let* ((response (apply proc args))
-         (json (with-output-to-string (lambda () (write-json response)))))
-    (udp-broadcast (make-udp-message path json))
-    response))
 
 (include "broadcast.tests.scm")
 )

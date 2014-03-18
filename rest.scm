@@ -2,11 +2,14 @@
               set-handler!
               define-handler
               define-audio-host
-              play-command)
+              play-command
+              bc)
 
 (import chicken scheme data-structures player)
-(use srfi-69 test uri-common)
+(use srfi-69 ports test uri-common medea
+     broadcast)
 
+;; ==================== handler ====================
 (define *uris* (make-hash-table))
 
 (define (set-handler! url thunk)
@@ -20,6 +23,7 @@
        (define path body ...)
        (set-handler! (symbol->string 'path) path)))))
 
+;; ==================== audio hosts ====================
 
 ;; provide an API for audio hosts / providers to plug into.
 (define *audio-hosts* `())
@@ -40,6 +44,16 @@
              uri))
       ;; default to cplay with any other scheme (file://, http:// etc)
       (else (cplay (or uri (error "illegal uri" turi)))))))
+
+
+;;==================== rest combinators ====================
+
+(define ((bc proc path) #!rest args)
+  (let* ((response (apply proc args))
+         (json (with-output-to-string (lambda () (write-json response)))))
+    (udp-broadcast (make-udp-message path json))
+    response))
+
 
 (test-group
  "play-command"
