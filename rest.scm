@@ -53,7 +53,7 @@
 (define ((wrap-changes path proc) #!rest args)
   (let* ((response (apply proc args))
          (json (with-output-to-string (lambda () (write-json response)))))
-    (udp-broadcast (make-udp-message path json))
+    (udp-broadcast (change-message path json))
     response))
 
 

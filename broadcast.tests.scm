@@ -1,23 +1,27 @@
 (use test)
 
 (test-group
- "udp-messages"
- (parameterize ((current-request (make-request)))
-   (test
-    "short body creates NOTIFY"
-    "NOTIFY"
-    (car (string-split
-          (make-udp-message "/foo/bar" "some short body"))))
-   (test
-    "long body creates ALERT"
-    "ALERT"
-    (car (string-split
-          (make-udp-message "/foo/bar" (make-string 1000 #\x)))))
-   (test
-    "length of message includes headers"
-    "ALERT"
-    (parameterize ((current-request
-                    (make-request
-                     headers: (headers `((echo ,(make-string 1000 #\x)))))))
-      (car (string-split
-            (make-udp-message "/foo/bar" "short body")))))))
+ "udp-broadcast"
+ (test (void) (udp-broadcast "hi"))
+ (test-error (udp-broadcast (make-string 2048 #\a))))
+
+(test-group
+ "change-message"
+
+ (test
+  "ordinary NOTIFY message format"
+  "NOTIFY /path\n\nbody"
+  (change-message "/path" "body"))
+
+ (test
+  "(current-request)'s echo value is included"
+  "NOTIFY /path\nEcho: ping\n\nbody"
+  (parameterize ((current-request
+                  (make-request
+                   headers: (headers `((echo "ping"))))))
+    (change-message "/path" "body")))
+
+ ;; just to be clear, we're not doing this properly!
+ (test "NOTIFY path with spaces\n\nbody"
+       (change-message "path with spaces" "body")))
+
