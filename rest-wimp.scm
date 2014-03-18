@@ -94,28 +94,15 @@
 
 (define-audio-host "wimp" play-command/wimp)
 
-(define-handler /search/wimp/track
+(define (wrap-wimp search-proc convert)
   (argumentize
-   (make-wimp-search-call wimp-search-track track->search-result)
+   (make-wimp-search-call search-proc convert)
    'q 'limit 'offset))
 
-(define-handler /search/wimp/artist
-  (argumentize
-   (make-wimp-search-call wimp-search-artist artist->search-result)
-   'q 'limit 'offset))
+(define-handler /search/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
+(define-handler /search/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
+(define-handler /search/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
+(define-handler /search/wimp/artist/albums (wrap-wimp wimp-artist-albums album->search-result))
+(define-handler /search/wimp/album/tracks  (wrap-wimp wimp-album-tracks  track->search-result))
 
-(define-handler /search/wimp/album
-  (argumentize
-   (make-wimp-search-call wimp-search-album album->search-result)
-   'q 'limit 'offset))
-
-(define-handler /search/wimp/artist/albums
-  (argumentize
-   (make-wimp-search-call wimp-artist-albums album->search-result)
-   'q 'limit 'offset))
-
-(define-handler /search/wimp/album/tracks
-  (argumentize
-   (make-wimp-search-call wimp-album-tracks track->search-result)
-   'q 'limit 'offset))
 )
