@@ -3,7 +3,7 @@
               define-handler
               define-audio-host
               play-command
-              bc)
+              wrap-changes)
 
 (import chicken scheme data-structures player)
 (use srfi-69 ports test uri-common medea
@@ -48,7 +48,7 @@
 
 ;;==================== rest combinators ====================
 
-(define ((bc proc path) #!rest args)
+(define ((wrap-changes path proc) #!rest args)
   (let* ((response (apply proc args))
          (json (with-output-to-string (lambda () (write-json response)))))
     (udp-broadcast (make-udp-message path json))

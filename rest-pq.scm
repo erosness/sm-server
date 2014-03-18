@@ -12,48 +12,49 @@
 ;; Adds an item to the back of the playqueue and starts it.
 ;; Returns: the passed in item with a unique id added
 (define-handler /pq/play
-  (bc (lambda ()
-        (let* ((item (current-json))
-               (existing (pq-ref *pq* item))
-               (item (or existing (pq-add *pq* item))))
-          (print "playing " item)
-          (pq-play *pq* item)
-          item))
-      "/pq/play"))
+  (wrap-changes "/pq/play"
+                (lambda ()
+                  (let* ((item (current-json))
+                         (existing (pq-ref *pq* item))
+                         (item (or existing (pq-add *pq* item))))
+                    (print "playing " item)
+                    (pq-play *pq* item)
+                    item))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
 (define-handler /pq/add
-  (bc (lambda () (pq-add *pq* (current-json))) "/pq/add"))
+  (wrap-changes "/pq/add"
+                (lambda () (pq-add *pq* (current-json)))))
 
 
 ;; Removes and item referenced by id from the playqueue
 ;; Does nothing if id is not found in playqueue
 (define-handler /pq/del
-  (bc (lambda () (let* ((id (alist-ref 'id (current-json))))
-              (pq-del *pq* id)
-              `((status . "ok"))))
-      "/pq/del"))
+  (wrap-changes "/pq/del"
+                (lambda () (let* ((id (alist-ref 'id (current-json))))
+                        (pq-del *pq* id)
+                        `((status . "ok"))))))
 
 
 ;; Removes every item from the playqueue and stops the player
 (define-handler /pq/clear
-  (bc (lambda () (pq-clear *pq*)
-         (player-quit)
-         `((status . "ok")))
-      "/pq/clear"))
+  (wrap-changes "/pq/clear"
+                (lambda () (pq-clear *pq*)
+                   (player-quit)
+                   `((status . "ok")))))
 
 (define-handler /pq/play/next
-  (bc (lambda () (let ((nx (pq-next *pq*)))
-              (pq-play-next *pq*)
-              nx))
-      "/pq/play/next"))
+  (wrap-changes "/pq/play/next"
+                (lambda () (let ((nx (pq-next *pq*)))
+                        (pq-play-next *pq*)
+                        nx))))
 
 (define-handler /pq/play/prev
-  (bc (lambda () (let ((nx (pq-prev *pq*)))
-              (pq-play-prev *pq*)
-              nx))
-      "/pq/play/prev"))
+  (wrap-changes "/pq/play/prev"
+                (lambda () (let ((nx (pq-prev *pq*)))
+                        (pq-play-prev *pq*)
+                        nx))))
 
 ;; (/pq/play/next)
 ;; (/pq/play/prev)
