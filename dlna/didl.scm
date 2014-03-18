@@ -23,7 +23,7 @@
               (title . ,(container-title container))))
 
 ;; convert an sxml item into pretty blurps
-(define (item->talist item)
+(define (track->talist item)
   (define item-id     (sxpath     "string(@id)" ns))
   (define item-title  (sxpath/car "pe:title/text()" ns))
   (define item-artist (sxpath/car "u:artist/text()" ns))
@@ -35,10 +35,17 @@
           (title  . ,(item-title item))
           (turi   . ,(item-turi item))))
 
+(define doc-containers (sxpath "//d:DIDL-Lite/d:container" ns))
+(define doc-tracks (sxpath
+                    (conc "//d:DIDL-Lite/d:item" ;; any item
+                          "[u:class/text()" ;; with <class> containing musicTrack
+                          "[contains(.,'object.item.audioItem.musicTrack')]"
+                          "]") ns))
+
 ;; convert disgusting sxml response into pretty blurps.
 (define (didl->talist doc)
-  (append (map container->talist ((sxpath "//d:DIDL-Lite/d:container" ns) doc))
-          (map item->talist      ((sxpath "//d:DIDL-Lite/d:item" ns) doc))))
+  (append (map container->talist (doc-containers doc))
+          (map track->talist     (doc-tracks doc))))
 
 
 

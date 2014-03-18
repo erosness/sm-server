@@ -23,6 +23,20 @@
 (test-group
  "container sxml"
 
+
+ (test "doc-tracks picks musicTracks only"
+       '((urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:item
+          (urn:schemas-upnp-org:metadata-1-0/upnp/:class
+           "object.item.audioItem.musicTrack")))
+       (doc-tracks
+        '(*TOP* (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:DIDL-Lite
+                 ;; photoes are evil
+                 (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:item
+                  (urn:schemas-upnp-org:metadata-1-0/upnp/:class
+                   "object.item.imageItem.photo"))
+                 (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:item
+                  (urn:schemas-upnp-org:metadata-1-0/upnp/:class
+                   "object.item.audioItem.musicTrack"))))))
  (test
   "container->folder"
   '(container (id . "1$7") (title . "Album"))
