@@ -124,13 +124,12 @@
         ((#:pid)    pid)
         ((#:quit)
          (handle-exceptions e (warning "could not kill read-thread with pid" pid)
-                            (thread-terminate! read-thread)
                             (close-output-port pop)
                             (close-input-port pip))
          ;; careful: if pid doesn't quit, we block all threads forever
          (process-wait pid))
         (else (apply cmd (cons command args)))))))
 
-(include "process-cli.tests.scm")
+;;(include "process-cli.tests.scm")
 
 )

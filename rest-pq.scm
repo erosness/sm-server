@@ -4,8 +4,9 @@
 
 (use restlib)
 
-(import broadcast concurrent-utils rest player playqueue)
-;; (include "playqueue.scm")
+(import broadcast
+        rest player
+        playqueue)
 
 (define *pq* (make-pq))
 

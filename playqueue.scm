@@ -13,7 +13,7 @@
 (import chicken scheme data-structures srfi-1)
 (use srfi-18 uri-common test uuid)
 
-(import concurrent-utils player rest)
+(import concurrent-utils player)
 
 ;; (include "concurrent-utils.scm")
 
@@ -109,7 +109,7 @@
 (define (pq-play* pq item)
   (let* ((item (or (pq-ref* pq item) (error "not found in pq" item)))
          (track (alist-ref 'turi item)))
-    (play! (play-command track))
+    (play! (play-command track) (lambda () (pq-play-next pq)))
     (print "playing " track)
     (pq-current-set! pq item)))
 
@@ -133,7 +133,6 @@
   (define pq-play  (with-pq-mutex pq-play*))
   (define pq-play-next  (with-pq-mutex pq-play-next*))
   (define pq-play-prev  (with-pq-mutex pq-play-prev*)))
-
 
 (test-group
  "playqueue"
@@ -169,6 +168,11 @@
    (test "pq-next*" `((id . "c")) (pq-next* pq))
    (test "pq-prev*" `((id . "a")) (pq-prev* pq)))
 
+ (let ((pq (make-pq `(((id . "a"))) '((id . "a")))))
+   (test "past last is #f"
+         #f (pq-next* pq))
+   (test "before first is #f"
+         #f (pq-prev* pq)))
 
  (test-error (pq-play* (make-pq) `((id . "a")))))
 )
