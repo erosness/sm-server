@@ -1,4 +1,5 @@
-DEPS = clojurian bitstring spiffy intarweb uri-common medea http-client fmt udp test uuid openssl
+DEPS = clojurian bitstring spiffy intarweb uri-common \
+	medea http-client fmt udp test uuid openssl
 
 # install for tradio:
 # ci=aosp-chicken-install make
