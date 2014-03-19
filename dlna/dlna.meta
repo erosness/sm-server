@@ -1,1 +1,5 @@
-((author "Adellica"))
+;; -*- scheme -*-
+
+((author "Adellica")
+ (depends ssax sxpath sxml-serializer)
+ (test-depends test))
