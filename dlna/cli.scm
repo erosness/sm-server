@@ -1,47 +1,4 @@
-(use test fmt)
-
-(include "ssdp.scm")
-(include "root.scm")
-(include "didl.scm")
-
-
-;; search for ssdp servers for 60 seconds, and print their locations
-(define *devices* (lambda () '()))
-
-;; query a location (rootdesc url) for content-directory:1
-;; control-urls
-(define (query-cdurls loc)
-  (let* ((qurls (query-control-urls loc))
-         (cdurls (map cdr (filter content-directory:1? qurls))))
-    (print "services: ")
-    (pp qurls)
-    cdurls))
-
-(define (search)
-  (set! *devices*
-        (ssdp-search* 60
-                      (lambda (packet lst)
-                        (let ((l (packet-location packet)))
-                          ;; avoid duplicates
-                          (if (member l (map car lst))
-                              lst
-                              (begin (print "discovered: " l)
-                                     (cons (cons l (query-control-urls l)) lst)))))
-                      '())))
-
-(define (ls q)
-  (map
-   (lambda (services) ;; <-- ((servicetype . url) (servicetype . url) ...)
-     (let* ()
-       (map (lambda (service)
-              (let ((cdurl (cdr service)))
-                (print ";; ========== querying " cdurl)
-                (->> (search-query cdurl (conc "dc:title contains \"" q "\""))
-                     (didl->talist)
-                     (pp))))
-            ;; we can search on content-directory services only
-            (filter content-directory:1? services))))
-   (map cdr (*devices*))))
+(use test fmt dlna)
 
 ;; ==================== formatting ====================
 (define (fmt-services services)

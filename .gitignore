@@ -34,3 +34,6 @@
 /restlib/restlib.import.scm
 /timespeaker/counter.mp3
 /dlna/dlna-client
+/dlna/dlna.import.scm
+/dlna/dlna.import.so
+/dlna/dlna.so
