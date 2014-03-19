@@ -65,6 +65,7 @@
              (http://purl.org/dc/elements/1.1/:title "Artist"))
             (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:item
              (@ (id "tid"))
+             (urn:schemas-upnp-org:metadata-1-0/upnp/:class "object.item.audioItem.musicTrack")
              (http://purl.org/dc/elements/1.1/:title "title")
              (urn:schemas-upnp-org:metadata-1-0/upnp/:artist "artist")
              (urn:schemas-upnp-org:metadata-1-0/upnp/:album "album")
