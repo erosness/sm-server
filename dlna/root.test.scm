@@ -78,12 +78,12 @@
 
  (test "absolute-control-url relative"
        "http://example.com/ctl/ContentDir"
-       (absolute-control-url doc
-                             "http://example.com"))
+       (absolute-control-url "http://example.com" doc))
 
  (test "absolute-control-url absolute"
        "http://other-example.com/cd"
-       (absolute-control-url '(*TOP*
+       (absolute-control-url "http://ignored-host.com/"
+                             '(*TOP*
                                (urn:schemas-upnp-org:device-1-0:root
                                 (urn:schemas-upnp-org:device-1-0:device
                                  (urn:schemas-upnp-org:device-1-0:serviceList
@@ -93,12 +93,11 @@
                                    (urn:schemas-upnp-org:device-1-0:serviceId
                                     "urn:upnp-org:serviceId:ContentDirectory")
                                    (urn:schemas-upnp-org:device-1-0:controlURL
-                                    "http://other-example.com/cd"))))))
-                             "http://ignored-host.com/"))
+                                    "http://other-example.com/cd"))))))))
 
  (test "absolute-control-url no content-directory service"
        #f
-       (absolute-control-url '() "http://abc" )))
+       (absolute-control-url "http://abc" '() )))
 
 
 

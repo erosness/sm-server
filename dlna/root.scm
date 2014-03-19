@@ -24,7 +24,7 @@
           "urn:schemas-upnp-org:device:MediaServer:1"))
 
 ;; control-url as an absolute url.
-(define (absolute-control-url sdoc baseurl)
+(define (absolute-control-url baseurl sdoc)
   (and-let* ( ;; eg "/ctr/ContentDir or "http://10.0.0.89/ctr"
              (ctr-url (control-url sdoc))
              (ctr-uri (uri-reference ctr-url)))
@@ -36,7 +36,7 @@
 (define (service-alist doc #!optional (baseurl (base-url doc)))
   (map (lambda (s)
          (cons (string->symbol (service-type s))
-               (absolute-control-url s baseurl)))
+               (absolute-control-url baseurl s)))
        (services doc)))
 
 ;; perform a HTTP request against uri, returning response as sxml
