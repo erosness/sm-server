@@ -1,6 +1,6 @@
 (use socket http-client
      intarweb uri-common
-     ssax)
+     ssax test)
 
 ;; ;; a version of socket-receive that never times out
 ;; (define (socket-receive* s size)
