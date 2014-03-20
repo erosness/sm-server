@@ -131,7 +131,7 @@
   `((limit  . ,limit)
     (offset . ,offset)
     (total  . ,total)
-    (items  . ,items)))
+    (items  . ,(list->vector items))))
 
 
 ;;; ******************** pagination ********************
@@ -155,8 +155,7 @@
   (define (crop data)
     (->> data
          (maybe-drop offset)
-         (maybe-take limit)
-         (list->vector)))
+         (maybe-take limit)))
 
   (make-search-result limit offset (length data) (crop data)))
 

@@ -60,11 +60,10 @@
 
 
 (define (wimp-process-result result-proc result)
-  (list->vector
-   (map result-proc
-        (->> result
-             (alist-ref 'items)
-             (vector->list)))))
+  (map result-proc
+       (->> result
+            (alist-ref 'items)
+            (vector->list))))
 
 (define ((make-wimp-search-call search process) q limit offset)
   (let ((result (search q `((offset . ,offset)
