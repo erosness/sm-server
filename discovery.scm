@@ -1,3 +1,6 @@
+;;; ssdp-like discovery protocol: HTTPu with multicasting. search is
+;;; multicast, search response is unicast to port 5055 (not search
+;;; socket's port like in ssdp).
 (use socket udp)
 
 ;; (include "broadcast.scm")
