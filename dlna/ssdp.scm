@@ -33,6 +33,27 @@
    (thread-sleep! 0.1)
    (test #t (timeout?))))
 
+;; returns the UDP packet body according to ssdp search query message
+;; format.
+(define (ssdp-search-message adr)
+  (conc "M-SEARCH * HTTP/1.1\r
+HOST: " (sockaddr-address adr) ":" (sockaddr-port adr) "\r
+MAN: \"ssdp:discover\"\r
+MX: 5\r
+ST: ssdp:all\r
+\r
+"))
+
+(test "ssdp-search-message"
+      "M-SEARCH * HTTP/1.1\r
+HOST: 10.0.0.1:1234\r
+MAN: \"ssdp:discover\"\r
+MX: 5\r
+ST: ssdp:all\r
+\r
+"
+      (ssdp-search-message (inet-address "10.0.0.1" 1234)))
+
 ;; ============================== actual search ==============================
 
 ;; create a query procedure which will return newly discovered UPnP
@@ -40,17 +61,12 @@
 ;; called asynchronously in another thread.
 ;;
 ;; socket will be closed after timeout seconds.
-(define (ssdp-search* timeout/sec fold initial)
+(define (ssdp-search* timeout/sec fold initial
+                      #!optional
+                      (address (inet-address "239.255.255.250" 1900))
+                      (msg (ssdp-search-message address)))
 
-  (define sock (udp-multicast
-                "M-SEARCH * HTTP/1.1\r
-HOST: 239.255.255.250:1900\r
-MAN: \"ssdp:discover\"\r
-MX: 5\r
-ST: ssdp:all\r
-\r
-"
-                (inet-address "239.255.255.250" 1900)))
+  (define sock (udp-multicast msg address))
 
   ;; folded result (so far)
   (define results initial)
