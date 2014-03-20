@@ -37,14 +37,14 @@
 (define (change-message path body)
   (conc "NOTIFY "
         path
-        (udp-broadcast-headers (current-request))
+        (udp-broadcast-headers (or (current-request) (make-request)))
         "\n\n" body))
 
 ;; like change-message, but used for large datasets. tbd
 (define (make-alert path)
   (conc "ALERT "
         path
-        (udp-broadcast-headers (current-request))
+        (udp-broadcast-headers (or (current-request) (make-request)))
         "\n\n"))
 
 (include "broadcast.tests.scm")
