@@ -96,18 +96,6 @@ ST: ssdp:all\r
 
 ;; ============================== helpers ==============================
 
-;; add x to lst unless it's already there (using equal?)
-(define (set-add x lst)
-  (if (member x lst) lst
-      (cons x lst)))
-
-(test-group
- "set-add"
- (test '("a") (set-add "a" '()))
- (test '("a") (set-add "a" '("a")))
- (test '("c" "b" "a") (fold set-add '() '("a" "b" "c" "a"))))
-
-
 ;; extract LOCATION header value from packet as string.
 (define (packet-location packet)
   (let ((headers (response-headers (read-response (open-input-string packet)))))
