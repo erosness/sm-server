@@ -12,22 +12,21 @@
     (cat nl "========== " url nl
          (fmt-services (cdr lst)))))
 
+(define *devices* (ssdp-search))
 ;; print discovered devices nicely
 (define (status) (fmt #t (fmt-join fmt-device (*devices*))))
 
-(define search dlna-search)
+(define (search q) (dlna-search/track (*devices*) q))
 
 (print "
 ==================== simple dlna client ====================
 commands:
-search <q>        ;; search for <q> on all devices, using UPnP builtin search func
-status            ;; print discoveried services thus far
-start-ssdp-search ;; multicast UPnP/SSDP search and print responses for 60sec
+(status)            ;; print discoveried services thus far
+(search <q>) ;; search for <q> on all devices, using UPnP builtin search func
 
 ;; searching ...
 ")
 
-(start-ssdp-search)
 (repl)
 ;; (ls "jackson")
 ;; (devices)

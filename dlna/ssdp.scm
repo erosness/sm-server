@@ -119,18 +119,6 @@ ST: ssdp:all\r
        "HTTP/1.1 200 OK\r
 LOCATION:http://host/path\r\n"))
 
-;; do a search and make a list of location-uris only
-;;
-;; usage:
-;;
-;; (define results (ssdp-search 30))
-;; wait couple of seconds
-;; (results)
-(define (ssdp-search timeout/sec)
-  (ssdp-search*
-   timeout/sec
-   (lambda (x lst) (set-add (packet-location x) lst))
-   '()))
 
 ;; ==================== multicast ====================
 ;; incoming multicast from my MiniDLNA when it starts:
