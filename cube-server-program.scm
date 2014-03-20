@@ -1,7 +1,6 @@
 
 (include "cube-server.scm")
 
-(include "discovery.scm")
 (include "job-util.scm") ;; job-auto-respawn
 
 (define *thread-heartbeat*

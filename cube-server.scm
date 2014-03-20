@@ -18,6 +18,9 @@
 (include "rest-pq.scm")
 (include "rest-player.scm")
 
+;; cube-server discovery (not ssdp!)
+(include "discovery.scm")
+
 (import rest)
 
 (define (find-accessor uri #!optional (uris *uris*))
@@ -39,5 +42,6 @@
 
 ;; for your repl pleasure:
 ;; (define thread (thread-start! (lambda () (start-server port: 5055))))
+;; (define thread-hb (thread-start! (lambda () (start-discovery 5055 360))))
 ;; (pp (hash-table->alist *uris*))
 
