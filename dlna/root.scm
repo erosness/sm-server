@@ -12,9 +12,12 @@
 ;; if #f, use the same hostname as root-description:
 (define base-url      (sxpath/car "*//dev:URLBase/text()" ns))
 
-(define (content-directory:1? pair)
+;; returns url of content-directory or #f if service-type isn't a
+;; ContentDirectory:1.
+(define (ContentDirectory:1 pair)
   (and (pair? pair)
-       (equal? (car pair) 'urn:schemas-upnp-org:service:ContentDirectory:1)))
+       (eq? (car pair) 'urn:schemas-upnp-org:service:ContentDirectory:1)
+       (cdr pair)))
 
 (define (url->base-url base #!optional (path '()))
   (uri->string (update-uri (uri-reference base) path: path)))

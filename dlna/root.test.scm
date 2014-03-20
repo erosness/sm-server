@@ -7,8 +7,8 @@
 
 
 (test "content-directory:1?"
-      '(#f #f #t)
-      (map content-directory:1?
+      '(#f #f "y")
+      (map ContentDirectory:1
            '((a . "n")
              (b . "n")
              (urn:schemas-upnp-org:service:ContentDirectory:1 . "y"))))
