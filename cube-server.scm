@@ -15,6 +15,7 @@
 (include "rest-tone.scm")
 (include "rest-notes.scm")
 (include "rest-wimp.scm")
+(include "rest-dlna.scm")
 (include "rest-pq.scm")
 (include "rest-player.scm")
 
