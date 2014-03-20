@@ -29,7 +29,6 @@
      (let* ()
        (append-map (lambda (service)
                      (let ((cdurl (cdr service)))
-                       (print ";; ========== querying " cdurl)
                        (->> (search-query cdurl (conc "dc:title contains \"" q "\""))
                             (didl->talist))))
                    ;; we can search on content-directory services only
