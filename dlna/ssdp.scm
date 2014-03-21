@@ -19,20 +19,6 @@
   (socket-send-to s msg saddr)
   s)
 
-;; return a procedure which tells you if seconds has passed since
-;; start-timer was evaluated. useful for timeouts.
-(define (start-timer seconds)
-  (let ((end (+ (current-milliseconds)
-                (* seconds 1000))))
-    (lambda () (> (current-milliseconds) end))))
-
-(test-group
- "start-timer"
- (let ((timeout? (start-timer 0.05)))
-   (test #f (timeout?))
-   (thread-sleep! 0.1)
-   (test #t (timeout?))))
-
 ;; returns the UDP packet body according to ssdp search query message
 ;; format.
 (define (ssdp-search-message adr)
@@ -71,22 +57,14 @@ ST: ssdp:all\r
   ;; folded result (so far)
   (define results initial)
 
-  (define (update! packet)
-    (set! results (fold packet results)))
+  (define (update!)
+    (set! results (fold (socket-receive sock 1024) results)))
 
-  (define timeout? (start-timer timeout/sec))
-
-  (define (thread-thunk)
-    (let loop ()
-      (condition-case
-       (update! (socket-receive sock 1024))
-       ;; ignore socket-receive timeouts
-       [(exn i/o net timeout) (void)])
-      (if (not (timeout?))
-          (loop)))
-    (socket-close sock))
-
-  (thread-start! thread-thunk)
+  (thread-start! (->> update!
+                      (loop/socket-timeout)
+                      (loop/timeout timeout/sec)
+                      (loop)
+                      (with-socket sock)))
 
   (lambda () results))
 
