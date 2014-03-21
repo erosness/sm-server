@@ -6,7 +6,7 @@
 ;;; - retry on socket timeouts (unless thread is closed)
 ;;;
 ;;; - close a socket when done (even on error)
-(use srfi-18 test)
+(use srfi-18 test clojurian-syntax socket)
 
 ;; ==================== timer ====================
 

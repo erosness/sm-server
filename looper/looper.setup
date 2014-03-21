@@ -1,0 +1,4 @@
+;; -*- scheme -*-
+(compile -s looper-module.scm -o looper.so -J)
+(compile -s looper.import.scm)
+(install-extension 'looper '("looper.so" "looper.import.so"))

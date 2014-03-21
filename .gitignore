@@ -37,3 +37,6 @@
 /dlna/dlna.import.scm
 /dlna/dlna.import.so
 /dlna/dlna.so
+/looper/looper.import.scm
+/looper/looper.import.so
+/looper/looper.so
