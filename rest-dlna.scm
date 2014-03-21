@@ -25,6 +25,8 @@
 
 (define (%dlnas p) (argumentize (make-dlna-search-call p) 'q))
 
+;; note: we don't need an audio host because turi's should be http
+;; from the UPnP server directly.
 (define-handler /search/dlna/artist (%dlnas dlna-search/artist))
 (define-handler /search/dlna/album  (%dlnas dlna-search/album))
 (define-handler /search/dlna/track  (%dlnas dlna-search/track))
