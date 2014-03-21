@@ -68,6 +68,19 @@ ST: ssdp:all\r
 
   (lambda () results))
 
+(test-group
+ "ssdp-search*"
+ ;; this is a tricky one. we wanna make sure that timeout is respected
+ ;; and socket-close is called in the end.
+ (let ((closed? #f))
+   (fluid-let ((udp-multicast (lambda (m a) #f))
+               (socket-close (lambda (s) (set! closed? #t)))
+               (socket-receive (lambda (s l) (thread-sleep! 0.02) "packet")))
+     (let ((proc (ssdp-search* 0.01 (lambda (x r) (cons x r)) '())))
+       (thread-sleep! 0.2)
+       (test "receiving one packet only" '("packet") (proc))
+       (test "thread terminates and socket is closed" #t closed?)))))
+
 ;; you can use it like this:
 ;; (define results (ssdp-search* 30 cons '()))
 ;; wait 10-30seconds then eval (results)
