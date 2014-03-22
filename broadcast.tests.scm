@@ -1,11 +1,6 @@
 (use test)
 
 (test-group
- "udp-broadcast"
- (test (void) (udp-broadcast "hi"))
- (test-error (udp-broadcast (make-string 2048 #\a))))
-
-(test-group
  "change-message"
 
  (test

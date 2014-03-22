@@ -1,7 +1,7 @@
 ;;; ssdp-like discovery protocol: HTTPu with multicasting. search is
 ;;; multicast, search response is unicast to port 5055 (not search
 ;;; socket's port like in ssdp).
-(use socket udp)
+(use socket udp multicast)
 
 ;; (include "broadcast.scm")
 (import broadcast)
@@ -13,7 +13,7 @@
 (define heartbeat-packet "HEARTBEAT /device\n\nHello friends")
 (define (heartbeat intervall)
   (let loop ()
-    (udp-broadcast heartbeat-packet)
+    (udp-multicast heartbeat-packet)
     (print "Heartbeat")
     (thread-sleep! intervall)
     (loop)))
@@ -21,12 +21,7 @@
 ;; (define t (thread-start! (lambda () (heartbeat 1))))
 ;; (thread-terminate! t)
 
-(define (make-multicast-listen-socket multicast-group port)
-  (define s (socket af/inet sock/dgram))
-  (set! (so-reuse-address? s) #t)
-  (udp-bind! s multicast-group port)
-  (udp-join-multicast-group s #f multicast-group #t)
-  s)
+
 
 ;; (define port 5055)
 (define (start-discovery port heartbeat-interval)

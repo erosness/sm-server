@@ -5,7 +5,7 @@
 
 (import chicken scheme data-structures player)
 (use srfi-69 ports test uri-common medea
-     broadcast)
+     broadcast multicast)
 
 ;; ==================== handler ====================
 (define *uris* (make-hash-table))
@@ -28,7 +28,7 @@
 (define ((wrap-changes path proc) #!rest args)
   (let* ((response (apply proc args))
          (json (with-output-to-string (lambda () (write-json response)))))
-    (udp-broadcast (change-message path json))
+    (udp-multicast (change-message path json))
     response))
 
 )

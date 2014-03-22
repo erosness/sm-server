@@ -11,13 +11,6 @@
 ;;       (print "socket timeout, retrying")
 ;;       (loop)))))
 
-;; much like udp-broadcast (which is a multicast) but doesn't close
-;; socket and returns it
-(define (udp-multicast msg #!optional (saddr (inet-address "239.255.255.250" 5055)))
-  (define s (socket af/inet sock/dgram 0))
-  (set-socket-option s sol/socket so/broadcast 1)
-  (socket-send-to s msg saddr)
-  s)
 
 ;; returns the UDP packet body according to ssdp search query message
 ;; format.
