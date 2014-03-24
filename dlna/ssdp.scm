@@ -1,5 +1,6 @@
 (use socket http-client
      intarweb uri-common
+     multicast
      ssax test looper)
 
 ;; ;; a version of socket-receive that never times out
