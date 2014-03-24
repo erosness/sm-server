@@ -31,7 +31,7 @@
   (void))
 
 ;; create a UDP socket that listsens for multicast messages
-(define (multicast-listen-socket #!optional (multicast-group ssdp-multicast-group) (port ssdp-port))
+(define (multicast-listen-socket #!optional (port ssdp-port) (multicast-group ssdp-multicast-group))
   (define s (socket af/inet sock/dgram))
   (set! (so-reuse-address? s) #t)
   (udp-bind! s multicast-group port)

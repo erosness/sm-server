@@ -28,7 +28,7 @@
   (thread-start! (lambda () (heartbeat heartbeat-interval)))
   (define multicast-group "239.255.255.250")
   (print *prefix* "Listening for search requests on " multicast-group ":" port "...")
-  (define s (multicast-listen-socket "239.255.255.250" port))
+  (define s (multicast-listen-socket port "239.255.255.250"))
   (let loop ()
     (if (socket-receive-ready? s)
         (let-values [((msg addr) (socket-receive-from s 256))]
