@@ -45,7 +45,7 @@ ST: ssdp:all\r
                       (address (inet-address "239.255.255.250" 1900))
                       (msg (ssdp-search-message address)))
 
-  (define sock (udp-multicast msg address))
+  (define sock (udp-multicast* msg address))
 
   ;; folded result (so far)
   (define results initial)
