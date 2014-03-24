@@ -1,0 +1,2 @@
+;; -*- scheme -*-
+(standard-extension 'multicast)

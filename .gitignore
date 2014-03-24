@@ -40,3 +40,6 @@
 /looper/looper.import.scm
 /looper/looper.import.so
 /looper/looper.so
+/multicast/multicast.import.scm
+/multicast/multicast.import.so
+/multicast/multicast.so
