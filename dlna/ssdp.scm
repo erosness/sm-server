@@ -70,7 +70,7 @@ ST: ssdp:all\r
  (let ((closed? #f))
    (fluid-let ((udp-multicast (lambda (m a) #f))
                (socket-close (lambda (s) (set! closed? #t)))
-               (socket-receive (lambda (s l) (thread-sleep! 0.02) "packet")))
+               (socket-receive-from (lambda (s l) (thread-sleep! 0.02) (values "packet" #f))))
      (let ((proc (ssdp-search* 0.01 (lambda (x a r) (cons x r)) '())))
        (thread-sleep! 0.2)
        (test "receiving one packet only" '("packet") (proc))
