@@ -3,9 +3,8 @@
               wrap-changes
               define-handler)
 
-(import chicken scheme data-structures player)
-(use srfi-69 ports test uri-common medea
-     broadcast multicast)
+(import chicken scheme data-structures player broadcast)
+(use srfi-69 ports test uri-common medea multicast)
 
 ;; ==================== handler ====================
 (define *uris* (make-hash-table))
