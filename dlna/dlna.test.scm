@@ -10,8 +10,8 @@
  ;; query-control-urls requires network & server
  (fluid-let ((query-control-urls (lambda (l) '((service . "ctrurl")))))
    (->> '()
-        (%ssdp-search-fold "HTTP/1.1 200 OK\nLocation: http://a.com\n\n")
-        (%ssdp-search-fold "HTTP/1.1 200 OK\nLocation: http://b.com\n\n"))))
+        (%ssdp-search-fold "http/1.1 200 ok\nlocation: http://a.com\n\n" #f)
+        (%ssdp-search-fold "http/1.1 200 ok\nlocation: http://b.com\n\n" #f))))
 
 
 (test

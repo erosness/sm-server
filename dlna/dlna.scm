@@ -7,7 +7,7 @@
 ;; fold procedure for ssdp-search, creating a list of
 ;; (rooturl (type . ctr-url) ...)
 ;; this isn't in ssdp.scm because we need root's query-control-urls
-(define (%ssdp-search-fold packet lst)
+(define (%ssdp-search-fold packet address lst)
   (let ((l (packet-location packet)))
     ;; avoid duplicates
     (if (member l (map car lst))

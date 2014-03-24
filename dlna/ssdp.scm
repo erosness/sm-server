@@ -51,7 +51,8 @@ ST: ssdp:all\r
   (define results initial)
 
   (define (update!)
-    (set! results (fold (socket-receive sock 1024) results)))
+    (let-values (((packet remote) (socket-receive-from sock 1024)))
+      (set! results (fold packet remote results))))
 
   (thread-start! (->> update!
                       (loop/socket-timeout)
@@ -69,13 +70,13 @@ ST: ssdp:all\r
    (fluid-let ((udp-multicast (lambda (m a) #f))
                (socket-close (lambda (s) (set! closed? #t)))
                (socket-receive (lambda (s l) (thread-sleep! 0.02) "packet")))
-     (let ((proc (ssdp-search* 0.01 (lambda (x r) (cons x r)) '())))
+     (let ((proc (ssdp-search* 0.01 (lambda (x a r) (cons x r)) '())))
        (thread-sleep! 0.2)
        (test "receiving one packet only" '("packet") (proc))
        (test "thread terminates and socket is closed" #t closed?)))))
 
 ;; you can use it like this:
-;; (define results (ssdp-search* 30 cons '()))
+;; (define results (ssdp-search* 30 list '()))
 ;; wait 10-30seconds then eval (results)
 
 ;; ============================== helpers ==============================
