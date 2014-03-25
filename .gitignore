@@ -43,3 +43,6 @@
 /multicast/multicast.import.scm
 /multicast/multicast.import.so
 /multicast/multicast.so
+/pefat/pefat.import.scm
+/pefat/pefat.import.so
+/pefat/pefat.so
