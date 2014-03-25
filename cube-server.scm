@@ -2,6 +2,7 @@
      srfi-69 restlib
      clojurian-syntax)
 
+(use pefat)
 (include "debug-utils.scm")
 
 (include "concurrent-utils.scm")
