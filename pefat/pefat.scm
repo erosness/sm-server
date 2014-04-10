@@ -19,8 +19,12 @@
       (current-test-handler)))
 
 (define (green x) (string-append "\x1B[32m" (->string x) "\x1B[0m"))
+(define (red x)   (string-append "\x1B[31m" (->string x) "\x1B[0m"))
 
-(define (pass) (green (conc (test-failure-count) "/" (%test-tests))))
+(define (pass)
+  (let* ((fails (test-failure-count))
+         (color (if (> fails 0) red green)))
+    (color (conc fails "/" (%test-tests)))))
 
 (current-test-handler
  (lambda (status expect x info)
