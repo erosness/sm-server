@@ -5,6 +5,10 @@
 ;;; Usage: (use pefat) and your (test 1 1) will print differently.
 ;;;
 ;;; PEFAT: Peders Egg, Favorite Acronym and Testing
+;;;
+;;; for each test prints something like 1/2/32
+;;; which means test-group-errors/failing-tests/total-tests-run
+
 (module pefat *
 (import chicken scheme)
 
@@ -12,6 +16,7 @@
 
 ;; private helpers
 (define %test-tests (make-parameter 0))
+(define test-group-errors (make-parameter 0))
 
 ;; defonce
 (define %old-test-handler
@@ -20,11 +25,14 @@
 
 (define (green x) (string-append "\x1B[32m" (->string x) "\x1B[0m"))
 (define (red x)   (string-append "\x1B[31m" (->string x) "\x1B[0m"))
+(define (yellow x) (string-append "\x1B[33m" (->string x) "\x1B[0m"))
 
 (define (pass)
   (let* ((fails (test-failure-count))
-         (color (if (> fails 0) red green)))
-    (color (conc fails "/" (%test-tests)))))
+         (color (cond ((> fails 0) red)
+                      ((> (test-group-errors) 0) yellow)
+                      (else green))))
+    (color (conc (test-group-errors) "/" fails "/" (%test-tests)))))
 
 (current-test-handler
  (lambda (status expect x info)
@@ -45,7 +53,10 @@
    (cond ((eq? status 'PASS) (print "[" (pass) "]"))
          (else (%old-test-handler status expect x info) ))))
 
-;; no need for end-of-group report
-(current-test-group-reporter (lambda (group) (void)))
-
+;; check for errors outside of testcase
+(current-test-group-reporter
+ (lambda (group)
+   (cond ((alist-ref 'ERROR (cdr group)) =>
+          (lambda (num-errors) (let ((old-val (test-group-errors)))
+                            (test-group-errors (+ old-val num-errors))))))))
 )
