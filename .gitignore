@@ -46,3 +46,6 @@
 /pefat/pefat.import.scm
 /pefat/pefat.import.so
 /pefat/pefat.so
+/socket/socket.import.scm
+/socket/socket.import.so
+/socket/socket.so
