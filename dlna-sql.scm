@@ -13,7 +13,7 @@
 (define base-string (conc "SELECT o.OBJECT_ID, o.CLASS, o.NAME, d.DURATION, d.ARTIST, "
                           "d.ALBUM, d.PATH from OBJECTS o left join DETAILS d on (d.ID = o.DETAIL_ID) "))
 
-(define browse-string (conc base-string "where PARENT_ID = ?"))
+(define browse-string (conc base-string "where PARENT_ID = ? limit ? offset ?"))
 (define (browse-stmt db) (sql db browse-string))
 
 ;; nested SELECT keeps sqlite from concatenating the query string for
@@ -55,10 +55,9 @@
 
 
 ;;; Public api
-(define (browse #!optional (id 1))
-  (%do-query browse-stmt id))
+(define (browse #!optional (id 1) (limit 10) (offset 0))
+  (%do-query browse-stmt id limit offset))
 
 (define (search q)
   (%do-query search-stmt q))
 )
-
