@@ -40,17 +40,16 @@
 (define (wrap-db-error thunk)
   (condition-case (thunk)
     (e ()
-       ;; TODO: can we do this without looking at exception message?
        (let ((msg ((condition-property-accessor 'exn 'message) e)))
-         (if (equal? msg "unrecognized database type")
-             (begin (print "db not found: " (current-db)) #f)
-             (abort e))))))
+         (warning "error when querying db: " msg)
+         #f))))
 
 (define (%do-query stmt arg)
   (wrap-db-error
-   (lambda () (call-with-database
-          (current-db) (lambda (db)
-                 (process-rows (query fetch-all (stmt db) arg)))))))
+   (lambda ()
+     (call-with-database
+      (current-db) (lambda (db)
+                     (process-rows (query fetch-all (stmt db) arg)))))))
 
 
 ;;; Public api
