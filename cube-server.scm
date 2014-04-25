@@ -19,6 +19,7 @@
 (include "rest-dlna.scm")
 (include "rest-pq.scm")
 (include "rest-player.scm")
+(include "rest-usb.scm")
 
 ;; cube-server discovery (not ssdp!)
 (include "discovery.scm")
@@ -45,5 +46,6 @@
 ;; for your repl pleasure:
 ;; (define thread (thread-start! (lambda () (start-server port: 5055))))
 ;; (define thread-hb (thread-start! (lambda () (start-discovery 5055 360))))
+;; (define thread-sf (thread-start! (lambda () (start-static-file-server))))
 ;; (pp (hash-table->alist *uris*))
 
