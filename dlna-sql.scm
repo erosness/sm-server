@@ -18,7 +18,11 @@
 
 ;; nested SELECT keeps sqlite from concatenating the query string for
 ;; each row. see: http://sqlite.1065341.n5.nabble.com/LIKE-operator-with-prepared-statements-td8553.html
-(define search-string (conc base-string "where OBJECT_ID glob '*$*' and (d.TITLE like (SELECT '%' || ? || '%'))"))
+(define search-string (conc base-string
+                            "where OBJECT_ID glob '*$*' and o.CLASS = 'item.audioItem.musicTrack' "
+                            "and (d.TITLE like (SELECT '%' || ? || '%')) "
+                            "group by d.PATH "
+                            "limit ? offset ?"))
 (define (search-stmt db) (sql db search-string))
 
 ;; Transforms
@@ -58,6 +62,6 @@
 (define (browse #!optional (id 1) (limit 10) (offset 0))
   (%do-query browse-stmt id limit offset))
 
-(define (search q)
-  (%do-query search-stmt q))
+(define (search q #!optional (limit 10) (offset 0))
+  (%do-query search-stmt q limit offset))
 )
