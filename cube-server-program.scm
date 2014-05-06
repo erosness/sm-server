@@ -3,8 +3,7 @@
 
 (include "job-util.scm") ;; job-auto-respawn
 
-(define *thread-heartbeat*
-  (thread-start! (lambda () (job-auto-respawn (lambda () (start-discovery 5055 360))))))
+(define dns-sd-unregister! (dns-sd-register (conc hostname "-cube") port))
 
 (if (not (= 1 (length (command-line-arguments))))
     (error "usage: cube-server <port>"))
