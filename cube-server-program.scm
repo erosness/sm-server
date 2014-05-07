@@ -1,17 +1,16 @@
 (use srfi-18 matchable)
 
+(define-values (nickname port)
+  (match (command-line-arguments)
+    ((name . port) (values name (string->number (optional port "5055"))))
+    (else (error "usage: name [port]"))))
+
 (include "cube-server.scm")
 (include "job-util.scm") ;; job-auto-respawn
 
-(define port (match (command-line-arguments)
-               ((sport) (string->number sport))
-               (else 5055)))
-(define hostname (string-trim-right (with-input-from-pipe "hostname" read-string)))
+(warning (conc "started cube-server on http://localhost:" port))
 
-(warning "started cube-server on http://localhost:" port)
-
-(define dns-sd-unregister! (dns-sd-register (conc hostname "-cube") port
-                                            service-type/cube-browser))
+(define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-browser))
 
 (define server-thread (thread-start! (lambda () (start-server port: port))))
 
