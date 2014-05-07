@@ -1,6 +1,6 @@
 DEPS = clojurian bitstring spiffy intarweb uri-common \
 	medea http-client fmt udp test uuid openssl \
-	ssax sxpath sxml-serializer
+	ssax sxpath sxml-serializer sql-de-lite
 
 # install for tradio:
 # ci=aosp-chicken-install make
@@ -11,7 +11,7 @@ ciflags ?= -s -keep-installed
 
 all: deps modules
 
-modules: blobbery tone-generator dab dsp i2c restlib wimp
+modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp
 	$(ci) $(ciflags)
 
 deps: socket
@@ -19,6 +19,15 @@ deps: socket
 
 blobbery:
 	cd blobbery; $(ci) $(ciflags)
+
+looper:
+	cd looper; $(ci) $(ciflags)
+
+pefat:
+	cd pefat; $(ci) $(ciflags)
+
+multicast:
+	cd multicast; $(ci) $(ciflags)
 
 tone-generator:
 	cd tone-generator; $(ci) $(ciflags)
