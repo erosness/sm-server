@@ -1,7 +1,8 @@
 (module rest (*uris*
               set-handler!
               wrap-changes
-              define-handler)
+              define-handler
+              json-handler)
 
 (import chicken scheme data-structures player broadcast)
 (use srfi-69 ports test uri-common medea multicast spiffy intarweb)
