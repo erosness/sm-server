@@ -6,7 +6,6 @@
     (else (error "usage: name [port]"))))
 
 (include "cube-server.scm")
-(include "job-util.scm") ;; job-auto-respawn
 
 (warning (conc "started cube-server on http://localhost:" port))
 
