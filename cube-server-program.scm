@@ -10,7 +10,8 @@
 
 (warning "started cube-server on http://localhost:" port)
 
-(define dns-sd-unregister! (dns-sd-register (conc hostname "-cube") port))
+(define dns-sd-unregister! (dns-sd-register (conc hostname "-cube") port
+                                            service-type/cube-browser))
 
 (define server-thread (thread-start! (lambda () (start-server port: port))))
 

@@ -1,25 +1,31 @@
 ;;; use avahi/dns-sd to register a service. it spawns a sub-process
 (use posix)
 
-(define (discovery-command/mac name port)
-  (conc "dns-sd -R \""        name "\" _cube._tcp local " port))
+(define service-type/cube-browser  "_cube-browser._tcp")
+(define service-type/cube-pq            "_cube-pq._tcp")
 
-(define (discovery-command/linux name port)
-  (conc "avahi-publish -s \"" name "\" _cube._tcp "       port))
+(define (discovery-command/mac name port servicetype)
+  (conc "dns-sd -R \""        name "\" " servicetype " local " port))
 
-(define (discovery-command name port)
+(define (discovery-command/linux name port servicetype)
+  (conc "avahi-publish -s \"" name "\" " servicetype " "       port))
+
+(define (discovery-command name port servicetype)
   ( (cond ((feature? linux:) discovery-command/linux)
           ((feature? macosx:) discovery-command/mac)
           (else (error "I don't know what OS this is! " (features))))
 
-    name port))
+    name port servicetype))
 
 ;; start announce-process asynchronously. returns a procedure which
 ;; will stop it.
-(define (dns-sd-register name port)
-  (let ((pid (process-run (discovery-command name port))))
+(define (dns-sd-register name port servicetype)
+  (print "running " (discovery-command name port servicetype))
+  (let ((pid (process-run (discovery-command name port servicetype))))
+    (set! -last-dns-sd-pid- pid)
     (lambda ()
       (warning "killing service announce daemon" pid)
       (process-signal pid))))
 
-;; (dns-sd-register "repl service test" 6600)
+;; (define dns-sd-unregister! (dns-sd-register "repl service test" 6600))
+;; (dns-sd-unregister!)
