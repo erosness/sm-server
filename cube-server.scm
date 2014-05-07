@@ -26,6 +26,8 @@
 
 (import rest)
 
+(include "dummy-browser.scm")
+
 (define handler (->> (lambda () (json-handler))
                      (wrap-json)
                      (wrap-errors)))
