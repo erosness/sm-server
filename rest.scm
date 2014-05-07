@@ -4,7 +4,7 @@
               define-handler)
 
 (import chicken scheme data-structures player broadcast)
-(use srfi-69 ports test uri-common medea multicast)
+(use srfi-69 ports test uri-common medea multicast spiffy intarweb)
 
 ;; ==================== handler ====================
 (define *uris* (make-hash-table))
@@ -12,6 +12,17 @@
 (define (set-handler! url thunk)
   (assert (string? url))
   (hash-table-set! *uris* url thunk))
+
+(define (find-accessor uri #!optional (uris *uris*))
+  (hash-table-ref/default uris uri #f))
+
+(define (json-handler)
+  (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
+    (let ((handler (find-accessor uri)))
+      (if handler
+          (handler)
+          `((error       . ,(conc "not found: " uri))
+            (valid-urls  . ,(list->vector (hash-table-keys *uris*))))))))
 
 (define-syntax define-handler
   (syntax-rules ()
