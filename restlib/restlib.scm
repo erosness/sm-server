@@ -112,9 +112,7 @@
 
 (test-group
  "argumentize"
- (parameterize ((current-request
-                 (make-request
-                  uri: (uri-reference "http://vg.no?q=2&h=4"))))
+  (with-request "http://vg.no?q=2&h=4"
    (test
     '("2" "4")
     ((argumentize (lambda x x) 'q 'h)))
