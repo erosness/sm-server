@@ -1,7 +1,8 @@
 (use socket http-client
      intarweb uri-common
      multicast
-     ssax test looper)
+     ssax test looper
+     clojurian-syntax)
 
 ;; ;; a version of socket-receive that never times out
 ;; (define (socket-receive* s size)
