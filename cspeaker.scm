@@ -20,16 +20,5 @@
 
 (include "dns-sd.scm")
 
-(import rest)
-(use restlib clojurian-syntax)
 
-(define (start-rest-server! port)
-  (thread-start!
-   (lambda ()
-     (define handler (->> (lambda () (json-handler))
-                          (wrap-json)
-                          (wrap-errors)))
-
-     (vhost-map `((".*" . ,(lambda (continue) (handler)))))
-     (start-server port: port))))
 

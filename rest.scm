@@ -2,10 +2,13 @@
               set-handler!
               wrap-changes
               define-handler
-              json-handler)
+              json-handler
+              start-rest-server!)
 
 (import chicken scheme data-structures player broadcast)
-(use srfi-69 ports test uri-common medea multicast spiffy intarweb)
+(use srfi-18 srfi-69 ports
+     test uri-common medea multicast spiffy intarweb
+     restlib clojurian-syntax)
 
 ;; ==================== handler ====================
 (define *uris* (make-hash-table))
@@ -41,5 +44,20 @@
          (json (with-output-to-string (lambda () (write-json response)))))
     (udp-multicast (change-message path json))
     response))
+
+
+;; ==================== util ====================
+
+;; spawns thread!
+(define (start-rest-server! port)
+  (thread-start!
+   (lambda ()
+     (define handler (->> (lambda () (json-handler))
+                          (wrap-json)
+                          (wrap-errors)))
+
+     (vhost-map `((".*" . ,(lambda (continue) (handler)))))
+     (start-server port: port))))
+
 
 )

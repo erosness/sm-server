@@ -13,6 +13,7 @@
 
 (print "started cspeaker on http://localhost:" port)
 
+(import rest)
 (define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-pq))
 (define server-thread (start-rest-server! port))
 
