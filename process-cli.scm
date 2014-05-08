@@ -97,9 +97,11 @@
                        (condition-variable-signal! cvar)
                        (if (not (eof-object? last-line))
                            (loop)))
-                     (and on-exit (on-exit)))
+                     (and on-exit (thread-specific (current-thread))
+                          (on-exit)))
                    (conc "read-thread for " command)))
 
+    (thread-specific-set! read-thread #t)
     (thread-start! read-thread)
 
     (define (cmd . strings)
@@ -123,6 +125,8 @@
         ((#:stdin)  pip)
         ((#:pid)    pid)
         ((#:quit)
+         ;; dont call 'on-exit' callback
+         (thread-specific-set! read-thread #f)
          (handle-exceptions e (warning "could not kill read-thread with pid" pid)
                             (close-output-port pop)
                             (close-input-port pip))
