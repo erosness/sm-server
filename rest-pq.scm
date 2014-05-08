@@ -1,14 +1,22 @@
-(module rest-pq ()
+(module* rest-pq ()
 
-(import chicken scheme data-structures srfi-1)
+(import chicken scheme data-structures srfi-1 ports)
 
-(use restlib)
+(use restlib medea)
 
 (import broadcast
         rest player
-        playqueue)
+        playqueue
+        multicast)
 
 (define *pq* (make-pq))
+
+(define ((change-callback path) oldval newval)
+  (let ((json (with-output-to-string (lambda () (write-json newval)))))
+    (udp-multicast (change-message path json))))
+
+(pq-add-current-change-listener
+ *pq* (change-callback "/pq/play"))
 
 ;; Adds an item to the back of the playqueue and starts it.
 ;; Returns: the passed in item with a unique id added

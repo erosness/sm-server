@@ -15,6 +15,8 @@
 
 (import concurrent-utils player)
 
+(include "state-var.scm")
+
 ;; (include "concurrent-utils.scm")
 
 ;; the playqueue is the abstractions clients use to manipulate whats
@@ -55,13 +57,23 @@
   pq?
   (list pq-list pq-list-set!)
   (mutex pq-mutex)
-  (current pq-current pq-current-set!))
+  (current %pq-current))
 
 (define-record-printer (pq x port)
-  (display (conc "#<pq " (length (pq-list x)) " current: " (pq-current x) ">") port))
+  (display (conc "#<pq " (length (pq-list x)) " current: "
+                 (state-value (%pq-current x)) ">") port))
 
 (define (make-pq #!optional (lst '()) (current #f))
-  (%make-pq lst (make-mutex) current))
+  (%make-pq lst (make-mutex) (make-state current)))
+
+(define (pq-current pq)
+  (state-value (%pq-current pq)))
+
+(define (pq-current-set! pq v)
+  (state-change (%pq-current pq) v))
+
+(define (pq-add-current-change-listener pq listener)
+  (state-add-listener (%pq-current pq) listener))
 
 ;; ****************************
 ;; public api
