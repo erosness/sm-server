@@ -11,6 +11,6 @@
 
 (define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-browser))
 
-(define server-thread (thread-start! (lambda () (start-server port: port))))
+(define server-thread (start-rest-server! port))
 
 (repl)

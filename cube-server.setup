@@ -1,8 +1,12 @@
 ;; -*- scheme -*-
 
 (compile -O0 cube-server-program.scm -o cube-server)
+(compile -O0 cspeaker-program.scm -o cspeaker)
 
 (install-program 'cube-server
                  '("cube-server"))
+
+(install-program 'cspeaker
+                 '("cspeaker"))
 
 
