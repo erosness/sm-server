@@ -98,7 +98,7 @@
 (define (wrap-wimp search-proc convert)
   (argumentize
    (make-wimp-search-call search-proc convert)
-   'q 'limit 'offset))
+   'q '(limit "10") '(offset "0")))
 
 ;;==================== handlers ====================
 (define-handler /search/wimp
