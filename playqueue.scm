@@ -113,7 +113,11 @@
     (print "playing " track)
     (pq-current-set! pq item)))
 
-(define (pq-play-next* pq) (pq-play* pq (pq-next* pq)))
+(define (pq-play-next* pq)
+  (or (and-let* ((next (pq-next* pq)))
+        (pq-play* pq next))
+      (pq-current-set! pq #f)))
+
 (define (pq-play-prev* pq) (pq-play* pq (pq-prev* pq)))
 
 ;; ==================== thread-safety ====================
