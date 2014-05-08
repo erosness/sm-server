@@ -7,7 +7,7 @@
 
 (include "cube-server.scm")
 
-(warning (conc "started cube-server on http://localhost:" port))
+(print "started cube-server on http://localhost:" port)
 
 (define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-browser))
 
