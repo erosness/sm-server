@@ -84,14 +84,20 @@ ST: ssdp:all\r
 
 ;; extract LOCATION header value from packet as string.
 (define (packet-location packet)
-  (let ((headers (response-headers (read-response (open-input-string packet)))))
+  (and-let* ((headers (handle-exceptions
+                          e #f
+                          (response-headers (read-response (open-input-string packet))))))
     (uri->string (header-value 'location headers))))
 
-(test "packet-location"
-      "http://host/path"
-      (packet-location
-       "HTTP/1.1 200 OK\r
+(test-group
+ "ssdp packet-location"
+ (test "packet-location"
+       "http://host/path"
+       (packet-location
+        "HTTP/1.1 200 OK\r
 LOCATION:http://host/path\r\n"))
+
+ (test #f (packet-location "foobar")))
 
 
 ;; ==================== multicast ====================

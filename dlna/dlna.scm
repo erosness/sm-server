@@ -10,9 +10,11 @@
 (define (%ssdp-search-fold packet address lst)
   (let ((l (packet-location packet)))
     ;; avoid duplicates
-    (if (member l (map car lst))
-        lst
-        (cons (cons l (query-control-urls l)) lst))))
+    (if l ;; <--packet location may fail
+        (if (member l (map car lst))
+            lst
+            (cons (cons l (query-control-urls l)) lst))
+        lst)))
 
 ;; search for surrounding UPnP services. returns a procedure which
 ;; returns devices discovered this far:
