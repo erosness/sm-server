@@ -3,6 +3,7 @@
               wrap-changes
               define-handler
               json-handler
+              with-request
               start-rest-server!)
 
 (import chicken scheme data-structures player broadcast)
