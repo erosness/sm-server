@@ -103,24 +103,27 @@
            (let loop ((query-params query-params)
                       (result '()))
              (if (pair? query-params)
-                 (or (and-let* ((q (car query-params))
-                                (parameter (current-query-param q)))
-                               (loop (cdr query-params) (cons parameter result)))
+                 (or (and-let* ((spec (car query-params))
+                                (q       (if (pair? spec) (car spec) spec))
+                                (parameter (or (current-query-param q)
+                                               ;; use default if present:
+                                               (if (pair? spec) (cadr spec) #f))))
+                       (loop (cdr query-params) (cons parameter result)))
                      (error (conc "parameter " (car query-params) " missing in "
                                   (uri->string (request-uri (current-request))))))
                  (reverse result))))))
 
 (test-group
  "argumentize"
-  (with-request "http://vg.no?q=2&h=4"
-   (test
-    '("2" "4")
-    ((argumentize (lambda x x) 'q 'h)))
-   (test
-    '("4")
-    ((argumentize (lambda x x) 'h)))
-   (test-error
-    ((argumentize (lambda x x) 'j 'k)))))
+ (with-request
+  "?q=2&h=4"
+  (test '("2" "4")   ((argumentize (lambda x x) 'q 'h)))
+  (test '("4")       ((argumentize (lambda x x) 'h)))
+
+  (test '("default") ((argumentize (lambda x x) '(missing "default"))))
+  (test '("2")       ((argumentize (lambda x x) '(q       "default"))))
+
+  (test-error ((argumentize (lambda x x) 'j 'k)))))
 
 
 ; ********************
