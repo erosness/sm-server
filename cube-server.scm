@@ -16,7 +16,6 @@
 
 
 ;; for your repl pleasure:
-;; (define thread (thread-start! (lambda () (start-server port: 5055))))
-;; (define thread-sf (thread-start! (lambda () (start-static-file-server))))
-;; (pp (hash-table->alist *uris*))
-
+;; (define dns-sd-unregister!/browser (dns-sd-register "repl" 5060 service-type/cube-browser))
+;; (define dns-sd-unregister!/pq      (dns-sd-register "repl" 5060 service-type/cube-pq))
+;; (define server-thread (start-rest-server! 5060))
