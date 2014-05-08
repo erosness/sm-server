@@ -40,7 +40,7 @@
   `((turi   . ,(track->turi track))
     (title  . ,(alist-ref 'title track))
     (artist . ,(track/album->artist-name track))
-    (cover  . ,(track->album-cover-uri track))))
+    (image  . ,(track->album-cover-uri track))))
 
 (define (artist->search-result artist)
   `((id    . ,(alist-ref 'id artist))
@@ -50,13 +50,15 @@
     ;; -    (name  . ,(alist-ref 'name artist))
     ;; -    (image . ,(artist->artist-image-uri artist))))
     (title  . ,(alist-ref 'name artist))
-    (cover . ,(artist->artist-image-uri artist))))
+    (cover  . ,(artist->artist-image-uri artist))
+    (uri    . ,(conc "/search/wimp/artist/albums?artist=" (alist-ref 'id artist)))))
 
 (define (album->search-result album)
   `((id     . ,(alist-ref 'id album))
     (artist . ,(track/album->artist-name album))
     (title  . ,(alist-ref 'title album))
-    (cover  . ,(album->album-cover-uri album))))
+    (cover  . ,(album->album-cover-uri album))
+    (uri    . ,(conc "/search/wimp/album/tracks?album=" (alist-ref 'id album)))))
 
 
 (define (wimp-process-result result-proc result)
@@ -65,7 +67,7 @@
             (alist-ref 'items)
             (vector->list))))
 
-(define ((make-wimp-search-call search process) q limit offset)
+(define ((make-wimp-search-call search process) q #!optional (limit 10) (offset 0))
   (let ((result (search q `((offset . ,offset)
                             (limit  . ,limit)))))
     (make-search-result limit offset
@@ -98,10 +100,19 @@
    (make-wimp-search-call search-proc convert)
    'q 'limit 'offset))
 
-(define-handler /search/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
-(define-handler /search/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
-(define-handler /search/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
-(define-handler /search/wimp/artist/albums (wrap-wimp wimp-artist-albums album->search-result))
-(define-handler /search/wimp/album/tracks  (wrap-wimp wimp-album-tracks  track->search-result))
+;;==================== handlers ====================
+(define-handler /search/wimp
+  (lambda () `((tabs . #( ((title . "Artists") (uri . "/search/wimp/artist"))
+                     ((title . "Albums")  (uri . "/search/wimp/album"))
+                     ((title . "Tracks")  (uri . "/search/wimp/track")))))))
 
+(define-handler /search/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
+(define-handler /search/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
+(define-handler /search/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
+
+(define-handler /search/wimp/artist/albums
+  (argumentize (make-wimp-search-call wimp-artist-albums album->search-result) 'artist))
+
+(define-handler /search/wimp/album/tracks
+  (argumentize (make-wimp-search-call wimp-album-tracks track->search-result) 'album))
 )
