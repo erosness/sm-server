@@ -9,9 +9,9 @@
 
 (print "started cube-server on http://localhost:" port)
 
-(define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-browser))
-
 (import rest)
+(define dns-sd-unregister!/browser (dns-sd-register nickname port service-type/cube-browser))
+(define dns-sd-unregister!/pq      (dns-sd-register nickname port service-type/cube-pq))
 (define server-thread (start-rest-server! port))
 
 (repl)
