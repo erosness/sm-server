@@ -35,6 +35,17 @@
        (define path body)
        (set-handler! (symbol->string 'path) path)))))
 
+
+;; ==================== test utils ====================
+
+;; run body in the context of the uri path.
+(define-syntax with-request
+  (syntax-rules ()
+    ((_ uri body ...)
+     (parameterize ((current-request (make-request uri: (uri-reference uri))))
+       body ...))))
+
+
 ;; ==================== rest combinators ====================
 
 ;; returns a procedure which announces it was been called using UDP

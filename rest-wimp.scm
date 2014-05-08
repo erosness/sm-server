@@ -115,4 +115,41 @@
 
 (define-handler /search/wimp/album/tracks
   (argumentize (make-wimp-search-call wimp-album-tracks track->search-result) 'album))
+
+;; ==================== tests ====================
+
+
+(use wimp uri-common test irregex intarweb spiffy)
+
+;; whenever wimp tries to make a request, pick out its request uri and
+;; make a brutal exit, returning its value. no network or
+;; post-processing will be performed on the uri.
+(define-syntax return-wimp-uri
+  (syntax-rules ()
+    ((_ call)
+     (call/cc
+      (lambda (return)
+        (parameterize ((*wimp-query* (lambda (uri a b) (return (uri->string uri)))))
+          call))))))
+
+
+(test-group
+ "wimp-rest"
+
+ (test "artist/albums"
+       #t
+       (->> (/search/wimp/artist/albums)
+            (return-wimp-uri)
+            (with-request "?artist=1234")
+            (irregex-search "/artists/1234")
+            ((conjoin identity))))
+
+ (test "artist/albums"
+       #t
+       (->> (/search/wimp/album/tracks)
+            (return-wimp-uri)
+            (with-request "?album=9876")
+            (irregex-search "/albums/9876")
+            ((conjoin identity)))))
+
 )
