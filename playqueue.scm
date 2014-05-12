@@ -8,7 +8,8 @@
                    pq-ref
                    pq-add
                    pq-play
-                   make-pq)
+                   make-pq
+                   pq-add-current-change-listener)
 
 (import chicken scheme data-structures srfi-1)
 (use srfi-18 uri-common test uuid)
