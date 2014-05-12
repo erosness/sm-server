@@ -1,7 +1,8 @@
 (module rest-wimp ()
 
 (import chicken scheme data-structures)
-(use wimp uri-common test clojurian-syntax restlib)
+(use wimp uri-common test clojurian-syntax restlib
+     matchable)
 
 (import rest player)
 
@@ -9,10 +10,41 @@
 (print "please wait while logging in to wimp...")
 (wimp-login! "97670550" "herrowimp")
 
+;; ==================== audio host ====================
+;; (e.g convert tr://10.0.0.22/ah/wimp/tid/1234
+;;         => https://api.stream.wimp.com/dwvpqm7xh)
+
+
+
+
+
+;; extract tid (as string) from a wimp tr uri.
+(define (wimp-path->tid path)
+  (match path
+    (('/ "tid" tid) tid)
+    (else (error "cannot find tid of path " path))))
+
+(test-group
+ "wimp-path->tid"
+ (test "1234" (wimp-path->tid '(/ "tid" "1234")))
+ (test-error (wimp-path->tid '(/ "wrong" "1234"))))
+
+(define (path->suri path)
+  (alist-ref 'url (wimp-track-streamurl (wimp-path->tid path))))
+
+(define (play-command/wimp path)
+  (let ((suri (path->suri path)))
+    (cplay (uri-reference suri))))
+
+(define-audio-host "wimp" play-command/wimp)
+
 (define (track->turi track)
   (conc "tr://wimp/tid/" (alist-ref 'id track)))
 
 
+
+
+;; ==================== browsing ====================
 ;; ************ image getters
 (define (track->album-cover-uri track)
   (let ((aid (->> track
@@ -74,26 +106,6 @@
                         (alist-ref 'totalNumberOfItems result)
                         (wimp-process-result process result))))
 
-;; extract tid (as string) from a wimp tr uri.
-(define (wimp-turi-tid uri)
-  (assert (equal? (uri-host uri) "wimp"))
-  (assert (equal? (uri-scheme uri) 'tr))
-  (assert (equal? (cadr (uri-path uri)) "tid"))
-  (caddr (uri-path uri)))
-
-(test-group
- "wimp-turi-tid"
- (test "1234" (wimp-turi-tid (uri-reference "tr://wimp/tid/1234")))
- (test-error (wimp-turi-tid (uri-reference "tr://wimp/dit/1234"))))
-
-(define (turi->suri turi)
-  (alist-ref 'url (wimp-track-streamurl (wimp-turi-tid turi))))
-
-(define (play-command/wimp uri)
-  (let ((suri (turi->suri uri)))
-    (cplay (uri-reference suri))))
-
-(define-audio-host "wimp" play-command/wimp)
 
 (define (wrap-wimp search-proc convert)
   (argumentize
