@@ -11,10 +11,13 @@ ciflags ?= -s -keep-installed
 
 all: deps modules
 
-modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp
+modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp dlna
 	$(ci) $(ciflags)
 
-deps: socket
+dlna:
+	cd dlna ; $(ci) $(ciflags)
+
+deps: 
 	$(ci) $(ciflags) $(DEPS)
 
 blobbery:
@@ -57,4 +60,5 @@ wimp:
 socket:
 	cd socket; $(ci) $(ciflags)
 
-.PHONY: socket restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all
+.PHONY: socket restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all \
+	multicast pefat dlna looper
