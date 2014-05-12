@@ -42,9 +42,12 @@
 ;; run body in the context of the uri path.
 (define-syntax with-request
   (syntax-rules ()
-    ((_ uri body ...)
-     (parameterize ((current-request (make-request uri: (uri-reference uri))))
-       body ...))))
+    ((_ (uri hdrs) body ...)
+     (parameterize ((current-request (make-request uri: (uri-reference uri)
+                                                   headers: (headers hdrs))))
+       body ...))
+
+    ((_ uri body ...) (with-request (uri '()) body ...))))
 
 
 ;; ==================== rest combinators ====================
