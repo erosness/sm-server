@@ -7,18 +7,16 @@
 
 (include "debug-utils.scm")
 (include "concurrent-utils.scm")
+(include "broadcast.scm")
+
+(include "rest.scm")
 
 (include "process-cli.scm")
 (include "player.scm")
 (include "playqueue.scm")
 
-(include "broadcast.scm")
-
-(include "rest.scm")
-(include "rest-pq.scm")
-
-
 (include "dns-sd.scm")
 
-
+;; rest plugin layers
+(include "rest-pq.scm")
 

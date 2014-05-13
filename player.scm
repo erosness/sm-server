@@ -1,13 +1,29 @@
-(module player (cplay
+;;; player: a simple wrapper around cplay
+;;;
+;;; supports tr:// scheme so that PQ and cube-browser can be on
+;;; separate machine. some tracks, like wimp's tid's, need to
+;;; construct a stream-url based on the track-id. this stream-url is
+;;; valid in 30 minutes and generated just before playback. it is the
+;;; stream-url that is passed to cplay.
+;;;
+;;; if the scheme of the turi is http, it is passed to cplay direcly.
+;;; if it is tr://, that url is used to generate a stream-url.
+;;;
+;;; some tr:// requests actually modify the underlying state. eg.
+;;; tr://localhost/t2s?type=dab&id=57 would tune the DAB to channel 57
+;;; and return a static DAB-url (like
+;;; http://localhost:3345/ffmpeg/ALSA_1_DAB)
+
+(module* player (cplay
                 play!
                 player-pause
                 player-unpause
                 player-quit
-                define-audio-host
                 play-command)
 
 (import chicken scheme data-structures)
-(use fmt test uri-common srfi-18 test)
+(use fmt test uri-common srfi-18 test http-client
+     clojurian-syntax medea)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
@@ -70,25 +86,23 @@
 (define player-quit
   (player-operation #:quit))
 
-;; provide an API for audio hosts / providers to plug into.
-(define *audio-hosts* `())
-(define (define-audio-host host handler)
-  (set! *audio-hosts*
-        (alist-update host handler *audio-hosts* equal?)))
+
+(define (play-command/tr turi)
+  (let ((response (with-input-from-request (update-uri turi
+                                                       scheme: 'http
+                                                       port: (uri-port turi))
+                                           #f
+                                           read-json)))
+    (cplay (alist-ref 'url response)
+           (alist-ref 'format response))))
 
 (define (play-command turi)
-  ;; uri may be #f if uri-ref can't parse turi
-  (let ((uri (if (uri? turi) turi (uri-reference turi))))
-    (case (and uri (uri-scheme uri))
-      ((tr) ((or
-              ;; pick the procedure registered for host:
-              (alist-ref (uri-host uri) *audio-hosts* equal?)
-              ;; error if none found:
-              (lambda _ (error "unknown audio host" (uri-host uri))))
-             ;; call audio-host procedure with one arg:
-             uri))
-      ;; default to cplay with any other scheme (file://, http:// etc)
-      (else (cplay (or uri (error "illegal uri" turi)))))))
+  (let ((turi (if (uri? turi) turi (uri-reference turi))))
+    (case (uri-scheme turi)
+      ((tr) (play-command/tr turi))
+      (else (cplay turi)))))
+
+
 
 (test-group
  "play-command"
@@ -100,5 +114,5 @@
  (test-error (play-command "i l l e g a l")))
 )
 
-;; (define player (play! (play-command "tr://tone/440")))
+;; (define player (play! (play-command "tr://localhost:5060/t2s?type=wimp&id=12345678")))
 ;; (player #:quit)

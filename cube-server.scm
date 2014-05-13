@@ -5,6 +5,8 @@
 ;; this guys takes in a lot of our dependencies as well
 (include "cspeaker.scm")
 
+(include "turi.scm")
+
 (include "rest-tone.scm")
 (include "rest-notes.scm")
 (include "rest-wimp.scm")

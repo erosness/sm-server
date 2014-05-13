@@ -1,18 +1,44 @@
 (module rest-wimp ()
 
 (import chicken scheme data-structures)
-(use wimp uri-common test clojurian-syntax restlib)
+(use wimp uri-common test clojurian-syntax restlib
+     matchable)
 
-(import rest player)
+(import rest turi)
 
 ;; leaving the beauty of what is session management till later:
 (print "please wait while logging in to wimp...")
 (wimp-login! "97670550" "herrowimp")
 
+;; ==================== audio host ====================
+;; (e.g convert tr://10.0.0.22/ah/wimp/tid/1234
+;;         => https://api.stream.wimp.com/dwvpqm7xh)
+
+
+(define (tid->suri tid)
+  (alist-ref 'url (wimp-track-streamurl tid)))
+
+;; OBS: returning WIMP's metadata directly (and assuming it's url
+;; field is the http url for the streaming url).
+(define (play-command/wimp tid)
+  (wimp-track-streamurl tid))
+
+(define-turi-adapter tid->turi "wimp" (lambda (id) (play-command/wimp id)))
+
 (define (track->turi track)
-  (conc "tr://wimp/tid/" (alist-ref 'id track)))
+  (tid->turi (or (alist-ref 'id track)
+                 (error "no id field for track" track))))
 
+(test-group
+ "turi conversion"
+ (with-request
+  ("/" `((host ("host" . 1))))
+  (test "path->url"   "tr://host:1/t2s?type=wimp&id=x" (tid->turi "x"))
+  (test "track->turi" "tr://host:1/t2s?type=wimp&id=123" (track->turi `((id . "123"))))))
 
+;; (with-request "?type=wimp&id=1234" (/t2s))
+
+;; ==================== browsing ====================
 ;; ************ image getters
 (define (track->album-cover-uri track)
   (let ((aid (->> track
@@ -74,26 +100,6 @@
                         (alist-ref 'totalNumberOfItems result)
                         (wimp-process-result process result))))
 
-;; extract tid (as string) from a wimp tr uri.
-(define (wimp-turi-tid uri)
-  (assert (equal? (uri-host uri) "wimp"))
-  (assert (equal? (uri-scheme uri) 'tr))
-  (assert (equal? (cadr (uri-path uri)) "tid"))
-  (caddr (uri-path uri)))
-
-(test-group
- "wimp-turi-tid"
- (test "1234" (wimp-turi-tid (uri-reference "tr://wimp/tid/1234")))
- (test-error (wimp-turi-tid (uri-reference "tr://wimp/dit/1234"))))
-
-(define (turi->suri turi)
-  (alist-ref 'url (wimp-track-streamurl (wimp-turi-tid turi))))
-
-(define (play-command/wimp uri)
-  (let ((suri (turi->suri uri)))
-    (cplay (uri-reference suri))))
-
-(define-audio-host "wimp" play-command/wimp)
 
 (define (wrap-wimp search-proc convert)
   (argumentize
