@@ -11,6 +11,7 @@
      test uri-common medea multicast spiffy intarweb
      restlib clojurian-syntax)
 
+(define *server-port* #f)
 ;; ==================== handler ====================
 (define *uris* (make-hash-table))
 
@@ -65,6 +66,7 @@
 
 ;; spawns thread!
 (define (start-rest-server! port)
+  (set! *server-port* port)
   (thread-start!
    (lambda ()
      (define handler (->> (lambda () (json-handler))
