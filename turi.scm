@@ -1,5 +1,4 @@
 (module turi ( *audio-hosts*
-               define-audio-host
                register-audio-host!
                define-turi-adapter
                )
@@ -57,14 +56,6 @@
   (syntax-rules ()
     ((_ variable name id->suri)
      (begin (define variable (register-audio-host! name id->suri))))))
-
-;; TODO: remove this when everything is ported
-(define-syntax define-audio-host
-  (er-macro-transformer
-   (lambda (x r t)
-     (warning (conc "deprecated define-audio-host @ " (get-line-number x)))
-     `(void))))
-
 
 
 )
