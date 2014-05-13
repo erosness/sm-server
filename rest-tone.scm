@@ -3,7 +3,7 @@
 (import chicken scheme data-structures)
 
 (use uri-common restlib test srfi-1)
-(import rest player)
+(import rest turi)
 
 (define tones
   (map (lambda (hz)

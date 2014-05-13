@@ -4,7 +4,7 @@
 (use wimp uri-common test clojurian-syntax restlib
      matchable)
 
-(import rest player)
+(import rest turi)
 
 ;; leaving the beauty of what is session management till later:
 (print "please wait while logging in to wimp...")

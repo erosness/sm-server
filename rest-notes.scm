@@ -3,7 +3,7 @@
 (import chicken scheme data-structures)
 
 (use irregex restlib)
-(import rest player)
+(import rest turi)
 
 (define-handler /search/notes (pagize (argumentize (querify `(((turi . "tr://notes/")))) 'q)))
 
