@@ -115,8 +115,8 @@
 
 (test-group
  "argumentize"
- (with-request
-  "?q=2&h=4"
+ (parameterize ((current-request (make-request uri: (uri-reference "?q=2&h=4"))))
+
   (test '("2" "4")   ((argumentize (lambda x x) 'q 'h)))
   (test '("4")       ((argumentize (lambda x x) 'h)))
 
