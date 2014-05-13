@@ -5,26 +5,29 @@
 (use uri-common restlib test srfi-1)
 (import rest turi)
 
-(define tones
+
+(define (play-command/tone hz)
+  `((format . "lavfi")
+    (url    . ,(conc "aevalsrc=sin(" hz "*2*PI*t):s=8000:d=1"))))
+
+(define-turi-adapter tone->turi "tone" play-command/tone)
+;; (tone->turi 440) ==> "tr://localhost:5060/t2s?type=tone&id=440"
+
+(with-request ("" `((host ("foo" . 10))))
+              (tone->turi 100))
+
+(define (tones)
   (map (lambda (hz)
          (let ((hz (* hz 100)))
            `((title . ,(conc hz " hertz"))
              (duration . 1)
-             (turi . ,(conc "tr://tone/" hz)))))
+             (turi . ,(tone->turi hz)))))
        (map add1 (iota 100))))
 
-(define-handler /search/tone (pagize (argumentize (querify tones) 'q)))
+(define-handler /search/tone (pagize (argumentize (lambda (q) ((querify (tones)) q)) 'q)))
 
-(define (play-command/tone uri)
- (let ((hz (second (uri-path uri))))
-   (cplay (conc "aevalsrc=sin(" hz "*2*PI*t):s=8000:d=2") "lavfi")))
-
-(define-audio-host "tone" play-command/tone)
-
-(test '("cplay" "-f" "lavfi" "aevalsrc=sin(1234*2*PI*t):s=8000:d=2")
-      (play-command "tr://tone/1234"))
 )
 
 ;; this is noisy:
-;; (play! (play-command "tr://tone/440"))
+;; (play! (play-command "tr://localhost:5060/t2s?type=tone&id=440"))
 ;; (player-quit)
