@@ -65,7 +65,7 @@
 (define (track->search-result track)
   `((turi   . ,(track->turi track))
     (title  . ,(alist-ref 'title track))
-    (artist . ,(track/album->artist-name track))
+    (subtitle . ,(track/album->artist-name track))
     (image  . ,(track->album-cover-uri track))))
 
 (define (artist->search-result artist)
@@ -76,14 +76,14 @@
     ;; -    (name  . ,(alist-ref 'name artist))
     ;; -    (image . ,(artist->artist-image-uri artist))))
     (title  . ,(alist-ref 'name artist))
-    (cover  . ,(artist->artist-image-uri artist))
+    (image  . ,(artist->artist-image-uri artist))
     (uri    . ,(conc "/search/wimp/artist/albums?artist=" (alist-ref 'id artist)))))
 
 (define (album->search-result album)
   `((id     . ,(alist-ref 'id album))
-    (artist . ,(track/album->artist-name album))
+    (subtitle . ,(track/album->artist-name album))
     (title  . ,(alist-ref 'title album))
-    (cover  . ,(album->album-cover-uri album))
+    (image  . ,(album->album-cover-uri album))
     (uri    . ,(conc "/search/wimp/album/tracks?album=" (alist-ref 'id album)))))
 
 
