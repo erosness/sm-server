@@ -88,13 +88,13 @@
 
 
 (define (play-command/tr turi)
-  (->> (with-input-from-request (update-uri turi
-                                            scheme: 'http
-                                            port: (uri-port turi))
-                                #f
-                                read-json)
-       (alist-ref 'url)
-       (cplay)))
+  (let ((response (with-input-from-request (update-uri turi
+                                                       scheme: 'http
+                                                       port: (uri-port turi))
+                                           #f
+                                           read-json)))
+    (cplay (alist-ref 'url response)
+           (alist-ref 'format response))))
 
 (define (play-command turi)
   (let ((turi (if (uri? turi) turi (uri-reference turi))))
