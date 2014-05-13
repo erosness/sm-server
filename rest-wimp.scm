@@ -15,34 +15,28 @@
 ;;         => https://api.stream.wimp.com/dwvpqm7xh)
 
 
+(define (tid->suri tid)
+  (alist-ref 'url (wimp-track-streamurl tid)))
 
+;; OBS: returning WIMP's metadata directly (and assuming it's url
+;; field is the http url for the streaming url).
+(define (play-command/wimp tid)
+  (wimp-track-streamurl tid))
 
-
-;; extract tid (as string) from a wimp tr uri.
-(define (wimp-path->tid path)
-  (match path
-    (('/ "tid" tid) tid)
-    (else (error "cannot find tid of path " path))))
-
-(test-group
- "wimp-path->tid"
- (test "1234" (wimp-path->tid '(/ "tid" "1234")))
- (test-error (wimp-path->tid '(/ "wrong" "1234"))))
-
-(define (path->suri path)
-  (alist-ref 'url (wimp-track-streamurl (wimp-path->tid path))))
-
-(define (play-command/wimp path)
-  (let ((suri (path->suri path)))
-    (cplay (uri-reference suri))))
-
-(define-audio-host "wimp" play-command/wimp)
+(define-turi-adapter tid->turi "wimp" (lambda (id) (play-command/wimp id)))
 
 (define (track->turi track)
-  (conc "tr://wimp/tid/" (alist-ref 'id track)))
+  (tid->turi (or (alist-ref 'id track)
+                 (error "no id field for track" track))))
 
+(test-group
+ "turi conversion"
+ (with-request
+  ("/" `((host ("host" . 1))))
+  (test "path->url"   "tr://host:1/t2s?type=wimp&id=x" (tid->turi "x"))
+  (test "track->turi" "tr://host:1/t2s?type=wimp&id=123" (track->turi `((id . "123"))))))
 
-
+;; (with-request "?type=wimp&id=1234" (/t2s))
 
 ;; ==================== browsing ====================
 ;; ************ image getters
