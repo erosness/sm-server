@@ -51,7 +51,8 @@
 ;; spawn command, killing the previous one if it's running
 ;; TODO: support on-exit callback
 (define play!
-  (with-mutex-lock *cplay-lock*
+  (with-mutex-lock
+   *cplay-lock*
    (lambda (scommand #!optional (on-exit (lambda () (print "*** song finished"))))
      (print scommand)
      (if *cplay-proc* (handle-exceptions e
