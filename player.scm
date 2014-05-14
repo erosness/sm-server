@@ -23,11 +23,12 @@
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client
+     extras ;; <-- pp
      clojurian-syntax medea)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
-(import process-cli concurrent-utils)
+(import closing-http-client process-cli concurrent-utils)
 
 
 ;; create shell string for launching `cplay` player daemon. launch it
@@ -88,11 +89,11 @@
 
 
 (define (play-command/tr turi)
-  (let ((response (with-input-from-request (update-uri turi
-                                                       scheme: 'http
-                                                       port: (uri-port turi))
-                                           #f
-                                           read-json)))
+  (let ((response (with-input-from-request* (update-uri turi
+                                                        scheme: 'http
+                                                        port: (uri-port turi))
+                                            #f
+                                            read-json)))
     (cplay (alist-ref 'url response)
            (alist-ref 'format response))))
 

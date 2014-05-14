@@ -5,6 +5,8 @@
 ;;;
 (use pefat)
 
+(include "closing-http-client.scm")
+
 (include "debug-utils.scm")
 (include "concurrent-utils.scm")
 (include "broadcast.scm")
