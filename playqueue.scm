@@ -131,7 +131,10 @@
         (pq-play* pq next))
       (pq-current-set! pq #f)))
 
-(define (pq-play-prev* pq) (pq-play* pq (pq-prev* pq)))
+(define (pq-play-prev* pq)
+  (or (and-let* ((prev (pq-prev* pq)))
+        (pq-play* pq prev))
+      (pq-current-set! pq #f)))
 
 ;; ==================== thread-safety ====================
 (define (with-pq-mutex proc)
