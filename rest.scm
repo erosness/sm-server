@@ -56,10 +56,14 @@
 
 ;; returns a procedure which announces it was been called using UDP
 ;; broadcasts, with the jsonified value of having called proc.
-(define ((wrap-changes path proc) #!rest args)
+(define ((wrap-changes path proc
+                       #!optional
+                       (send-message?
+                        (lambda () (not (eq? 'GET (request-method (current-request)))))))
+         #!rest args)
   (let* ((response (apply proc args))
          (json (with-output-to-string (lambda () (write-json response)))))
-    (udp-multicast (change-message path json))
+    (if (send-message?) (udp-multicast (change-message path json)))
     response))
 
 
