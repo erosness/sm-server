@@ -92,6 +92,7 @@
     ;; asynchronously and we have to call on-exit.
     (define read-thread
       (make-thread (lambda ()
+                     (print ";; ( read-thread " (current-thread) " started")
                      (let loop ()
                        (set! last-line (read-line pip))
                        (condition-variable-signal! cvar)
