@@ -68,7 +68,7 @@
 ;; OBS: processes need to be explicitly exit (see #:quit)
 (define (process-cli command args on-exit)
 
-  (assert (procedure? on-exit))
+  (assert (or (procedure? on-exit) (eq? #f on-exit)))
 
   (define mutex (make-mutex))
   (define read-mutex (make-mutex))
