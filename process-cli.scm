@@ -97,9 +97,15 @@
                        (condition-variable-signal! cvar)
                        (if (not (eof-object? last-line))
                            (loop)))
-                     (and on-exit (thread-specific (current-thread))
-                          (on-exit)))
-                   (conc "read-thread for " command)))
+
+                     (close-input-port pip)
+                     (close-output-port pop)
+                     (print ";; waiting for " pid)
+                     ;; wait and detach from child
+                     (process-wait pid)
+                     (and on-exit (on-exit))
+                     (print ";; read-thread " (current-thread) " done )"))
+                   (conc "(ms" (current-milliseconds) ")")))
 
     (thread-specific-set! read-thread #t)
     (thread-start! read-thread)
@@ -124,14 +130,8 @@
         ((#:stdout) pop)
         ((#:stdin)  pip)
         ((#:pid)    pid)
-        ((#:quit)
-         ;; dont call 'on-exit' callback
-         (thread-specific-set! read-thread #f)
-         (handle-exceptions e (warning "could not kill read-thread with pid" pid)
-                            (close-output-port pop)
-                            (close-input-port pip))
-         ;; careful: if pid doesn't quit, we block all threads forever
-         (process-wait pid))
+        ((#:on-exit) (if (pair? args) (set! on-exit (car args))) on-exit)
+        ((#:quit) (error "deprecated, don't use #:quit. it messes up everything."))
         (else (apply cmd (cons command args)))))))
 
 ;;(include "process-cli.tests.scm")

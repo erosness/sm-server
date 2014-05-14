@@ -48,25 +48,18 @@
 (define *cplay-lock* (make-mutex))
 (define *cplay-proc* #f)
 
-
-;; *cplay-proc* calls process-wait which throws an error if the
-;; specified child process does not exist, this is expected since some
-;; other thread might have already killed it
-(define (ignore-wait-for-child-process-failed c)
-  (if (not (equal? (get-condition-property c 'exn 'message)
-                    "waiting for child process failed - No child processes"))
-          (signal c)))
-
 ;; spawn command, killing the previous one if it's running
 ;; TODO: support on-exit callback
 (define play!
   (with-mutex-lock *cplay-lock*
    (lambda (scommand #!optional (on-exit (lambda () (print "*** song finished"))))
      (print scommand)
-     (if *cplay-proc*
-         (condition-case (*cplay-proc* #:quit)
-           (c (exn process)
-              (ignore-wait-for-child-process-failed c))))
+     (if *cplay-proc* (handle-exceptions e
+                        (pp (condition->list e))
+                        (*cplay-proc* #:on-exit (lambda () (print ";; callback cleared by play!")))
+                        (if (port-closed? (*cplay-proc* #:stdout))
+                            (void) ;; already quit
+                            (*cplay-proc* "quit")))) ;; <-- clean cplay exit
 
      (set! *cplay-proc* (process-cli (car scommand)
                                      (cdr scommand)
