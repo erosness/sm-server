@@ -23,7 +23,7 @@ deps:
 blobbery:
 	cd blobbery; $(ci) $(ciflags)
 
-looper:
+looper: socket
 	cd looper; $(ci) $(ciflags)
 
 pefat:
@@ -58,7 +58,12 @@ wimp:
 
 # we patched up socket so it compiles with aosp-chicken-install.
 socket:
+ifeq ($(ARCH),arm)
 	cd socket; $(ci) $(ciflags)
+else
+	$(ci) $(ciflags) socket
+endif
+
 
 .PHONY: socket restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all \
 	multicast pefat dlna looper
