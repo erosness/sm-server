@@ -1,5 +1,5 @@
 
-* Cube REST-Server
+# Cube REST-Server
 
 The central brain, pulling all strings. It exposes a REST-API and
 triggers UDP notifications for any state-changes. It's main tasks are:
@@ -9,7 +9,7 @@ triggers UDP notifications for any state-changes. It's main tasks are:
 - audio metadata manipulation (eg. volume)
 - audio playback manipulation (eg. pause)
 
-* json
+# json
 
 All requests and responses should be strict JSON. That is, everything
 is either an array or an object. Hmmm ... kinda silly for things like
@@ -20,8 +20,8 @@ which would become something like
 
     curl -X PUT localhost:5055/player/volume -d '{ "val": 75}'
 
-n
-* turi
+
+# turi
 
 A unique identifier which allows the cube-server to address an audio
 track/stream. For example:
@@ -36,7 +36,7 @@ generate a http stream-url using the Wimp API, for example.
 
 Poke around for ffmpeg-command, wimp-command and tone-command.
 
-* playqueue / pq
+# playqueue / pq
 
 This is an non-persistent list of turis which are about to be played.
 It is a central piece of the player. Each zone has its own playqueue.
