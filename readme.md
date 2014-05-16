@@ -49,14 +49,14 @@ in the pq. There is a pq cursor!
 
 
 * Todo Cube-Server
-** Build
-*** TODO Build everything with one `make`
-*** TODO fix socket egg problem
-*** TODO keep versioning of deps under control
-** cube-server
-*** TODO make start without network interfaces robust
-*** modulerize
-**** zones may come and go
-**** ease development process (eg add search engine for testing)
-*** DONE wrap all errors in HTTP response (see wrap-errors)
+ * Build
+  * TODO Build everything with one `make`
+  * TODO fix socket egg problem
+  * TODO keep versioning of deps under control
+ * cube-server
+  * TODO make start without network interfaces robust
+  * modulerize
+   * zones may come and go
+   * ease development process (eg add search engine for testing)
+  * DONE wrap all errors in HTTP response (see wrap-errors)
 
