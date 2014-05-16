@@ -21,13 +21,13 @@
       (list-tabulate 10 random-id->turi)))
    'q))
 
-(define-handler /search/random (lambda () (random-search)) )
+(define-handler /catalog/random (lambda () (random-search)) )
 
 (use test)
 (test
  ;; start the server for the port number to take affect
  "tr://localhost:5060/t2s?type=random&id=0"
- (->> (with-request "?q=blah" (/search/random))
+ (->> (with-request "?q=blah" (/catalog/random))
       (alist-ref 'items)
       ((flip vector-ref) 0)))
 

@@ -31,12 +31,15 @@
           `((error       . ,(conc "not found: " uri))
             (valid-urls  . ,(list->vector (hash-table-keys *uris*))))))))
 
+;; (define-handler /path (lambda () #f)) now defaults to /v1/path on the
+;; interface. this will be a lot of fun to maintain in the long run.
 (define-syntax define-handler
   (syntax-rules ()
-    ((define-handler path body)
+    ((define-handler path body) (define-handler /v1 path body))
+    ((define-handler v path body)
      (begin
        (define path body)
-       (set-handler! (symbol->string 'path) path)))))
+       (set-handler! (conc 'v 'path) path)))))
 
 
 ;; ==================== test utils ====================

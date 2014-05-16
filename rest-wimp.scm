@@ -77,14 +77,14 @@
     ;; -    (image . ,(artist->artist-image-uri artist))))
     (title  . ,(alist-ref 'name artist))
     (image  . ,(artist->artist-image-uri artist))
-    (uri    . ,(conc "/search/wimp/artist/albums?artist=" (alist-ref 'id artist)))))
+    (uri    . ,(conc "/catalog/wimp/artist/albums?artist=" (alist-ref 'id artist)))))
 
 (define (album->search-result album)
   `((id     . ,(alist-ref 'id album))
     (subtitle . ,(track/album->artist-name album))
     (title  . ,(alist-ref 'title album))
     (image  . ,(album->album-cover-uri album))
-    (uri    . ,(conc "/search/wimp/album/tracks?album=" (alist-ref 'id album)))))
+    (uri    . ,(conc "/catalog/wimp/album/tracks?album=" (alist-ref 'id album)))))
 
 
 (define (wimp-process-result result-proc result)
@@ -107,19 +107,19 @@
    'q '(limit "10") '(offset "0")))
 
 ;;==================== handlers ====================
-(define-handler /search/wimp
-  (lambda () `((tabs . #( ((title . "Artists") (uri . "/search/wimp/artist"))
-                     ((title . "Albums")  (uri . "/search/wimp/album"))
-                     ((title . "Tracks")  (uri . "/search/wimp/track")))))))
+(define-handler /catalog/wimp
+  (lambda () `((tabs . #( ((title . "Artists") (uri . "/catalog/wimp/artist"))
+                     ((title . "Albums")  (uri . "/catalog/wimp/album"))
+                     ((title . "Tracks")  (uri . "/catalog/wimp/track")))))))
 
-(define-handler /search/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
-(define-handler /search/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
-(define-handler /search/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
+(define-handler /catalog/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
+(define-handler /catalog/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
+(define-handler /catalog/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
 
-(define-handler /search/wimp/artist/albums
+(define-handler /catalog/wimp/artist/albums
   (argumentize (make-wimp-search-call wimp-artist-albums album->search-result) 'artist))
 
-(define-handler /search/wimp/album/tracks
+(define-handler /catalog/wimp/album/tracks
   (argumentize (make-wimp-search-call wimp-album-tracks track->search-result) 'album))
 
 ;; ==================== tests ====================
@@ -144,7 +144,7 @@
 
  (test "artist/albums"
        #t
-       (->> (/search/wimp/artist/albums)
+       (->> (/catalog/wimp/artist/albums)
             (return-wimp-uri)
             (with-request "?artist=1234")
             (irregex-search "/artists/1234")
@@ -152,7 +152,7 @@
 
  (test "artist/albums"
        #t
-       (->> (/search/wimp/album/tracks)
+       (->> (/catalog/wimp/album/tracks)
             (return-wimp-uri)
             (with-request "?album=9876")
             (irregex-search "/albums/9876")
