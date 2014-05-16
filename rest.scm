@@ -33,9 +33,9 @@
 
 (define-syntax define-handler
   (syntax-rules ()
-    ((define-handler path body ...)
+    ((define-handler path body)
      (begin
-       (define path (begin body ...))
+       (define path body)
        (set-handler! (symbol->string 'path) path)))))
 
 
