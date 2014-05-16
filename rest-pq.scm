@@ -1,4 +1,4 @@
-(module* rest-pq ()
+(module rest-pq ()
 
 (import chicken scheme data-structures srfi-1 ports)
 
@@ -57,16 +57,14 @@
                    `((status . "ok")))))
 
 (define-handler /pq/play/next
-  (wrap-changes "/pq/play/next"
-                (lambda () (let ((nx (pq-next *pq*)))
-                        (pq-play-next *pq*)
-                        nx))))
+  (let ((nx (pq-next *pq*)))
+    (pq-play-next *pq*)
+    nx))
 
 (define-handler /pq/play/prev
-  (wrap-changes "/pq/play/prev"
-                (lambda () (let ((nx (pq-prev *pq*)))
-                        (pq-play-prev *pq*)
-                        nx))))
+  (let ((nx (pq-prev *pq*)))
+    (pq-play-prev *pq*)
+    nx))
 
 ;; (/pq/play/next)
 ;; (/pq/play/prev)
