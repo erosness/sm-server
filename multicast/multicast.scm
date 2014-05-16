@@ -42,8 +42,7 @@
 (use test)
 (test-group
  "udp-multicast"
- (test (void) (udp-multicast "hi"))
+ (test (void) (udp-multicast "unit-test: hi"))
  (test-error (udp-multicast (make-string 2048 #\a))))
-
 
 )
