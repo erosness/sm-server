@@ -27,5 +27,5 @@
       (warning "killing service announce daemon" pid)
       (process-signal pid))))
 
-;; (define dns-sd-unregister! (dns-sd-register "repl service test" 6600))
+;; (define dns-sd-unregister! (dns-sd-register "repl service test" 6600 service-type/cube-browser))
 ;; (dns-sd-unregister!)
