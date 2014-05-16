@@ -22,7 +22,7 @@
          (lambda (pair) ((cdr pair) id)))
         (else (error "no turi adapter for " type))))
 
-(define-handler /t2s (argumentize (lambda (t i) (turi-handler t i)) 'type 'id))
+(define-handler /v1 /t2s (argumentize (lambda (t i) (turi-handler t i)) 'type 'id))
 
 (define (make-turi-creator type)
   (lambda (id)
@@ -32,7 +32,7 @@
       (parameterize ((form-urlencoded-separator "&"))
         (uri->string (update-uri (current-host)
                                  scheme: 'tr
-                                 path: `(/ "t2s")
+                                 path: `(/ "v1" "t2s")
                                  query: `((type . ,type)
                                           (id . ,id))
                                  ;; bug workaround (uri-common):
