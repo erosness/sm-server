@@ -51,10 +51,9 @@
 
 ;; Removes every item from the playqueue and stops the player
 (define-handler /pq/clear
-  (wrap-changes "/pq/clear"
-                (lambda () (pq-clear *pq*)
-                   (player-quit)
-                   `((status . "ok")))))
+  (pq-clear *pq*)
+  (player-quit)
+  `((status . "ok")))
 
 (define-handler /pq/play/next
   (let ((nx (pq-next *pq*)))
