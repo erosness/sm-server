@@ -18,19 +18,22 @@
         (conc "\n" "Echo: " echo)
         "")))
 
+(define end-headers "\r\n\r\n")
+
 ;; create a message that represents `path` changing into `body`
 (define (change-message path body)
   (conc "NOTIFY "
         path
         (udp-broadcast-headers (or (current-request) (make-request)))
-        "\n\n" body))
+        end-headers
+        body))
 
 ;; like change-message, but used for large datasets. tbd
 (define (make-alert path)
   (conc "ALERT "
         path
         (udp-broadcast-headers (or (current-request) (make-request)))
-        "\n\n"))
+        end-headers))
 
 (include "broadcast.tests.scm")
 )
