@@ -79,7 +79,7 @@
  (player-operation #:unpause))
 
 (define player-quit
-  (player-operation #:quit))
+  (player-operation "quit"))
 
 
 (define (play-command/tr turi)
