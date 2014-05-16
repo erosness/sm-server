@@ -19,12 +19,12 @@
     (udp-multicast (change-message path json))))
 
 (pq-add-current-change-listener
- *pq* (change-callback "/pq/play"))
+ *pq* (change-callback "/player/play"))
 
 ;; Adds an item to the back of the playqueue and starts it.
 ;; Returns: the passed in item with a unique id added
-(define-handler /pq/play
-  (wrap-changes "/pq/play"
+(define-handler /player/play
+  (wrap-changes "/player/play"
                 (lambda ()
                   (let* ((item (current-json))
                          (existing (pq-ref *pq* item))
@@ -35,42 +35,42 @@
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
-(define-handler /pq/add
-  (wrap-changes "/pq/add"
+(define-handler /player/pq/add
+  (wrap-changes "/player/add"
                 (lambda () (pq-add *pq* (current-json)))))
 
 
 ;; Removes and item referenced by id from the playqueue
 ;; Does nothing if id is not found in playqueue
-(define-handler /pq/del
-  (wrap-changes "/pq/del"
+(define-handler /player/pq/del
+  (wrap-changes "/player/del"
                 (lambda () (let* ((id (alist-ref 'id (current-json))))
                         (pq-del *pq* id)
                         `((status . "ok"))))))
 
 
 ;; Removes every item from the playqueue and stops the player
-(define-handler /pq/clear
-  (wrap-changes "/pq/clear"
+(define-handler /player/pq/clear
+  (wrap-changes "/player/clear"
                 (lambda () (pq-clear *pq*)
                    (player-quit)
                    `((status . "ok")))))
 
-(define-handler /pq/play/next
-  (wrap-changes "/pq/play/next"
+(define-handler /player/pq/next
+  (wrap-changes "/player/pq/next"
                 (lambda () (let ((nx (pq-next *pq*)))
                         (pq-play-next *pq*)
                         nx))))
 
-(define-handler /pq/play/prev
-  (wrap-changes "/pq/play/prev"
+(define-handler /player/pq/prev
+  (wrap-changes "/player/pq/prev"
                 (lambda () (let ((nx (pq-prev *pq*)))
                         (pq-play-prev *pq*)
                         nx))))
 
-;; (/pq/play/next)
-;; (/pq/play/prev)
+;; (/player/pq/next)
+;; (/player/pq/prev)
 
 ;; Returns the playqueue
-(define-handler /pq (lambda () (list->vector (pq-list *pq*))))
+(define-handler /player/pq (lambda () (list->vector (pq-list *pq*))))
 )
