@@ -7,6 +7,7 @@
                    pq-del
                    pq-ref
                    pq-add
+                   pq-add-list
                    pq-play
                    make-pq
                    pq-add-current-change-listener)
@@ -98,6 +99,11 @@
     (pq-list-set! pq (add-back (pq-list pq) item))
     item))
 
+;; this is tricky because we have a list of alists. our incoming json
+;; will use vectors, but lets be very explicit about things.
+(define (pq-add-list* pq items)
+  (map (cut pq-add* pq <>) items))
+
 (define (pq-del* pq item)
   (or (pq-ref* pq item) (error "cannot find" item))
   (pq-list-set! pq (delete item (pq-list pq))))
@@ -145,6 +151,7 @@
 (begin
   (define pq-ref   (with-pq-mutex pq-ref*))
   (define pq-add   (with-pq-mutex pq-add*))
+  (define pq-add-list   (with-pq-mutex pq-add-list*))
   (define pq-del   (with-pq-mutex pq-del*))
   (define pq-clear (with-pq-mutex pq-clear*))
   (define pq-next  (with-pq-mutex pq-next*))

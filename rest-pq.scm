@@ -2,7 +2,7 @@
 
 (import chicken scheme data-structures srfi-1 ports)
 
-(use restlib medea)
+(use restlib medea clojurian-syntax)
 
 (import broadcast
         rest player
@@ -37,7 +37,14 @@
 ;; Returns: the passed in item with a unique id added
 (define-handler /player/pq/add
   (wrap-changes "/player/add"
-                (lambda () (pq-add *pq* (current-json)))))
+                (lambda () (let ((json (current-json)))
+                        (cond ((vector? json)
+                               ;; add a list of items
+                               (->> (vector->list json)
+                                    (pq-add-list *pq*)
+                                    (list->vector)))
+                              ;; add a single item
+                              (else (pq-add *pq* json)))))))
 
 
 ;; Removes and item referenced by id from the playqueue
