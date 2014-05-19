@@ -50,3 +50,6 @@
 /socket/socket.import.so
 /socket/socket.so
 /cspeaker
+/nics/nics.import.scm
+/nics/nics.import.so
+/nics/nics.so
