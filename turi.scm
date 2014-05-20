@@ -42,9 +42,9 @@
  "uri creator"
  (with-request
   ("/" `((host ("host" . 80))))
-  (test "tr://host:80/t2s?type=debug&id=123"
+  (test "tr://host:80/v1/t2s?type=debug&id=123"
         ((make-turi-creator "debug") "123"))
-  (test "tr://host:80/t2s?type=debug&id=abc"
+  (test "tr://host:80/v1/t2s?type=debug&id=abc"
         ((make-turi-creator "debug") "abc"))))
 
 

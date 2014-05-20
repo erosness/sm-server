@@ -33,8 +33,8 @@
  "turi conversion"
  (with-request
   ("/" `((host ("host" . 1))))
-  (test "path->url"   "tr://host:1/t2s?type=wimp&id=x" (tid->turi "x"))
-  (test "track->turi" "tr://host:1/t2s?type=wimp&id=123" (track->turi `((id . "123"))))))
+  (test "path->url"   "tr://host:1/v1/t2s?type=wimp&id=x" (tid->turi "x"))
+  (test "track->turi" "tr://host:1/v1/t2s?type=wimp&id=123" (track->turi `((id . "123"))))))
 
 ;; (with-request "?type=wimp&id=1234" (/t2s))
 
