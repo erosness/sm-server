@@ -1,8 +1,9 @@
 (module rest-player ()
 
-(import chicken scheme data-structures)
+(import chicken scheme data-structures srfi-1)
 
 (import rest player)
+(use test restlib)
 
 (define (parse-cplay-pos-response resp)
   (and-let* ((l (drop (string-split resp) 1))
@@ -14,7 +15,7 @@
 (test "parse cplay pos - success"
       '((pos . 23.2341)
         (total . 45.23))
-      (parse-cplay-response "ok 23.2341 45.23"))
+      (parse-cplay-pos-response "ok 23.2341 45.23"))
 
 (test "parse cplay pos - failure"
       #f (parse-cplay-pos-response "some garbage 1234"))
