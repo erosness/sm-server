@@ -18,6 +18,8 @@
                 play!
                 player-pause
                 player-unpause
+                player-pos
+                player-seek
                 player-quit
                 play-command)
 
@@ -78,9 +80,14 @@
 (define player-unpause
  (player-operation #:unpause))
 
+(define player-pos
+  (player-operation #:pos))
+
+(define (player-seek seek)
+  ((player-operation #:seek (->string seek))))
+
 (define player-quit
   (player-operation "quit"))
-
 
 (define (play-command/tr turi)
   (let ((response (with-input-from-request* (update-uri turi
