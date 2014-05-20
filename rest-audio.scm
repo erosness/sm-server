@@ -29,6 +29,6 @@
  (test #f (equalizer? '#(1 2 3 4)))
  (test #f (equalizer? '#(1 2 3 4 a))))
 
-(define-simple-wrapper /mute   mute      boolean?)
-(define-simple-wrapper /volume volume    number?)
-(define-simple-wrapper /eq     equalizer equalizer?)
+(define-simple-wrapper /player/mute   mute      boolean?)
+(define-simple-wrapper /player/volume volume    number?)
+(define-simple-wrapper /player/eq     equalizer equalizer?)

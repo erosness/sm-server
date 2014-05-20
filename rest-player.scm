@@ -34,8 +34,8 @@
  (test "more bad input" #f (parse-cplay-paused?-response "foo"))
  (test "empty input" #f (parse-cplay-paused?-response "")))
 
-(define-handler /pause
-  (wrap-changes "/pause"
+(define-handler /player/pause
+  (wrap-changes "/player/pause"
                 (lambda ()
                   (and-let* ((res (player-paused?))
                              (parsed (parse-cplay-paused?-response res)))
@@ -49,8 +49,8 @@
                           `((value . ,value)))
                         parsed)))))
 
-(define-handler /pos
-  (wrap-changes "/pos"
+(define-handler /player/pos
+  (wrap-changes "/player/pos"
                 (lambda ()
                   (and-let* ((res (player-pos))
                              (parsed (parse-cplay-pos-response res)))
