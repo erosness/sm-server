@@ -67,9 +67,9 @@
                                      on-exit))
      *cplay-proc*)))
 
-(define (player-operation op)
+(define (player-operation op #!rest args)
   (with-mutex-lock
-   *cplay-lock* (lambda () (and *cplay-proc* (*cplay-proc* op)))))
+   *cplay-lock* (lambda () (and *cplay-proc* (apply *cplay-proc* op args)))))
 
 ;; Control operations
 (define player-pause
