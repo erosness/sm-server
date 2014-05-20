@@ -59,4 +59,8 @@
    (cond ((alist-ref 'ERROR (cdr group)) =>
           (lambda (num-errors) (let ((old-val (test-group-errors)))
                             (test-group-errors (+ old-val num-errors))))))))
+
+(define (clear-test-errors!)
+  (test-failure-count 0)
+  (test-group-errors 0))
 )
