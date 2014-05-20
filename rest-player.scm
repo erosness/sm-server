@@ -19,11 +19,35 @@
 (test "parse cplay pos - failure"
       #f (parse-cplay-pos-response "some garbage 1234"))
 
-(define-handler /pause
-  (lambda () (player-pause)))
+(define (parse-cplay-paused?-response resp)
+  (and-let* ((value (string-split resp))
+             ((equal? (length value) 2))
+             (value (cadr value))
+             ((or (equal? value "false") (equal? value "true"))))
+    `((value . ,(equal? value "true")))))
 
-(define-handler /unpause
-  (lambda () (player-unpause)))
+(test-group
+ "parse-cplay-paused?"
+ (test "truthy" `((value . #t)) (parse-cplay-paused?-response "ok true"))
+ (test "falsy"  `((value . #f)) (parse-cplay-paused?-response "ok false"))
+ (test "bad input" #f (parse-cplay-paused?-response "ok asdf"))
+ (test "more bad input" #f (parse-cplay-paused?-response "foo"))
+ (test "empty input" #f (parse-cplay-paused?-response "")))
+
+(define-handler /pause
+  (wrap-changes "/pause"
+                (lambda ()
+                  (and-let* ((res (player-paused?))
+                             (parsed (parse-cplay-paused?-response res)))
+                    (if (current-json)
+                        (let* ((current-state (alist-ref 'value parsed))
+                               (value (alist-ref 'value (current-json))))
+                          (if (not (equal? current-state value))
+                              (if value
+                                  (player-pause)
+                                  (player-unpause)))
+                          `((value . ,value)))
+                        parsed)))))
 
 (define-handler /pos
   (wrap-changes "/pos"
