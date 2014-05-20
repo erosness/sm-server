@@ -80,6 +80,9 @@
 (define player-unpause
  (player-operation #:unpause))
 
+(define player-paused?
+  (player-operation #:paused?))
+
 (define player-pos
   (player-operation #:pos))
 
