@@ -30,20 +30,20 @@
                   port: in)))
 
 ;; read a notify request
-(define (string->request str)
+(define (read-notication-request str)
   (parameterize ((request-parsers (list notification-request-parsers)))
     (read-request (open-input-string str))))
 
 (test-group
  "notification-request-parsers"
 
- (test "method symbol" 'NOTIFY (request-method (string->request "NOTIFY /a\r\n")))
+ (test "method symbol" 'NOTIFY (request-method (read-notication-request "NOTIFY /a\r\n")))
  (test "uri string"
-       "/path" (->> "A /path\r\n" (string->request) (request-uri) (uri->string)))
+       "/path" (->> "A /path\r\n" (read-notication-request) (request-uri) (uri->string)))
  (test "ready to read payload"
        "body"
        (->> "NOTIFY /path\r\nvalue: hei\r\n\r\nbody"
-            (string->request)
+            (read-notication-request)
             (request-port)
             (read-all))))
 
@@ -57,7 +57,7 @@
 ;; returns a cons cell with <path> . <json-value> from packet
 (define (packet->notification packet)
   (assert (string? packet))
-  (and-let* ((r (string->request packet))
+  (and-let* ((r (read-notication-request packet))
              (method (request-method r))
              (_ (eq? 'NOTIFY method))
              (p (uri->string (request-uri r))))
