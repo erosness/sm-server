@@ -25,6 +25,7 @@
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client
+     srfi-1
      extras ;; <-- pp
      clojurian-syntax medea)
 
@@ -69,6 +70,38 @@
                                      on-exit))
      *cplay-proc*)))
 
+
+(define (parse-cplay-pos-response resp)
+  (and-let* ((l (drop (string-split resp) 1))
+         (pos (string->number (car l)))
+         (total (string->number (cadr l))))
+    `((pos . ,pos)
+      (total . ,total))))
+
+(test "parse cplay pos - success"
+      '((pos . 23.2341)
+        (total . 45.23))
+      (parse-cplay-pos-response "ok 23.2341 45.23"))
+
+(test "parse cplay pos - failure"
+      #f (parse-cplay-pos-response "some garbage 1234"))
+
+(define (parse-cplay-paused?-response resp)
+  (and-let* ((value (string-split resp))
+             ((equal? (length value) 2))
+             (value (cadr value))
+             ((or (equal? value "false") (equal? value "true"))))
+    `((value . ,(equal? value "true")))))
+
+(test-group
+ "parse-cplay-paused?"
+ (test "truthy" `((value . #t)) (parse-cplay-paused?-response "ok true"))
+ (test "falsy"  `((value . #f)) (parse-cplay-paused?-response "ok false"))
+ (test "bad input" #f (parse-cplay-paused?-response "ok asdf"))
+ (test "more bad input" #f (parse-cplay-paused?-response "foo"))
+ (test "empty input" #f (parse-cplay-paused?-response "")))
+
+
 (define (player-operation op #!rest args)
   (with-mutex-lock
    *cplay-lock* (lambda () (and *cplay-proc* (apply *cplay-proc* op args)))))
@@ -80,11 +113,11 @@
 (define player-unpause
  (player-operation #:unpause))
 
-(define player-paused?
-  (player-operation #:paused?))
+(define (player-paused?)
+  (cond ( ((player-operation #:paused?)) => parse-cplay-paused?-response)))
 
-(define player-pos
-  (player-operation #:pos))
+(define (player-pos)
+  (cond ( ((player-operation #:pos)) => parse-cplay-pos-response)))
 
 (define (player-seek seek)
   ((player-operation #:seek (->string seek))))
