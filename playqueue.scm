@@ -8,6 +8,7 @@
                    pq-ref
                    pq-add
                    pq-add-list
+                   pq-current
                    pq-play
                    make-pq
                    pq-add-current-change-listener)
