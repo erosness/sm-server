@@ -108,19 +108,19 @@
 
 ;; Control operations
 (define player-pause
- (player-operation #:pause))
+ (player-operation "pause"))
 
 (define player-unpause
- (player-operation #:unpause))
+ (player-operation "unpause"))
 
 (define (player-paused?)
-  (cond ( ((player-operation #:paused?)) => parse-cplay-paused?-response)))
+  (cond ( ((player-operation "paused?")) => parse-cplay-paused?-response)))
 
 (define (player-pos)
-  (cond ( ((player-operation #:pos)) => parse-cplay-pos-response)))
+  (cond ( ((player-operation "pos")) => parse-cplay-pos-response)))
 
 (define (player-seek seek)
-  ((player-operation #:seek (->string seek))))
+  ((player-operation "seek" (->string seek))))
 
 (define player-quit
   (player-operation "quit"))
@@ -153,4 +153,4 @@
 )
 
 ;; (define player (play! (play-command "tr://localhost:5060/t2s?type=wimp&id=12345678")))
-;; (player #:quit)
+;; (player "quit")
