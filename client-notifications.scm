@@ -32,7 +32,9 @@
 ;; read a notify request
 (define (read-notication-request str)
   (parameterize ((request-parsers (list notification-request-parsers)))
-    (read-request (open-input-string str))))
+    (read-request (cond ((string? str) (open-input-string str))
+                        (else str)))))
+
 
 (test-group
  "notification-request-parsers"
