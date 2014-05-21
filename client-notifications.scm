@@ -86,9 +86,16 @@
 
 (test-group
  "fold-notification"
+
  (test "simple notification fold"
        '(("/path" . ((value . 1))))
-       (fold-notification (packet->notification "NOTIFY /path\r\n\r\n{\"value\":1}") '())))
+       (fold-notification (packet->notification "NOTIFY /path\r\n\r\n{\"value\":1}") '()))
+
+ (test "notification overwrite"
+       '(("/path" . 2))
+       (fold-notification (make-notification "/path" 2) '(("/path" . 1))))
+ )
+
 
 (define s (multicast-listen-socket 5055))
 
