@@ -45,14 +45,16 @@
 ;; perform a HTTP request against uri, returning response as sxml
 (define (rootdesc-query uri)
   (define (read-sxml) (ssax:xml->sxml (current-input-port) '()))
-  (values (with-input-from-request uri #f read-sxml)))
+  (values (condition-case
+           (with-input-from-request uri #f read-sxml)
+           ((exn http client-error) #f))))
 
 
 ;; query an UPnP server's rootdescriptor for it's ContentDirectory:1
 ;; control urls. returns #f if none found. returned url is always
 ;; absolute.
 (define (query-control-urls rootdesc-url)
-  (let ((doc (rootdesc-query rootdesc-url)))
+  (and-let* ((doc (rootdesc-query rootdesc-url)))
     (service-alist doc (or (base-url doc) ;; take base-url from doc if present
                            rootdesc-url   ;; otherwise use request url
                            ))))
