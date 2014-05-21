@@ -19,19 +19,20 @@
     (udp-multicast (change-message path json))))
 
 (pq-add-current-change-listener
- *pq* (change-callback "/player/play"))
+ *pq* (change-callback "/player/current"))
 
 ;; Adds an item to the back of the playqueue and starts it.
 ;; Returns: the passed in item with a unique id added
-(define-handler /player/play
-  (wrap-changes "/player/play"
-                (lambda ()
-                  (let* ((item (current-json))
-                         (existing (pq-ref *pq* item))
-                         (item (or existing (pq-add *pq* item))))
-                    (print "playing " item)
-                    (pq-play *pq* item)
-                    item))))
+(define-handler /player/current
+  (lambda ()
+    (if (current-json)
+        (let* ((item (current-json))
+               (existing (pq-ref *pq* item))
+               (item (or existing (pq-add *pq* item))))
+          (print "playing " item)
+          (pq-play *pq* item)
+          item)
+        (pq-current *pq*))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
