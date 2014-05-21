@@ -92,7 +92,8 @@
 
 (define s (multicast-listen-socket 5055))
 
-(and (socket-receive-ready? s) (socket-receive-from s 2048))
+;; for your repl pleasures:
+;; (and (socket-receive-ready? s) (socket-receive-from s 2048))
 
 ;; our global server-state
 (define state `())
