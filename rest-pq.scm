@@ -36,24 +36,22 @@
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
 (define-handler /player/pq/add
-  (wrap-changes "/player/add"
-                (lambda () (let ((json (current-json)))
-                        (cond ((vector? json)
-                               ;; add a list of items
-                               (->> (vector->list json)
-                                    (pq-add-list *pq*)
-                                    (list->vector)))
-                              ;; add a single item
-                              (else (pq-add *pq* json)))))))
+  (lambda () (let ((json (current-json)))
+          (cond ((vector? json)
+                 ;; add a list of items
+                 (->> (vector->list json)
+                      (pq-add-list *pq*)
+                      (list->vector)))
+                ;; add a single item
+                (else (pq-add *pq* json))))))
 
 
 ;; Removes and item referenced by id from the playqueue
 ;; Does nothing if id is not found in playqueue
 (define-handler /player/pq/del
-  (wrap-changes "/player/del"
-                (lambda () (let* ((id (alist-ref 'id (current-json))))
-                        (pq-del *pq* id)
-                        `((status . "ok"))))))
+  (lambda () (let* ((id (alist-ref 'id (current-json))))
+          (pq-del *pq* id)
+          `((status . "ok")))))
 
 
 ;; Removes every item from the playqueue and stops the player
