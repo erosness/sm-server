@@ -1,4 +1,4 @@
-(use http-client multicast test
+(use http-client multicast test irregex
      fmt
      clojurian-syntax
      intarweb)
