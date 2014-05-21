@@ -17,7 +17,7 @@ modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp
 dlna:
 	cd dlna ; $(ci) $(ciflags)
 
-deps: 
+deps:
 	$(ci) $(ciflags) $(DEPS)
 
 blobbery:
