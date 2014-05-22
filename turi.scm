@@ -22,7 +22,7 @@
          (lambda (pair) ((cdr pair) id)))
         (else (error "no turi adapter for " type))))
 
-(define-handler /v1 /t2s (argumentize (lambda (t i) (turi-handler t i)) 'type 'id))
+(define-handler /v1/t2s (argumentize (lambda (t i) (turi-handler t i)) 'type 'id))
 
 (define (make-turi-creator type)
   (lambda (id)

@@ -24,7 +24,7 @@
              (turi . ,(tone->turi hz)))))
        (map add1 (iota 100))))
 
-(define-handler /catalog/tone (pagize (argumentize (lambda (q) ((querify (tones)) q)) 'q)))
+(define-handler /v1/catalog/tone (pagize (argumentize (lambda (q) ((querify (tones)) q)) 'q)))
 
 )
 

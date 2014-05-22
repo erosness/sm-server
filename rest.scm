@@ -34,12 +34,22 @@
 ;; (define-handler /path (lambda () #f)) now defaults to /v1/path on the
 ;; interface. this will be a lot of fun to maintain in the long run.
 (define-syntax define-handler
-  (syntax-rules ()
-    ((define-handler path body) (define-handler /v1 path body))
-    ((define-handler v path body)
-     (begin
-       (define path body)
-       (set-handler! (conc 'v 'path) path)))))
+  (ir-macro-transformer
+   (lambda (x e t)
+     (let ((path (e (cadr x)))
+           (body (caddr x))
+           (rest (cdddr x)))
+       (if (pair? rest) (error "illegal define-handler" x))
+       (if (not (equal? (substring (conc (symbol->string path) "   ") 0 4)
+                        "/v1/"))
+           (error "path must start with /v1/" path))
+       `(begin
+          (define ,path ,body)
+          (set-handler! ,(symbol->string path) ,path))))))
+
+;; (define-handler tst identity)
+;; (define-handler /v1/tst identity)
+;; (define-handler a b c)
 
 
 ;; ==================== test utils ====================

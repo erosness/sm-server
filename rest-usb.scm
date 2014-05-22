@@ -35,8 +35,8 @@
   (let ((result (result-transform (proc q limit offset))))
     (make-search-result limit offset (length result) result)))
 
-(define-handler /browse/usb (argumentize (%make-results browse) 'q '(limit "10") '(offset "0")))
-(define-handler /catalog/usb (argumentize (%make-results search) 'q '(limit "10") '(offset "0")))
+(define-handler /v1/browse/usb (argumentize (%make-results browse) 'q '(limit "10") '(offset "0")))
+(define-handler /v1/catalog/usb (argumentize (%make-results search) 'q '(limit "10") '(offset "0")))
 
 (define (start-static-file-server)
   (root-path *mount-point*)

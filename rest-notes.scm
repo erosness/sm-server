@@ -28,7 +28,7 @@
                (lambda (m) (conc "\\" (irregex-match-substring m 1)))))
       (format . "lavfi"))))
 
-(define-handler /catalog/notes (pagize (lambda () (list (note->turi 0)))))
+(define-handler /v1/catalog/notes (pagize (lambda () (list (note->turi 0)))))
 
 )
 

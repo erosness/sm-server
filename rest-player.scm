@@ -5,8 +5,8 @@
 (import rest player)
 (use test restlib clojurian-syntax)
 
-(define-handler /player/pause
-  (wrap-changes "/player/pause"
+(define-handler /v1/player/pause
+  (wrap-changes "/v1/player/pause"
                 (lambda ()
                   (and-let* ((parsed (player-paused?)))
                     (if (current-json)
@@ -19,8 +19,8 @@
                           `((value . ,value)))
                         parsed)))))
 
-(define-handler /player/pos
-  (wrap-changes "/player/pos"
+(define-handler /v1/player/pos
+  (wrap-changes "/v1/player/pos"
                 (lambda ()
                   (and-let* ((parsed (player-pos)))
                     (if (current-json)

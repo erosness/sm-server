@@ -27,6 +27,6 @@
 
 ;; note: we don't need an audio host because turi's should be http
 ;; from the UPnP server directly.
-(define-handler /catalog/dlna/artist (%dlnas dlna-search/artist))
-(define-handler /catalog/dlna/album  (%dlnas dlna-search/album))
-(define-handler /catalog/dlna/track  (%dlnas dlna-search/track))
+(define-handler /v1/catalog/dlna/artist (%dlnas dlna-search/artist))
+(define-handler /v1/catalog/dlna/album  (%dlnas dlna-search/album))
+(define-handler /v1/catalog/dlna/track  (%dlnas dlna-search/track))

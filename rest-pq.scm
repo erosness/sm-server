@@ -19,11 +19,11 @@
     (udp-multicast (change-message path json))))
 
 (pq-add-current-change-listener
- *pq* (change-callback "/player/current"))
+ *pq* (change-callback "/v1/player/current"))
 
 ;; Adds an item to the back of the playqueue and starts it.
 ;; Returns: the passed in item with a unique id added
-(define-handler /player/current
+(define-handler /v1/player/current
   (lambda ()
     (if (current-json)
         (let* ((item (current-json))
@@ -36,7 +36,7 @@
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
-(define-handler /player/pq/add
+(define-handler /v1/player/pq/add
   (lambda () (let ((json (current-json)))
           (cond ((vector? json)
                  ;; add a list of items
@@ -49,24 +49,24 @@
 
 ;; Removes and item referenced by id from the playqueue
 ;; Does nothing if id is not found in playqueue
-(define-handler /player/pq/del
+(define-handler /v1/player/pq/del
   (lambda () (let* ((id (alist-ref 'id (current-json))))
           (pq-del *pq* id)
           `((status . "ok")))))
 
 
 ;; Removes every item from the playqueue and stops the player
-(define-handler /player/pq/clear
+(define-handler /v1/player/pq/clear
   (lambda () (pq-clear *pq*)
      (player-quit)
      `((status . "ok"))))
 
-(define-handler /player/next
+(define-handler /v1/player/next
   (lambda () (let ((nx (pq-next *pq*)))
           (pq-play-next *pq*)
           nx)))
 
-(define-handler /player/prev
+(define-handler /v1/player/prev
   (lambda () (let ((nx (pq-prev *pq*)))
           (pq-play-prev *pq*)
           nx)))
@@ -76,5 +76,5 @@
 ;; (/player/pq/prev)
 
 ;; Returns the playqueue
-(define-handler /player/pq (lambda () (list->vector (pq-list *pq*))))
+(define-handler /v1/player/pq (lambda () (list->vector (pq-list *pq*))))
 )
