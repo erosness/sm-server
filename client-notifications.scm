@@ -1,11 +1,54 @@
-(use http-client multicast test irregex
-     fmt
-     clojurian-syntax
+(use pefat)
+(use http-client multicast test irregex srfi-18 socket utils
+     medea
+     fmt looper uri-common
+     clojurian-syntax parley
      intarweb)
 
+;; ==================== repl helpers ====================
 
-(define (alist-map proc alist) (map (lambda (pair) (proc (car pair) (cdr pair))) alist))
+(define original-input-port (current-input-port))
+(define original-output-port (current-output-port))
 
+
+;; ==================== info view ====================
+
+
+;; (last line is simple current "context line")
+(define (context-line) "n/a")
+
+;; display bottom status-line (will get updated even though we print
+;; lines with info). hopefully thread-safe. with an argument, update
+;; the current state as well.
+(define (liner #!optional str)
+  (if str (set! context-line str))
+  (display "\r")
+  (display (context-line))
+  (flush-output))
+
+;; do a carriage return before print
+(define (info x . args)
+  ;; clear line
+  (display "\r")
+  (display (make-string 80 #\space))
+  (display "\r")
+  ;; allow serializing obj data as first argument
+  (if (string? x) (print* x) (write x))
+  ;; print rest:
+  (apply print args)
+  (liner))
+
+
+
+;; ==================== player ====================
+
+
+
+;; base url for remote server
+(define current-player (make-parameter "http://localhost:5055/v1"))
+
+;; not used (?)
+;; (define (alist-map proc alist) (map (lambda (pair) (proc (car pair) (cdr pair))) alist))
 
 ;; a nicer request-printer
 (define (request->list r)
@@ -24,16 +67,18 @@
                                (=> uri (+ (~ blank))) (* space))
                            line))
          (mm (lambda (lbl) (irregex-match-substring m lbl))))
-    (make-request method: (string->symbol (mm 'method))
-                  uri: (uri-reference (mm 'uri))
-                  headers: (read-headers in)
-                  port: in)))
+    (and m
+         (make-request method: (string->symbol (mm 'method))
+                       uri: (uri-reference (mm 'uri))
+                       headers: (read-headers in)
+                       port: in))))
 
 ;; read a notify request
 (define (read-notication-request str)
   (parameterize ((request-parsers (list notification-request-parsers)))
-    (read-request (cond ((string? str) (open-input-string str))
-                        (else str)))))
+    (handle-exceptions e (begin (pp (condition->list e)) #f)
+     (read-request (cond ((string? str) (open-input-string str))
+                         (else str))))))
 
 
 (test-group
@@ -109,7 +154,7 @@
 (define (query-state path)
   (values (condition-case
            (with-input-from-request
-            (conc "http://localhost:5055/v1" path)
+            (conc (current-player) path)
             #f read-json)
            ((exn http client-error) #f))))
 
@@ -168,28 +213,98 @@
  (test #f (equal/alist? `((a . 1) (b . 1))
                         `((a . 1) (b . 2)))))
 
-(for-each
- (lambda (fail)
-   (let ((expected (car fail))
-         (actual (cdr fail)))
-     (fmt #t (columnar (dsp expected) "|" (dsp actual)))))
- (filter (lambda (pair) (not (equal/alist? (car pair) (cdr pair)))) (check-state state)))
+;; like alist-ref, but we're comparing keys as string and doing it
+;; recursively. also doen't vomit if state if #f. kinda like clojure,
+;; I guess! you'll love this, Peder.
+(define (get-in state . keys)
+  (let loop ((state state)
+             (keys keys))
+    (if (pair? keys)
+        (and state
+             (loop (alist-ref (car keys) state equal?) (cdr keys)))
+        state)))
+
+(test-group
+ "get-in"
+ (test #f (get-in '() 'a))
+ (test #f (get-in '() 'a 'b))
+
+ (test 1 (get-in '((a . 1)) 'a))
+ (test #f (get-in '((a . ((b . 0)))) 'a 'x))
+
+ (test 2 (get-in '((a . ((b . 2)))) 'a 'b)))
+
+
+(define (state-paused? state)  (not (get-in state "/v1/player/play")))
+(define (state-volume state)        (get-in state "/v1/player/volume" 'value))
+(define (state-playing state)       (get-in state "/v1/player/play"))
+(define (state-playing-title state) (get-in (state-playing state) 'title))
+(define (state-pos state)           (get-in state "/v1/player/pos" 'pos))
+(define (state-total state)         (get-in state "/v1/player/pos" 'total))
+
+(test-group
+ "player state"
+
+ (test "Jackson" (state-playing-title
+                  `(("/v1/player/play" .
+                     ((title . "Jackson")
+                      (turi . "tr://10.0.0.29:5055/v1/t2s?type=wimp&id=4124228"))))))
+
+ (test #f (state-paused? '(("/v1/player/play" . ((foo . 1))))))
+ (test #f (state-paused? '(("/v1/player/play" . ()))))
+
+ (test 12 (state-volume `(("/v1/player/volume" . ((value . 12))))))
+
+ (let ((state `(("/v1/player/pos" . ((pos . 5) (total  . 10))))))
+   (test 5  (state-pos state))
+   (test 10 (state-total state))))
+
+(define (state-display state)
+  (define (->fx x) (and x (inexact->exact (round x))))
+  (conc " ♪" (state-volume state) "%"
+        " " (if (state-paused? state) "\u25ae" "\u25b6")
+        " " (->fx (state-pos state)) "/" (->fx (state-total state))
+        " " (fmt #f (ellipses "..." (trim 40 (dsp (state-playing-title state)))))
+        " "
+        ))
+
+;; (for-each
+;;  (lambda (fail)
+;;    (let ((expected (car fail))
+;;          (actual (cdr fail)))
+;;      (fmt #t (columnar (dsp expected) "|" (dsp actual)))))
+;;  (filter (lambda (pair) (not (equal/alist? (car pair) (cdr pair)))) (check-state state)))
 
 ;; update server-state based on "packet"
 (define (fold-server-state packet)
-  (set! state (fold-notification (packet->notification packet) state)))
+  (cond ((packet->notification packet) =>
+         (lambda (notification) (set! state (fold-notification notification state))))
+        (else (info `(ignoring: ,packet)))))
 
 (begin
   (handle-exceptions e e (thread-terminate! notify-thread))
   (define notify-thread
     (thread-start!
      (->> (lambda ()
-            (receive (packet addr) (socket-receive-from s 2048)
-              ;; TODO: check addr is our current server
-              (pp `(update ,(packet->notification packet)))
-              (fold-server-state packet)))
+            ;; so that nrepl don't steal our original terminal output
+            ;; prompt
+            (parameterize ((current-output-port original-output-port))
+              (receive (packet addr) (socket-receive-from s 2048)
+                ;; TODO: check addr is our current server
+                (fold-server-state packet)
+                (info (fmt #f (pretty `(update ,(packet->notification packet))))))))
           (loop/socket-timeout)
           (loop)
           (with-socket s)))))
 ;; (thread-terminate! notify-thread)
 ;; (thread-state notify-thread)
+
+(liner (lambda () (state-display state)))
+
+;; flush liner in the original terminal port
+(define (flush-liner)
+  (parameterize ((current-output-port original-output-port))
+    (liner)))
+
+(use nrepl)
+(nrepl 1234)
