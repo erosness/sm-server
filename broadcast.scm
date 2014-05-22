@@ -6,6 +6,7 @@
 ;;; change-message: a HTTP-like packet describing a change in the
 ;;; statemap
 
+;;; TODO: rename this to something a little more descriptive (notifications?)
 (module broadcast (change-message)
 
 (import chicken scheme ports data-structures)
