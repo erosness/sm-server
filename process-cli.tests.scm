@@ -43,12 +43,11 @@
           (cli (process-cli "sleep" '("0.1") (lambda () (set! exited? #t)))))
    (test "on-exit not called" #f exited?)
    (thread-sleep! 0.2)
-   (test "on-exit called" #t exited?)
-   (cli #:quit))
+   (test "on-exit called" #t exited?))
 
 
 
- (let ((cli (process-cli "cat" '() (lambda () (void))))
+ (let ((cli (process-cli "sh" '() (lambda () (void))))
        (threads 100))
    (test
     "process-cli thread-safety"
@@ -59,14 +58,21 @@
                     (lambda (ix)
                       (-> (lambda ()
                             (thread-yield!) ;; <-- for some action
-                            (= ix (string->number (cli (number->string ix)))))
+                            (= ix (string->number (cli (conc "echo " (number->string ix))))))
                         (thread-start!))))))
-   (cli #:quit))
+   (cli "exit"))
 
 
- (let ((cli (process-cli "cat" '() (lambda () #f))))
-   (test "a b" (cli "a b"))
-   (test "ef" (cli ef:))
-   (test-error (cli "a\nb"))
-   (cli #:quit))
+ (let ((cli (process-cli "sh" '() (lambda () #f))))
+   (test "a b" (cli "echo a b"))
+   (test "ef"  (cli "echo ef"))
+   (test-error (cli "echo a\nb"))
+   (cli "exit"))
  )
+
+(test-group
+ "process-cli exit strategy"
+ (let ((p (process-cli "sh" '() #f)))
+   (test "foo" (p "echo foo"))
+   (test #!eof (p "exit"))
+   (test #f    (p "exit"))))

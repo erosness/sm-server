@@ -135,6 +135,6 @@
         ((#:quit) (error "deprecated, don't use #:quit. it messes up everything."))
         (else (apply cmd (cons command args)))))))
 
-;;(include "process-cli.tests.scm")
+(include "process-cli.tests.scm")
 
 )
