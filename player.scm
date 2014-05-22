@@ -114,10 +114,12 @@
  (player-operation "unpause"))
 
 (define (player-paused?)
-  (cond ( ((player-operation "paused?")) => parse-cplay-paused?-response)))
+  (cond ( ((player-operation "paused?")) => parse-cplay-paused?-response)
+        (else #f)))
 
 (define (player-pos)
-  (cond ( ((player-operation "pos")) => parse-cplay-pos-response)))
+  (cond ( ((player-operation "pos")) => parse-cplay-pos-response)
+        (else #f)))
 
 (define (player-seek seek)
   ((player-operation "seek" (->string seek))))
