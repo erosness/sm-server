@@ -61,12 +61,12 @@
      (player-quit)
      `((status . "ok"))))
 
-(define-handler /player/pq/next
+(define-handler /player/next
   (lambda () (let ((nx (pq-next *pq*)))
           (pq-play-next *pq*)
           nx)))
 
-(define-handler /player/pq/prev
+(define-handler /player/prev
   (lambda () (let ((nx (pq-prev *pq*)))
           (pq-play-prev *pq*)
           nx)))
