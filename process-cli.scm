@@ -117,11 +117,13 @@
         (lambda () (mutex-lock! mutex))
         ;; do this with exclusive rights:
         (lambda ()
-          (set! last-line #f)
-          (send-command strings)
-          (mutex-unlock! read-mutex cvar 1.0) ;; <-- emergency timeout
-          (if last-line last-line
-              (error "read-thread died or process hangs")))
+          (if (port-closed? pop) #f
+              (begin
+                (set! last-line #f)
+                (send-command strings)
+                (mutex-unlock! read-mutex cvar 1.0) ;; <-- emergency timeout
+                (if last-line last-line
+                    (error "read-thread died or process hangs")))))
         ;; wait for signal by read-thread (unlock even on error)
         (lambda () (mutex-unlock! mutex #f 1.0))) ;;<-- emergency timeout
       )
