@@ -3,6 +3,8 @@
               wrap-changes
               define-handler
               json-handler
+              log-handler
+              log?
               with-request
               current-host
               start-rest-server!)
@@ -23,13 +25,22 @@
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
+
+
+(define log? #f)
+(define (log-handler thunk)
+  (lambda () (if log? (print ";; request: " (uri->string (request-uri (current-request)))))
+     (thunk)))
+
 (define (json-handler)
   (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
     (let ((handler (find-accessor uri)))
       (if handler
           (handler)
-          `((error       . ,(conc "not found: " uri))
-            (valid-urls  . ,(list->vector (hash-table-keys *uris*))))))))
+          (begin
+            (print ";; invalid url visit:" (uri->string (request-uri (current-request))))
+            `((error       . ,(conc "not found: " uri))
+              (valid-urls  . ,(list->vector (hash-table-keys *uris*)))))))))
 
 ;; (define-handler /path (lambda () #f)) now defaults to /v1/path on the
 ;; interface. this will be a lot of fun to maintain in the long run.
@@ -152,7 +163,8 @@
    (lambda ()
      (define handler (->> (lambda () (json-handler))
                           (wrap-json)
-                          (wrap-errors)))
+                          (wrap-errors)
+                          (log-handler)))
 
      (vhost-map `((".*" . ,(lambda (continue) (handler)))))
      (start-server port: port))))
