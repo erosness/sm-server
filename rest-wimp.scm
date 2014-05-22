@@ -65,6 +65,8 @@
 (define (track->search-result track)
   `((turi   . ,(track->turi track))
     (title  . ,(alist-ref 'title track))
+    (available . ,(alist-ref 'allowStreaming track))
+    (duration . ,(alist-ref 'duration track))
     (subtitle . ,(track/album->artist-name track))
     (image  . ,(track->album-cover-uri track))))
 
