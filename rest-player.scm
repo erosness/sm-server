@@ -52,9 +52,10 @@
   (thread-start!
    (make-thread
     (->> (lambda ()
-           (player-thread-iteration)
-           (thread-sleep! 1))
-         (loop/exceptions (lambda (e) (pp (condition->list e)) #t))
+           (thread-sleep! 1)
+           (player-thread-iteration))
+         (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
+                                              ,(condition->list e))) #t))
          (loop))
     "player-seek-thread")))
 
