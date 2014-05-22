@@ -261,7 +261,7 @@
 
 (define (state-display state)
   (define (->fx x) (and x (inexact->exact (round x))))
-  (conc " ♪" (state-volume state) "%"
+  (conc " ♪" (->fx (state-volume state)) "%"
         " " (if (state-paused? state) "\u25ae" "\u25b6")
         " " (->fx (state-pos state)) "/" (->fx (state-total state))
         " " (fmt #f (ellipses "..." (trim 40 (dsp (state-playing-title state)))))
