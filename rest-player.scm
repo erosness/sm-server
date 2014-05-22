@@ -54,6 +54,7 @@
     (->> (lambda ()
            (player-thread-iteration)
            (thread-sleep! 1))
+         (loop/exceptions (lambda (e) (pp (condition->list e)) #t))
          (loop))
     "player-seek-thread")))
 
