@@ -104,7 +104,8 @@
 
 (define (player-operation op #!rest args)
   (with-mutex-lock
-   *cplay-lock* (lambda () (and *cplay-proc* (apply *cplay-proc* op args)))))
+   *cplay-lock* (lambda () (let ((response (and *cplay-proc* (apply *cplay-proc* op args))))
+                        (if (eof-object? response) #f response)))))
 
 ;; Control operations
 (define player-pause
