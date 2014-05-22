@@ -101,10 +101,10 @@
                         (wimp-process-result process result))))
 
 
-(define (wrap-wimp search-proc convert)
+(define (wrap-wimp search-proc convert #!optional (query-param 'q))
   (argumentize
    (make-wimp-search-call search-proc convert)
-   'q '(limit "10") '(offset "0")))
+   query-param '(limit "10") '(offset "0")))
 
 ;;==================== handlers ====================
 (define-handler /catalog/wimp
@@ -117,10 +117,10 @@
 (define-handler /catalog/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
 
 (define-handler /catalog/wimp/artist/albums
-  (argumentize (make-wimp-search-call wimp-artist-albums album->search-result) 'artist))
+  (wrap-wimp wimp-artist-albums album->search-result 'artist))
 
 (define-handler /catalog/wimp/album/tracks
-  (argumentize (make-wimp-search-call wimp-album-tracks track->search-result) 'album))
+  (wrap-wimp wimp-album-tracks track->search-result 'album))
 
 ;; ==================== tests ====================
 
