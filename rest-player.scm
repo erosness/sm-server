@@ -3,7 +3,7 @@
 (import chicken scheme data-structures)
 
 (import rest player)
-(use test restlib)
+(use test restlib clojurian-syntax)
 
 (define-handler /player/pause
   (wrap-changes "/player/pause"
@@ -32,3 +32,30 @@
                           `((pos . ,value)
                             (total . ,(alist-ref 'total parsed))))
                         parsed))))))
+
+
+;; ==================== seek position hearbeat ====================
+(import broadcast)
+(use looper multicast medea)
+
+
+;; do this on every player hearbeat interval
+(define (player-thread-iteration)
+  (cond ((player-pos) =>
+         (lambda (pos)
+           (->> pos
+                (json->string)
+                (change-message "/v1/player/pos")
+                (udp-multicast))))))
+
+(define player-seek-thread
+  (thread-start!
+   (make-thread
+    (->> (lambda ()
+           (player-thread-iteration)
+           (thread-sleep! 1))
+         (loop))
+    "player-seek-thread")))
+
+;; (thread-terminate! player-thread)
+;; (thread-state player-thread)
