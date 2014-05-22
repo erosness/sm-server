@@ -22,3 +22,10 @@
 ;; rest plugin layers
 (include "rest-pq.scm")
 (include "rest-audio.scm")
+
+
+(use parley)
+;; parley-based repl
+(define (repl*)
+  (parameterize ((current-input-port (make-parley-port (current-input-port))))
+    (repl)))

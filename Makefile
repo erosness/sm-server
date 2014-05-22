@@ -1,6 +1,6 @@
 DEPS = clojurian bitstring spiffy intarweb uri-common \
 	medea http-client fmt udp test uuid openssl \
-	ssax sxpath sxml-serializer sql-de-lite
+	ssax sxpath sxml-serializer sql-de-lite parley
 
 # install for tradio:
 # ci=aosp-chicken-install make
