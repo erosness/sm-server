@@ -53,6 +53,12 @@
          (continue? (lambda () (not (timeout?)))))
     (loop/when continue? thunk)))
 
+;; retry loop as until thunk returns #f, or (handler e) in case of
+;; error. your error-handler returns #f to exit the loop.
+(define (loop/exceptions handler thunk)
+  (lambda () (handle-exceptions e (handler e)
+                           (thunk))))
+
 ;; retry loop as long as thunk returns #f (catch timeouts and retry)
 (define (loop/socket-timeout thunk)
   (lambda ()
