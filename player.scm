@@ -24,7 +24,7 @@
                 play-command)
 
 (import chicken scheme data-structures)
-(use fmt test uri-common srfi-18 test http-client
+(use fmt test uri-common srfi-18 test http-client matchable
      srfi-1
      extras ;; <-- pp
      clojurian-syntax medea)
@@ -47,29 +47,6 @@
  (test '("cplay" "filename") (cplay "filename"))
  (test '("cplay" "filename") (cplay (uri-reference "filename")))
  (test '("cplay" "-f" "alsa" "file") (cplay "file" "alsa")))
-
-(define *cplay-lock* (make-mutex))
-(define *cplay-proc* #f)
-
-;; spawn command, killing the previous one if it's running
-;; TODO: support on-exit callback
-(define play!
-  (with-mutex-lock
-   *cplay-lock*
-   (lambda (scommand #!optional (on-exit (lambda () (print "*** song finished"))))
-     (print scommand)
-     (if *cplay-proc* (handle-exceptions e
-                        (pp (condition->list e))
-                        (*cplay-proc* #:on-exit (lambda () (print ";; callback cleared by play!")))
-                        (if (port-closed? (*cplay-proc* #:stdout))
-                            (void) ;; already quit
-                            (*cplay-proc* "quit")))) ;; <-- clean cplay exit
-
-     (set! *cplay-proc* (process-cli (car scommand)
-                                     (cdr scommand)
-                                     on-exit))
-     *cplay-proc*)))
-
 
 (define (parse-cplay-pos-response resp)
   (and-let* ((l (drop (string-split resp) 1))
@@ -102,31 +79,52 @@
  (test "empty input" #f (parse-cplay-paused?-response "")))
 
 
-(define (player-operation op #!rest args)
-  (with-mutex-lock
-   *cplay-lock* (lambda () (let ((response (and *cplay-proc* (apply *cplay-proc* op args))))
-                        (if (eof-object? response) #f response)))))
+;; create a worker which can process one message at a time
+;; sequentially. this makes the world a simpler place. we should
+;; probably introduce this model on all mutation to the player.
+(define (make-play-worker)
+  (define cplay-cmd (lambda a #f))
+
+  (define (send-cmd str #!optional (parser values))
+    (let ((response (cplay-cmd str)))
+      (if (string? response)
+          (parser response)
+          #f)))
+
+  (lambda (msg)
+    (match msg
+      (('play scommand on-exit)
+       ;; reset & kill old cplayer
+       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
+       (cplay-cmd "quit")
+       (set! cplay-cmd
+             (process-cli
+              (car scommand)
+              (cdr scommand)
+              (lambda ()
+                ;; important: starting another thread for this is like
+                ;; "posting" this to be ran in the future. without
+                ;; this, we'd start nesting locks and things which we
+                ;; don't want.
+                (thread-start! on-exit)))))
+      (('pos)      (send-cmd "pos" parse-cplay-pos-response))
+      (('pause)    (send-cmd "pause" parse-cplay-paused?-response))
+      (('unpause)  (send-cmd "unpause" parse-cplay-paused?-response))
+      (('seek pos) (send-cmd (conc "seek " pos)))
+      (('quit)     (send-cmd "quit")))) )
+
+(define play-worker
+  (let ((mx (make-mutex)))
+    (with-mutex-lock mx (make-play-worker))))
 
 ;; Control operations
-(define player-pause
- (player-operation "pause"))
-
-(define player-unpause
- (player-operation "unpause"))
-
-(define (player-paused?)
-  (cond ( ((player-operation "paused?")) => parse-cplay-paused?-response)
-        (else #f)))
-
-(define (player-pos)
-  (cond ( ((player-operation "pos")) => parse-cplay-pos-response)
-        (else #f)))
-
-(define (player-seek seek)
-  ((player-operation "seek" (->string seek))))
-
-(define player-quit
-  (player-operation "quit"))
+(define (player-pause)      (play-worker `(pause)))
+(define (player-unpause)    (play-worker `(unpause)))
+(define (player-paused?)    (play-worker `(paused?)))
+(define (player-pos)        (play-worker `(pos)))
+(define (player-seek seek)  (play-worker `(seek ,seek)))
+(define (player-quit)       (play-worker `(quit)))
+(define (play! cmd on-exit) (play-worker `(play ,cmd ,on-exit)))
 
 (define (play-command/tr turi)
   (let ((response (with-input-from-request* (update-uri turi
