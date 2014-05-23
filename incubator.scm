@@ -1,3 +1,7 @@
+(module incubator *
+
+(import chicken scheme data-structures srfi-1)
+
 (use test)
 
 ;; Merges several alists into one. If a key is present in more than
@@ -17,3 +21,4 @@
  ;; Note that ordering matters when comparing for equality
  (test "introduce new keys" '((baz . 3) (foo . 1) (bar . 2))
        (alist-merge '((baz . 2) (foo . 1)) '((bar . 2) (foo . 99)) '((baz . 3) (foo . 1)))))
+)
