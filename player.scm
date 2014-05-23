@@ -74,13 +74,13 @@
 (define (parse-cplay-pos-response resp)
   (and-let* ((l (drop (string-split resp) 1))
          (pos (string->number (car l)))
-         (total (string->number (cadr l))))
+         (duration (string->number (cadr l))))
     `((pos . ,pos)
-      (total . ,total))))
+      (duration . ,duration))))
 
 (test "parse cplay pos - success"
       '((pos . 23.2341)
-        (total . 45.23))
+        (duration . 45.23))
       (parse-cplay-pos-response "ok 23.2341 45.23"))
 
 (test "parse cplay pos - failure"
@@ -91,12 +91,12 @@
              ((equal? (length value) 2))
              (value (cadr value))
              ((or (equal? value "false") (equal? value "true"))))
-    `((value . ,(equal? value "true")))))
+    `((paused . ,(equal? value "true")))))
 
 (test-group
  "parse-cplay-paused?"
- (test "truthy" `((value . #t)) (parse-cplay-paused?-response "ok true"))
- (test "falsy"  `((value . #f)) (parse-cplay-paused?-response "ok false"))
+ (test "truthy" `((paused . #t)) (parse-cplay-paused?-response "ok true"))
+ (test "falsy"  `((paused . #f)) (parse-cplay-paused?-response "ok false"))
  (test "bad input" #f (parse-cplay-paused?-response "ok asdf"))
  (test "more bad input" #f (parse-cplay-paused?-response "foo"))
  (test "empty input" #f (parse-cplay-paused?-response "")))
