@@ -9,6 +9,7 @@
                    pq-add
                    pq-add-list
                    pq-current
+                   pq-current-set!
                    pq-play
                    make-pq
                    pq-add-current-change-listener)
@@ -126,12 +127,13 @@
 (define (pq-next* pq) (pq-next/lst* pq (pq-list pq)))
 (define (pq-prev* pq) (pq-next/lst* pq (reverse (pq-list pq))))
 
-(define (pq-play* pq item)
+(define (pq-play* pq item #!optional (update-current #t))
   (let* ((item (or (pq-ref* pq item) (error "not found in pq" item)))
          (track (alist-ref 'turi item)))
     (play! (play-command track) (lambda () (pq-play-next pq)))
     (print "playing " track)
-    (pq-current-set! pq item)))
+    (if update-current
+        (pq-current-set! pq item))))
 
 (define (pq-play-next* pq)
   (or (and-let* ((next (pq-next* pq)))
