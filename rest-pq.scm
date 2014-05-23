@@ -7,7 +7,8 @@
 (import broadcast
         rest player
         playqueue
-        multicast)
+        multicast
+        incubator)
 
 (define *pq* (make-pq
               '( ((id . "400") (turi . "tr://localhost:5060/t2s?type=tone&id=400"))
@@ -21,18 +22,45 @@
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
 
-;; Adds an item to the back of the playqueue and starts it.
-;; Returns: the passed in item with a unique id added
+;; Manipulate current track.
+;; POST: Looks for three keys; turi, paused, pos.
+;; If turi is present adds this item to pq and starts playing.
+;; If paused is present, toggles pause state
+;; If pos is present, seek to that position
+;; Returns: new value of current
+;; GET: returns value of current with updated pos.
 (define-handler /v1/player/current
   (lambda ()
     (if (current-json)
         (let* ((item (current-json))
                (existing (pq-ref *pq* item))
-               (item (or existing (pq-add *pq* item))))
-          (print "playing " item)
-          (pq-play *pq* item)
-          item)
-        (pq-current *pq*))))
+               (current (pq-current *pq*)))
+
+          ;; Change track?
+          (if (or (alist-ref 'turi item)
+                  (alist-ref 'id item))
+              (let ((item (or existing (pq-add *pq* item))))
+                (pq-play *pq* item #f)
+                (set! current item)))
+
+          ;; Change pos?
+          (and-let* ((pos (assoc 'pos item)))
+            (player-seek (cdr pos)))
+
+          ;; Change paused?
+          (and-let* ((pause (assoc 'paused item)))
+            (if (cdr pause) (player-pause) (player-unpause)))
+
+          ;; Set and NOTIFY new current value
+          (let ((new-current (alist-merge current
+                                          (player-pos)
+                                          (player-paused?))))
+            (pq-current-set! *pq* new-current)
+            new-current))
+        ;else
+        (alist-merge (pq-current *pq*)
+                     (player-pos)
+                     (player-paused?)))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
