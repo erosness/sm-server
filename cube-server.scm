@@ -11,7 +11,6 @@
 (include "rest-notes.scm")
 (include "rest-wimp.scm")
 (include "rest-dlna.scm")
-(include "rest-player.scm")
 (include "rest-usb.scm")
 
 (include "dummy-browser.scm")

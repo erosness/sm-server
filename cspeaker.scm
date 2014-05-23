@@ -22,9 +22,8 @@
 (include "dns-sd.scm")
 
 ;; rest plugin layers
-(include "rest-pq.scm")
 (include "rest-audio.scm")
-
+(include "rest-player.scm")
 
 (use parley)
 ;; parley-based repl
