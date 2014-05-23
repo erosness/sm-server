@@ -4,6 +4,7 @@
 
 (import rest player playqueue)
 (use test restlib clojurian-syntax ports
+     srfi-18 extras
      medea broadcast multicast)
 
 (define *pq* (make-pq
@@ -103,7 +104,7 @@
                           (player-seek value)
                           `((pos . ,value)
                             (total . ,(alist-ref 'total parsed))))
-                        parsed))))))
+                        parsed)))))
 
 
 ;; ==================== seek position hearbeat ====================
@@ -133,3 +134,5 @@
 
 ;; (thread-terminate! player-thread)
 ;; (thread-state player-thread)
+
+)
