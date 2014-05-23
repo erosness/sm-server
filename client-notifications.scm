@@ -237,7 +237,7 @@
 
 (define (state-paused? state)  (not (get-in state "/v1/player/play")))
 (define (state-volume state)        (get-in state "/v1/player/volume" 'value))
-(define (state-playing state)       (get-in state "/v1/player/play"))
+(define (state-playing state)       (get-in state "/v1/player/current"))
 (define (state-playing-title state) (get-in (state-playing state) 'title))
 (define (state-pos state)           (get-in state "/v1/player/pos" 'pos))
 (define (state-total state)         (get-in state "/v1/player/pos" 'total))
