@@ -112,7 +112,8 @@
       (('pause)    (send-cmd "pause" parse-cplay-paused?-response))
       (('unpause)  (send-cmd "unpause" parse-cplay-paused?-response))
       (('seek pos) (send-cmd (conc "seek " pos)))
-      (('quit)     (send-cmd "quit")))) )
+      (('quit)     (send-cmd "quit"))
+      (else (print "Unknown command: " msg)))) )
 
 (define play-worker
   (let ((mx (make-mutex)))
