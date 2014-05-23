@@ -22,7 +22,6 @@
 (include "dns-sd.scm")
 
 ;; rest plugin layers
-(include "rest-pq.scm")
 (include "rest-audio.scm")
 
 
