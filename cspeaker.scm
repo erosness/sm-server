@@ -23,7 +23,7 @@
 
 ;; rest plugin layers
 (include "rest-audio.scm")
-
+(include "rest-player.scm")
 
 (use parley)
 ;; parley-based repl
