@@ -246,7 +246,7 @@
  "player state"
 
  (test "Jackson" (state-playing-title
-                  `(("/v1/player/play" .
+                  `(("/v1/player/current" .
                      ((title . "Jackson")
                       (turi . "tr://10.0.0.29:5055/v1/t2s?type=wimp&id=4124228"))))))
 
