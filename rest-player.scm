@@ -51,11 +51,7 @@
           ;; Set and NOTIFY new current value
           (let ((new-current (alist-merge current
                                           (player-pos)
-                                          (player-paused?)
-                                          ;; Include the incoming
-                                          ;; request so user gets back
-                                          ;; value of pos after change
-                                          json-request)))
+                                          (player-paused?))))
             (pq-current-set! *pq* new-current)
             new-current))
         ;else
