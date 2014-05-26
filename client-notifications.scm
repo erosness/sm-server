@@ -346,5 +346,18 @@
   (parameterize ((current-output-port original-output-port))
     (liner)))
 
+(define (display-pq pq)
+  (fmt #t
+       nl
+
+       (tabular (fmt-join (cut pad/left 3 <>) (iota (length pq)) nl)
+                " "
+                (columnize pq 'id)
+                " "
+                (columnize pq 'turi))
+       nl))
+
+;; (display-pq (vector->list (query-state "/player/pq")))
+
 (use nrepl)
 (nrepl 1234)
