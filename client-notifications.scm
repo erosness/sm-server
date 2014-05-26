@@ -28,15 +28,16 @@
 
 ;; do a carriage return before print
 (define (info x . args)
-  ;; clear line
-  (display "\r")
-  (display (make-string 80 #\space))
-  (display "\r")
-  ;; allow serializing obj data as first argument
-  (if (string? x) (print* x) (write x))
-  ;; print rest:
-  (apply print args)
-  (liner))
+  (parameterize ((current-output-port original-output-port))
+    ;; clear line
+    (display "\r")
+    (display (make-string (string-length (context-line)) #\space))
+    (display "\r")
+    ;; allow serializing obj data as first argument
+    (if (string? x) (print* x) (write x))
+    ;; print rest:
+    (apply print args)
+    (liner)))
 
 
 ;; ==================== addressing ====================
@@ -326,11 +327,12 @@
      (->> (lambda ()
             ;; so that nrepl don't steal our original terminal output
             ;; prompt
-            (parameterize ((current-output-port original-output-port))
-              (receive (packet addr) (socket-receive-from s 2048)
-                ;; TODO: check addr is our current server
-                (fold-server-state packet)
-                (info (fmt #f (pretty `(update ,(packet->notification packet))))))))
+            (receive (packet addr) (socket-receive-from s 2048)
+              ;; TODO: check addr is our current server
+              (if (current-player? addr)
+                  (begin
+                    (fold-server-state packet)
+                    (info (fmt #f (pretty `(update ,(packet->notification packet)))))))))
           (loop/socket-timeout)
           (loop)
           (with-socket s)))))
