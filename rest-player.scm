@@ -49,8 +49,8 @@
             (if (cdr pause) (player-pause) (player-unpause)))
 
           ;; Set and NOTIFY new current value
-          (let ((new-current (alist-merge current
-                                          (player-pos)
+          (let ((new-current (alist-merge (player-pos)
+                                          current
                                           (player-paused?))))
             (pq-current-set! *pq* new-current)
             new-current))
