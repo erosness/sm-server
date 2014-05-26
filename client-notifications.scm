@@ -39,13 +39,51 @@
   (liner))
 
 
+;; ==================== addressing ====================
+
+(define (ip4-address name)
+  (find (lambda (x) (= af/inet (addrinfo-family x)))
+        (address-information name #f)))
+;; (ip4-address "kth.lan")
+
+;; (command-line-arguments '("kth.lan"))
+;; (command-line-arguments '("moo.lan"))
+
+(if (not (= 1 (length (command-line-arguments))))
+    (error "usage: player-address"))
+
+;;  (current-player)
+(define current-player
+  (make-parameter
+   (inet-address
+    (sockaddr-address
+     (addrinfo-address (ip4-address (first (command-line-arguments)))))
+    ;; TODO: take port too from cli
+    5055)))
+
+;; is address our current player? check on IP only (not port, port is
+;; always 5055 for notifications).
+(define (current-player? addr)
+  (equal? (sockaddr-address (current-player))
+          (sockaddr-address addr)))
+
+
+;; get the base REST url for our current server
+(define (current-base-url path)
+  (conc "http://"
+        (sockaddr-address (current-player)) ":"
+        (sockaddr-port (current-player)) "/v1"
+        path))
+;; (current-base-url "/path")
+
+
+(test-group
+ "current-base-url"
+ (test "http://127.0.0.1:5055/v1/foo" (current-base-url "/foo")))
+
 
 ;; ==================== player ====================
 
-
-
-;; base url for remote server
-(define current-player (make-parameter "http://localhost:5055/v1"))
 
 ;; not used (?)
 ;; (define (alist-map proc alist) (map (lambda (pair) (proc (car pair) (cdr pair))) alist))
@@ -154,7 +192,7 @@
 (define (query-state path)
   (values (condition-case
            (with-input-from-request
-            (conc (current-player) path)
+            (current-base-url path)
             #f read-json)
            ((exn http client-error) #f))))
 
