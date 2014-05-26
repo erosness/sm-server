@@ -29,30 +29,33 @@
 (define-handler /v1/player/current
   (lambda ()
     (if (current-json)
-        (let* ((item (current-json))
-               (existing (pq-ref *pq* item))
+        (let* ((json-request (current-json))
+               (existing (pq-ref *pq* json-request))
                (current (pq-current *pq*)))
 
           ;; Change track?
-          (if (or (alist-ref 'turi item)
-                  (alist-ref 'id item))
-              (let ((item (or existing (pq-add *pq* item))))
-                (pq-play *pq* item #f)
-                (set! current item)))
+          (if (or (alist-ref 'turi json-request)
+                  (alist-ref 'id json-request))
+              (let ((queue-item (or existing (pq-add *pq* json-request))))
+                (pq-play *pq* queue-item #f)
+                (set! current queue-item)))
 
           ;; Change pos?
-          (and-let* ((pos (assoc 'pos item)))
+          (and-let* ((pos (assoc 'pos json-request)))
             (player-seek (cdr pos)))
 
           ;; Change paused?
-          (and-let* ((pause (assoc 'paused item)))
+          (and-let* ((pause (assoc 'paused json-request)))
             (if (cdr pause) (player-pause) (player-unpause)))
 
           ;; Set and NOTIFY new current value
           (let ((new-current (alist-merge current
                                           (player-pos)
                                           (player-paused?)
-                                          item)))
+                                          ;; Include the incoming
+                                          ;; request so user gets back
+                                          ;; value of pos after change
+                                          json-request)))
             (pq-current-set! *pq* new-current)
             new-current))
         ;else
