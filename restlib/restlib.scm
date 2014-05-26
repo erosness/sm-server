@@ -80,8 +80,8 @@
               (json (or (read-json req-string)
                         (string-null? req-string)
                         (error "invalid json" req-string))))
-         (current-json (or json '()))
-         (send-json (handler)))]
+         (parameterize ((current-json (or json '())))
+           (send-json (handler))))]
       (else (error (conc "unsupported method " (request-method (current-request))))))))
 
 (define (wrap-continue handler)
