@@ -111,7 +111,7 @@
       (('paused?)  (send-cmd "paused?" parse-cplay-paused?-response))
       (('pause)    (send-cmd "pause" parse-cplay-paused?-response))
       (('unpause)  (send-cmd "unpause" parse-cplay-paused?-response))
-      (('seek pos) (send-cmd (conc "seek " pos)))
+      (('seek pos) (send-cmd (conc "seek " pos) parse-cplay-pos-response))
       (('quit)     (send-cmd "quit"))
       (else (print "Unknown command: " msg)))) )
 
