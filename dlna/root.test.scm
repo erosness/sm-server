@@ -51,7 +51,7 @@
                 "urn:schemas-upnp-org:service:ConnectionManager:1")
                (urn:schemas-upnp-org:device-1-0:serviceId
                 "urn:upnp-org:serviceId:ConnectionManager")
-               (urn:schemas-upnp-org:device-1-0:controlURL "/ctl/ConnectionMgr")
+               (urn:schemas-upnp-org:device-1-0:controlURL "/ctl/ConnectionMgr?key=value")
                (urn:schemas-upnp-org:device-1-0:eventSubURL "/evt/ConnectionMgr")
                (urn:schemas-upnp-org:device-1-0:SCPDURL "/ConnectionMgr.xml"))
               (urn:schemas-upnp-org:device-1-0:service
@@ -78,7 +78,7 @@
 
  (test "absolute-control-url relative"
        '("http://host.com/ctl/ContentDir"
-         "http://host.com/ctl/ConnectionMgr"
+         "http://host.com/ctl/ConnectionMgr?key=value"
          "http://host.com/ctl/X_MS_MediaReceiverRegistrar")
        (map (cut absolute-control-url "http://host.com" <>)
             (services doc)))

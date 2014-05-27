@@ -19,8 +19,10 @@
        (eq? (car pair) 'urn:schemas-upnp-org:service:ContentDirectory:1)
        (cdr pair)))
 
-(define (url->base-url base #!optional (path '()))
-  (uri->string (update-uri (uri-reference base) path: path)))
+(define (url->base-url base ctruri)
+  (uri->string (update-uri (uri-reference base)
+                           path: (uri-path ctruri)
+                           query: (uri-query ctruri))))
 
 (define (media-server? doc)
   (equal? (device-type doc)
@@ -33,7 +35,7 @@
              (ctr-uri (uri-reference ctr-url)))
     (if (absolute-uri? ctr-uri)
         (uri->string ctr-uri)
-        (url->base-url baseurl (uri-path ctr-uri)))))
+        (url->base-url baseurl ctr-uri))))
 
 
 (define (service-alist doc #!optional (baseurl (base-url doc)))
