@@ -347,6 +347,9 @@
   (parameterize ((current-output-port original-output-port))
     (liner)))
 
+(define (columnize alist-list key)
+  (fmt-join dsp (map (cut alist-ref key <>) alist-list) nl))
+
 (define (display-pq pq)
   (fmt #t
        nl
