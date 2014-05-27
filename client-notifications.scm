@@ -78,9 +78,10 @@
 ;; (current-base-url "/path")
 
 
-(test-group
- "current-base-url"
- (test "http://127.0.0.1:5055/v1/foo" (current-base-url "/foo")))
+(parameterize ((current-player (inet-address "127.0.0.1" 5055)))
+  (test-group
+   "current-base-url"
+   (test "http://127.0.0.1:5055/v1/foo" (current-base-url "/foo"))))
 
 
 ;; ==================== player ====================
@@ -294,7 +295,7 @@
 
  (test 12 (state-volume `(("/v1/player/volume" . ((value . 12))))))
 
- (let ((state `(("/v1/player/pos" . ((pos . 5) (total  . 10))))))
+ (let ((state `(("/v1/player/pos" . ((pos . 5) (duration  . 10))))))
    (test 5  (state-pos state))
    (test 10 (state-total state))))
 
