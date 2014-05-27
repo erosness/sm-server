@@ -30,3 +30,29 @@
 (define-handler /v1/catalog/dlna/artist (%dlnas dlna-search/artist))
 (define-handler /v1/catalog/dlna/album  (%dlnas dlna-search/album))
 (define-handler /v1/catalog/dlna/track  (%dlnas dlna-search/track))
+
+(define-handler /v1/catalog/dlna
+  (lambda () `((tabs . #( ((title . "Browse") (uri . "/catalog/dlna/browse")))))))
+
+(define (talist->mblist talist)
+  (map
+   (lambda (item)
+     (cond ((eq? (car item) 'container)
+            `((uri . ,(conc "/catalog/dlna/browse?id=" (alist-ref 'id (cdr item))))
+              ,@(alist-delete 'id (cdr item))))))
+   talist))
+
+(define-handler /v1/catalog/dlna/browse
+  (lambda ()
+    (make-search-result
+     ;; TODO: do this properly
+     100 0 100
+     (append-map
+      (lambda (devc)
+        (talist->mblist
+         (didl->talist
+          (browse-query devc
+                        (or (and (current-request)
+                                 (current-query-param 'id))
+                            "0")))))
+      (content-directories (*devices*))))))
