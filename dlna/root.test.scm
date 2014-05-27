@@ -1,9 +1,9 @@
 
 
  ;; to test our understanding of sxpath:
- (test "control-url"
-       "/wan"
-       (control-url '(anything (urn:schemas-upnp-org:device-1-0:controlURL "/wan"))))
+(test "control-url"
+      "/wan"
+      (control-url '(anything (urn:schemas-upnp-org:device-1-0:controlURL "/wan"))))
 
 
 (test "content-directory:1?"
