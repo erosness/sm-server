@@ -156,3 +156,51 @@
          (lan . "/lan")
          (wan . "/wan"))
        (service-alist doc "")))
+
+;; ==================== windown mediaserver ====================
+;; wanna test against this?
+'(*doc* (*PI* xml "version=\"1.0\"")
+        (urn:schemas-upnp-org:device-1-0:root
+         (urn:schemas-upnp-org:device-1-0:specVersion
+          (urn:schemas-upnp-org:device-1-0:major "1")
+          (urn:schemas-upnp-org:device-1-0:minor "0"))
+         (urn:schemas-upnp-org:device-1-0:device
+          (urn:schemas-upnp-org:device-1-0:UDN
+           "uuid:8981428a-a6bc-435c-9c99-ceb4e8d39829")
+          (urn:schemas-upnp-org:device-1-0:modelName
+           "Windows Media Player Sharing")
+          (urn:schemas-upnp-org:device-1-0:modelNumber "12.0")
+          (urn:schemas-upnp-org:device-1-0:serviceList
+           (urn:schemas-upnp-org:device-1-0:service
+            (urn:schemas-upnp-org:device-1-0:serviceType
+             "urn:schemas-upnp-org:service:ConnectionManager:1")
+            (urn:schemas-upnp-org:device-1-0:serviceId
+             "urn:upnp-org:serviceId:ConnectionManager")
+            (urn:schemas-upnp-org:device-1-0:controlURL
+             "/upnphost/udhisapi.dll?control=uuid:8981428a-a6bc-435c-9c99-ceb4e8d39829+urn:upnp-org:serviceId:ConnectionManager")
+            (urn:schemas-upnp-org:device-1-0:eventSubURL
+             "/upnphost/udhisapi.dll?event=uuid:8981428a-a6bc-435c-9c99-ceb4e8d39829+urn:upnp-org:serviceId:ConnectionManager")
+            (urn:schemas-upnp-org:device-1-0:SCPDURL
+             "/upnphost/udhisapi.dll?content=uuid:33307824-ab68-4575-bc6e-cb8b376127a1"))
+           (urn:schemas-upnp-org:device-1-0:service
+            (urn:schemas-upnp-org:device-1-0:serviceType
+             "urn:schemas-upnp-org:service:ContentDirectory:1")
+            (urn:schemas-upnp-org:device-1-0:serviceId
+             "urn:upnp-org:serviceId:ContentDirectory")
+            (urn:schemas-upnp-org:device-1-0:controlURL
+             "/upnphost/udhisapi.dll?control=uuid:8981428a-a6bc-435c-9c99-ceb4e8d39829+urn:upnp-org:serviceId:ContentDirectory")
+            (urn:schemas-upnp-org:device-1-0:eventSubURL
+             "/upnphost/udhisapi.dll?event=uuid:8981428a-a6bc-435c-9c99-ceb4e8d39829+urn:upnp-org:serviceId:ContentDirectory")
+            (urn:schemas-upnp-org:device-1-0:SCPDURL
+             "/upnphost/udhisapi.dll?content=uuid:ceb3b366-ca8d-4656-bceb-02df3cd50290"))
+           (urn:schemas-upnp-org:device-1-0:service
+            (urn:schemas-upnp-org:device-1-0:serviceType
+             "urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1")
+            (urn:schemas-upnp-org:device-1-0:serviceId
+             "urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar")
+            (urn:schemas-upnp-org:device-1-0:controlURL
+             "/upnphost/udhisapi.dll?control=uuid:8981428a-a6bc-435c-9c99-ceb4e8d39829+urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar")
+            (urn:schemas-upnp-org:device-1-0:eventSubURL
+             "/upnphost/udhisapi.dll?event=uuid:8981428a-a6bc-435c-9c99-ceb4e8d39829+urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar")
+            (urn:schemas-upnp-org:device-1-0:SCPDURL
+             "/upnphost/udhisapi.dll?content=uuid:152a554e-d8e7-4246-8afa-3ab833e459af"))))))
