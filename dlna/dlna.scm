@@ -13,7 +13,10 @@
     (if l ;; <--packet location may fail
         (if (member l (map car lst))
             lst
-            (cons (cons l (query-control-urls l)) lst))
+            (let ((control-urls (query-control-urls l)))
+              (if control-urls
+                  (cons (cons l control-urls) lst)
+                  lst)))
         lst)))
 
 ;; search for surrounding UPnP services. returns a procedure which
