@@ -13,6 +13,23 @@
              (b . "n")
              (urn:schemas-upnp-org:service:ContentDirectory:1 . "y"))))
 
+
+
+;; some servers (like, you guessed it, Microsoft's) don't properly
+;; parse encoded urls. so we don't either, and just return what the
+;; server originally gave us unmodified.
+(test-group
+ "url->base-url"
+
+  (test "url->base-url strips double-slashes"
+       "http://server.com/a" ;; not //a !
+       (url->base-url "http://server.com/ignored" "/a"))
+
+ (test "url->base-url allows crazy uri paths"
+       "http://server.com/{foo^ }"
+       (url->base-url "http://server.com/path?key=value;don'tinclude-this" "/{foo^ }")))
+
+
 (test-group
  "extract from services"
 
@@ -51,7 +68,7 @@
                 "urn:schemas-upnp-org:service:ConnectionManager:1")
                (urn:schemas-upnp-org:device-1-0:serviceId
                 "urn:upnp-org:serviceId:ConnectionManager")
-               (urn:schemas-upnp-org:device-1-0:controlURL "/ctl/ConnectionMgr?key=value")
+               (urn:schemas-upnp-org:device-1-0:controlURL "/ctl/ConnectionMgr?key=val:ue")
                (urn:schemas-upnp-org:device-1-0:eventSubURL "/evt/ConnectionMgr")
                (urn:schemas-upnp-org:device-1-0:SCPDURL "/ConnectionMgr.xml"))
               (urn:schemas-upnp-org:device-1-0:service
@@ -73,12 +90,12 @@
        (map service-type (services doc)))
 
  (test "control-url"
-       '("/ctl/ContentDir" "/ctl/ConnectionMgr" "/ctl/X_MS_MediaReceiverRegistrar")
+       '("/ctl/ContentDir" "/ctl/ConnectionMgr?key=val:ue" "/ctl/X_MS_MediaReceiverRegistrar")
        (map control-url (services doc)))
 
  (test "absolute-control-url relative"
        '("http://host.com/ctl/ContentDir"
-         "http://host.com/ctl/ConnectionMgr?key=value"
+         "http://host.com/ctl/ConnectionMgr?key=val:ue"
          "http://host.com/ctl/X_MS_MediaReceiverRegistrar")
        (map (cut absolute-control-url "http://host.com" <>)
             (services doc)))

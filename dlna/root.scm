@@ -19,10 +19,22 @@
        (eq? (car pair) 'urn:schemas-upnp-org:service:ContentDirectory:1)
        (cdr pair)))
 
+(define (string-maybe-drop-slash/right str)
+  (if (string-suffix? "/" str)
+      (string-drop-right str 1)
+      str))
+
+(test-group
+ "string-maybe-drop-slash"
+ (test "a" (string-maybe-drop-slash/right "a"))
+ (test "a" (string-maybe-drop-slash/right "a/")))
+
 (define (url->base-url base ctruri)
-  (uri->string (update-uri (uri-reference base)
-                           path: (uri-path ctruri)
-                           query: (uri-query ctruri))))
+  (conc (string-maybe-drop-slash/right
+         (uri->string (update-uri (uri-reference base)
+                                  path: '()
+                                  query: #f)))
+        ctruri))
 
 (define (media-server? doc)
   (equal? (device-type doc)
@@ -31,11 +43,10 @@
 ;; control-url as an absolute url.
 (define (absolute-control-url baseurl sdoc)
   (and-let* ( ;; eg "/ctr/ContentDir or "http://10.0.0.89/ctr"
-             (ctr-url (control-url sdoc))
-             (ctr-uri (uri-reference ctr-url)))
-    (if (absolute-uri? ctr-uri)
-        (uri->string ctr-uri)
-        (url->base-url baseurl ctr-uri))))
+             (ctr-url (control-url sdoc)))
+    (if (absolute-uri? (uri-reference ctr-url))
+        ctr-url
+        (url->base-url baseurl ctr-url))))
 
 
 (define (service-alist doc #!optional (baseurl (base-url doc)))
