@@ -1,7 +1,7 @@
 (module store (make-store)
 
 (import chicken scheme data-structures)
-(use posix srfi-18)
+(use posix srfi-18 extras)
 
 (define *store-location-android* "/data/data")
 (define *store-location-dev*     (conc (current-directory) "/data"))
