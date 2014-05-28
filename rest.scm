@@ -7,6 +7,7 @@
               log?
               with-request
               current-host
+              *server-port*
               start-rest-server!)
 
 (import chicken scheme data-structures broadcast)
@@ -87,7 +88,7 @@
          #!rest args)
   (let* ((response (apply proc args))
          (json (with-output-to-string (lambda () (write-json response)))))
-    (if (send-message?) (udp-multicast (change-message path json)))
+    (if (send-message?) (udp-multicast (change-message path json *server-port*)))
     response))
 
 

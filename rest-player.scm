@@ -14,7 +14,7 @@
 
 (define ((change-callback path) oldval newval)
   (let ((json (with-output-to-string (lambda () (write-json newval)))))
-    (udp-multicast (change-message path json))))
+    (udp-multicast (change-message path json *server-port*))))
 
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
@@ -113,10 +113,10 @@
 (define (player-thread-iteration)
   (cond ((player-pos) =>
          (lambda (pos)
-           (->> pos
-                (json->string)
-                (change-message "/v1/player/pos")
-                (udp-multicast))))))
+           (udp-multicast
+            (change-message "/v1/player/pos"
+                            (json->string pos)
+                            *server-port*))))))
 
 (define player-seek-thread
   (thread-start!
