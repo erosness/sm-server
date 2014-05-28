@@ -90,77 +90,46 @@
 ;; not used (?)
 ;; (define (alist-map proc alist) (map (lambda (pair) (proc (car pair) (cdr pair))) alist))
 
-;; a nicer request-printer
-(define (request->list r)
-  (list (request-method r)
-        (uri->string (request-uri r))
-        (list (request-major r) (request-minor r))
-        (headers->list (request-headers r))))
-
-
-(define token-sre '(+ (~ "()<>@,;:\\\"/[]?={}\t ")))
-
-;; almost HTTP compliant, except we don't have a proper HTTP/1.1
-;; header line.
-(define (notification-request-parsers line in)
-  (let* ((m (irregex-match `(: (=> method ,token-sre) (+ space)
-                               (=> uri (+ (~ blank))) (* space))
-                           line))
-         (mm (lambda (lbl) (irregex-match-substring m lbl))))
-    (and m
-         (make-request method: (string->symbol (mm 'method))
-                       uri: (uri-reference (mm 'uri))
-                       headers: (read-headers in)
-                       port: in))))
-
-;; read a notify request
-(define (read-notication-request str)
-  (parameterize ((request-parsers (list notification-request-parsers)))
-    (handle-exceptions e (begin (pp (condition->list e)) #f)
-     (read-request (cond ((string? str) (open-input-string str))
-                         (else str))))))
-
-
-(test-group
- "notification-request-parsers"
-
- (test "method symbol" 'NOTIFY (request-method (read-notication-request "NOTIFY /a\r\n")))
- (test "uri string"
-       "/path" (->> "A /path\r\n" (read-notication-request) (request-uri) (uri->string)))
- (test "ready to read payload"
-       "body"
-       (->> "NOTIFY /path\r\nvalue: hei\r\n\r\nbody"
-            (read-notication-request)
-            (request-port)
-            (read-all))))
-
-
 (begin
   (define make-notification cons)
   (define notification-path car)
   (define notification-value cdr))
 
 
-;; returns a cons cell with <path> . <json-value> from packet
-(define (packet->notification packet)
-  (assert (string? packet))
-  (and-let* ((r (read-notication-request packet))
-             (method (request-method r))
-             (_ (eq? 'NOTIFY method))
-             (p (uri->string (request-uri r))))
-    (make-notification p (read-json (request-port r)))))
 
+(define (packet->json packet)
+  (assert (string? packet))
+  (define packet-header "NOTIFY ")
+
+  (if (string-prefix? packet-header packet)
+      (values (read-json (string-drop packet (string-length packet-header))))
+      #f))
+;; returns a cons cell with <path> . <json-value> from packet
+(define (json->notification json)
+  (and json
+       (make-notification (alist-ref 'variable json)
+                          (alist-ref 'data json))))
+
+(define (packet->notification packet) (json->notification (packet->json packet)))
 
 (test-group
- "packet->notification"
+ "packet->json->notification"
 
- (test "empty json" `("x" . ()) (packet->notification "NOTIFY x\r\n\r\n{}"))
+ (test "empty json" '() (packet->json "NOTIFY {}"))
+ (test "invalid header json" #f (packet->json "notify {}"))
 
  (test "simple json value"
        `("/path" . ((a . 1)))
-       (packet->notification "NOTIFY /path\r\n\r\n{\"a\" : 1}"))
+       (json->notification `((variable . "/path")
+                             (data . ((a . 1))))))
 
- (test "check http method" #f (packet->notification "PUT /path\r\n\r\n{\"a\" : 1}"))
+ (test "empty notification (just to be clear)"
+       (make-notification #f #f)
+       (json->notification '()))
+
+ (test "simple packet->notification"
+       `("path" . ((a . 1)))
+       (packet->notification "NOTIFY {\"variable\":\"path\",\"data\":{\"a\":1}}"))
  )
 
 (define (fold-notification n state)
@@ -174,7 +143,8 @@
 
  (test "simple notification fold"
        '(("/path" . ((value . 1))))
-       (fold-notification (packet->notification "NOTIFY /path\r\n\r\n{\"value\":1}") '()))
+       (fold-notification (json->notification `((variable . "/path")
+                                                (data . ((value . 1))))) '()))
 
  (test "notification overwrite"
        '(("/path" . 2))
@@ -275,10 +245,10 @@
  (test 2 (get-in '((a . ((b . 2)))) 'a 'b)))
 
 
-(define (state-paused? state)  (not (get-in state "/v1/player/play")))
 (define (state-volume state)        (get-in state "/v1/player/volume" 'value))
 (define (state-playing state)       (get-in state "/v1/player/current"))
 (define (state-playing-title state) (get-in (state-playing state) 'title))
+(define (state-paused? state)       (get-in (state-playing state) 'paused))
 (define (state-pos state)           (get-in state "/v1/player/pos" 'pos))
 (define (state-total state)         (get-in state "/v1/player/pos" 'duration))
 
