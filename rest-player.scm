@@ -27,6 +27,12 @@
 ;; GET: returns value of current with updated pos.
 (define-handler /v1/player/current
   (lambda ()
+
+    ;; alist of position, duration, paused etc
+    (define (player-info)
+      (alist-merge (player-pos)
+                   `((paused . ,(player-paused?)))))
+
     (if (current-json)
         (let* ((json-request (current-json))
                (existing (pq-ref *pq* json-request))
@@ -48,15 +54,11 @@
             (if (cdr pause) (player-pause) (player-unpause)))
 
           ;; Set and NOTIFY new current value
-          (let ((new-current (alist-merge current
-                                          (player-pos)
-                                          (player-paused?))))
+          (let ((new-current (alist-merge current (player-info))))
             (pq-current-set! *pq* new-current)
             new-current))
         ;else
-        (alist-merge (pq-current *pq*)
-                     (player-pos)
-                     (player-paused?)))))
+        (alist-merge (pq-current *pq*) (player-info)))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added

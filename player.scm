@@ -68,15 +68,15 @@
              ((equal? (length value) 2))
              (value (cadr value))
              ((or (equal? value "false") (equal? value "true"))))
-    `((paused . ,(equal? value "true")))))
+    (equal? value "true")))
 
 (test-group
  "parse-cplay-paused?"
- (test "truthy" `((paused . #t)) (parse-cplay-paused?-response "ok true"))
- (test "falsy"  `((paused . #f)) (parse-cplay-paused?-response "ok false"))
- (test "bad input" #f (parse-cplay-paused?-response "ok asdf"))
+ (test "truthy" #t         (parse-cplay-paused?-response "ok true"))
+ (test "falsy"  #f         (parse-cplay-paused?-response "ok false"))
+ (test "bad input" #f      (parse-cplay-paused?-response "ok asdf"))
  (test "more bad input" #f (parse-cplay-paused?-response "foo"))
- (test "empty input" #f (parse-cplay-paused?-response "")))
+ (test "empty input" #f    (parse-cplay-paused?-response "")))
 
 
 ;; create a worker which can process one message at a time
