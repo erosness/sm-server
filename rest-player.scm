@@ -112,7 +112,7 @@
 
 ;; do this on every player hearbeat interval
 (define (player-thread-iteration)
-  (cond ((player-pos) =>
+  (cond ((and (not (player-paused?)) (player-pos)) =>
          (lambda (pos)
            (udp-multicast
             (change-message "/v1/player/pos"
