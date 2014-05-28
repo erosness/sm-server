@@ -21,8 +21,13 @@
   `((status . "ok")))
 
 (define (make-store name)
+  (define mutex (make-mutex (conc name "-store")))
   (lambda (#!rest val)
-    (if (not (null? val))
-        (let ((val (car val)))
-          (write-store name val))
-        (read-store name))))
+    (dynamic-wind
+      (lambda () (mutex-lock! mutex))
+      (lambda ()
+        (if (not (null? val))
+            (let ((val (car val)))
+              (write-store name val))
+            (read-store name)))
+      (lambda () (mutex-unlock! mutex)))))
