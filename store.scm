@@ -1,4 +1,7 @@
-(import rest concurrent-utils incubator)
+(module store (make-store)
+
+(import chicken scheme data-structures)
+(use posix srfi-18)
 
 (define *store-location-android* "/data/data")
 (define *store-location-dev*     (conc (current-directory) "/data"))
@@ -31,3 +34,4 @@
               (write-store name val))
             (read-store name)))
       (lambda () (mutex-unlock! mutex)))))
+)
