@@ -6,6 +6,7 @@
 (include "cspeaker.scm")
 
 (include "turi.scm")
+(include "store.scm")
 
 (include "rest-tone.scm")
 (include "rest-notes.scm")
