@@ -5,9 +5,9 @@
 
 (define (store-location name)
   (let ((filename (conc "/" name "-store.scm")))
-   (if (directory? *store-location-android*)
-       (conc *store-location-android* filename)
-       (conc *store-location-dev* filename))))
+    (if (directory? *store-location-android*)
+        (conc *store-location-android* filename)
+        (conc *store-location-dev* filename))))
 
 (define (read-store name)
   (condition-case
