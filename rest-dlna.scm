@@ -37,10 +37,26 @@
 (define (talist->mblist talist)
   (map
    (lambda (item)
-     (cond ((eq? (car item) 'container)
-            `((uri . ,(conc "/catalog/dlna/browse?id=" (alist-ref 'id (cdr item))))
-              ,@(alist-delete 'id (cdr item))))))
+     (let ((type (car item))
+           (alst (cdr item)))
+       ;; TODO: assuming talists have the same format as our
+       ;; media-browser rest apis. this may be a bad thing.
+       (case type
+         ((container)
+          `((uri . ,(conc "/catalog/dlna/browse?id=" (alist-ref 'id alst)))
+            ,@(alist-delete 'id alst)))
+         ((track) (alist-delete 'id alst))
+         (else (error "invalid talist" item)))))
    talist))
+
+(test-group
+ "rest-dlna talist->mblist"
+
+ (test
+  `(((uri . "/catalog/dlna/browse?id=0") (title . "foo"))
+    ((uri . "uri") (title . "bar")))
+  (talist->mblist `((container (id . "0") (title . "foo"))
+                    (track (uri . "uri")  (title . "bar") (id . "gone!"))))))
 
 (define-handler /v1/catalog/dlna/browse
   (lambda ()
