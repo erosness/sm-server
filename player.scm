@@ -48,20 +48,24 @@
  (test '("cplay" "filename") (cplay (uri-reference "filename")))
  (test '("cplay" "-f" "alsa" "file") (cplay "file" "alsa")))
 
+;; pos responses from cplay contain both pos and duration. return both
+;; here too.
 (define (parse-cplay-pos-response resp)
-  (and-let* ((l (drop (string-split resp) 1))
-         (pos (string->number (car l)))
-         (duration (string->number (cadr l))))
-    `((pos . ,pos)
-      (duration . ,duration))))
+  (match (string-split resp)
+    (("ok" pos duration)
+     (values (string->number pos)
+             (string->number duration)))
+    (else #f)))
 
-(test "parse cplay pos - success"
-      '((pos . 23.2341)
-        (duration . 45.23))
-      (parse-cplay-pos-response "ok 23.2341 45.23"))
+(test-group
+ "parse cplay pos"
+ (test "parse cplay pos - success"
+       '(23.2341 45.23)
+       (receive (parse-cplay-pos-response "ok 23.2341 45.23")))
 
-(test "parse cplay pos - failure"
-      #f (parse-cplay-pos-response "some garbage 1234"))
+ (test "parse cplay pos - failure"
+       '#f
+       (parse-cplay-pos-response "some garbage 1234")))
 
 (define (parse-cplay-paused?-response resp)
   (and-let* ((value (string-split resp))
@@ -108,6 +112,10 @@
                 ;; don't want.
                 (thread-start! on-exit)))))
       (('pos)      (send-cmd "pos" parse-cplay-pos-response))
+      (('duration)
+       (call-with-values ;; better way to do this?
+           (lambda () (send-cmd "pos" parse-cplay-pos-response))
+         (lambda (pos #!optional duration) duration)))
       (('paused?)  (send-cmd "paused?" parse-cplay-paused?-response))
       (('pause)    (send-cmd "pause"))
       (('unpause)  (send-cmd "unpause"))
@@ -124,8 +132,13 @@
 (define (player-unpause)    (play-worker `(unpause)))
 (define (player-paused?)    (play-worker `(paused?)))
 (define (player-pos)        (play-worker `(pos)))
+(define (player-duration)   (play-worker `(duration)))
 (define (player-seek seek)  (play-worker `(seek ,seek)))
 (define (player-quit)       (play-worker `(quit)))
+;; cplay runningn and not paused:
+(define (playing?)   (and (not (eq? #f (play-worker `(pos))))
+                          (not (player-paused?))))
+
 (define (play! cmd on-exit) (play-worker `(play ,cmd ,on-exit)))
 
 (define (play-command/tr turi)

@@ -18,6 +18,18 @@
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
 
+
+
+;; alist of position, duration, paused etc (or '() if nothing is
+;; playing)
+(define (player-pos-info)
+  (if (player-pos) ;; <- active cplay?
+      (alist-merge `((pos .      ,(player-pos))
+                     (duration . ,(player-duration))
+                     (paused .   ,(player-paused?))))
+      '()))
+
+
 ;; Manipulate current track.
 ;; POST: Looks for three keys; turi, paused, pos.
 ;; If turi is present adds this item to pq and starts playing.
@@ -27,12 +39,6 @@
 ;; GET: returns value of current with updated pos.
 (define-handler /v1/player/current
   (lambda ()
-
-    ;; alist of position, duration, paused etc
-    (define (player-info)
-      (alist-merge (player-pos)
-                   `((paused . ,(player-paused?)))))
-
     (if (current-json)
         (let* ((json-request (current-json))
                (existing (pq-ref *pq* json-request))
@@ -54,11 +60,11 @@
             (if (cdr pause) (player-pause) (player-unpause)))
 
           ;; Set and NOTIFY new current value
-          (let ((new-current (alist-merge current (player-info))))
+          (let ((new-current (alist-merge current (player-pos-info))))
             (pq-current-set! *pq* new-current)
             new-current))
         ;else
-        (alist-merge (pq-current *pq*) (player-info)))))
+        (alist-merge (pq-current *pq*) (player-pos-info)))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
@@ -112,12 +118,11 @@
 
 ;; do this on every player hearbeat interval
 (define (player-thread-iteration)
-  (cond ((and (not (player-paused?)) (player-pos)) =>
-         (lambda (pos)
-           (udp-multicast
-            (change-message "/v1/player/pos"
-                            pos
-                            *server-port*))))))
+  (if (playing?) ;; running and not paused?
+      (udp-multicast
+       (change-message "/v1/player/pos"
+                       (player-pos-info)
+                       *server-port*))))
 
 (define player-seek-thread
   (thread-start!
