@@ -53,3 +53,6 @@
 /nics/nics.import.scm
 /nics/nics.import.so
 /nics/nics.so
+/stty/stty.import.scm
+/stty/stty.import.so
+/stty/stty.so
