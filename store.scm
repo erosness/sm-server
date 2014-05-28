@@ -14,10 +14,9 @@
 
 
 (define (read-store filename default)
-  (condition-case
-   (with-input-from-file filename
-     (lambda () (read)))
-   ((exn) default)))
+  (if (file-exists? filename)
+      (with-input-from-file filename read)
+      default))
 
 (define (write-store filename value)
   (with-output-to-file filename
