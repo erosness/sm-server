@@ -4,11 +4,20 @@
 (use wimp uri-common test clojurian-syntax restlib
      matchable)
 
-(import rest turi)
+(import rest turi store)
 
-;; leaving the beauty of what is session management till later:
-(print "please wait while logging in to wimp...")
-(wimp-login! "97670550" "herrowimp")
+(define (do-wimp-login store)
+  (or (and-let* (((list? store))
+                 (username (alist-ref 'username store))
+                 (password (alist-ref 'password store)))
+        (print "please wait while logging in to wimp...")
+        (wimp-login! username password))
+      (print "wimp - no login credentials found")))
+
+(define wimp-store (make-store 'wimp))
+(condition-case
+    (do-wimp-login (wimp-store))
+  ((exn) (print "wimp - login failed")))
 
 ;; ==================== audio host ====================
 ;; (e.g convert tr://10.0.0.22/ah/wimp/tid/1234
@@ -123,6 +132,20 @@
 
 (define-handler /v1/catalog/wimp/album/tracks
   (wrap-wimp wimp-album-tracks track->search-result 'album))
+
+(define-handler /v1/catalog/wimp/login
+  (lambda ()
+    (if (current-json)
+        (or (and-let* ((username (alist-ref 'username (current-json)))
+                       (password (alist-ref 'password (current-json))))
+              (do-wimp-login (current-json))
+              (wimp-store (current-json)))
+
+            ;; couldn't find login credentials
+            (error "expected username and password keys in body " (current-json))))
+
+    ;; return current login status
+    `((status . ,(if *wimp-session-params* "logged-in" "not-logged-in")))))
 
 ;; ==================== tests ====================
 
