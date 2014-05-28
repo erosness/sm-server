@@ -86,9 +86,8 @@
                        (send-message?
                         (lambda () (not (eq? 'GET (request-method (current-request)))))))
          #!rest args)
-  (let* ((response (apply proc args))
-         (json (with-output-to-string (lambda () (write-json response)))))
-    (if (send-message?) (udp-multicast (change-message path json *server-port*)))
+  (let* ((response (apply proc args)))
+    (if (send-message?) (udp-multicast (change-message path response *server-port*)))
     response))
 
 

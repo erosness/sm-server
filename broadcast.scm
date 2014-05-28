@@ -24,11 +24,20 @@
 ;; create a message that represents `path` changing into `body`. port
 ;; specifies "owner" so change-message origins can be identified
 ;; (usually port-number of running service).
+;;
+;; path is string. body is medea-json. port is number.
 (define (change-message path body port)
+  (assert (not (string? body))) ;; <-- just to make sure we catch api
+                                ;; change (no more strings - use
+                                ;; alists!)
   (conc "NOTIFY "
-        path
-        (udp-broadcast-headers (or (current-request) (make-request)) port)
-        body))
+        (json->string `((variable . ,path)
+                        (owner . ((port . ,port)))
+                        (data . ,body)
+                        (echo . ,(cond ((current-request) =>
+                                        (lambda (req)
+                                          (header-value 'echo (request-headers req))))
+                                       (else #f)))))))
 
 ;; like change-message, but used for large datasets. tbd
 (define (make-alert path)

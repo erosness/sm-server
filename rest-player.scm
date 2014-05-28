@@ -13,8 +13,7 @@
                  ((id . "999") (turi . "tr://localhost:5060/t2s?type=tone&id=999")))))
 
 (define ((change-callback path) oldval newval)
-  (let ((json (with-output-to-string (lambda () (write-json newval)))))
-    (udp-multicast (change-message path json *server-port*))))
+  (udp-multicast (change-message path newval *server-port*)))
 
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
@@ -115,7 +114,7 @@
          (lambda (pos)
            (udp-multicast
             (change-message "/v1/player/pos"
-                            (json->string pos)
+                            pos
                             *server-port*))))))
 
 (define player-seek-thread
