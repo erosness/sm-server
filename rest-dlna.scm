@@ -34,7 +34,7 @@
 (define-handler /v1/catalog/dlna
   (lambda () `((tabs . #( ((title . "Browse") (uri . "/catalog/dlna/browse")))))))
 
-(define (talist->mblist talist)
+(define (talist->mblist talists)
   (map
    (lambda (item)
      (let ((type (car item))
@@ -47,7 +47,7 @@
             ,@(alist-delete 'id alst)))
          ((track) (alist-delete 'id alst))
          (else (error "invalid talist" item)))))
-   talist))
+   talists))
 
 (test-group
  "rest-dlna talist->mblist"
