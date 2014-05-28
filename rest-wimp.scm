@@ -145,7 +145,9 @@
             (error "expected username and password keys in body " (current-json))))
 
     ;; return current login status
-    `((status . ,(if *wimp-session-params* "logged-in" "not-logged-in")))))
+    `((user . ,(if *wimp-session-params*
+                   (alist-ref 'username (wimp-store))
+                   #f)))))
 
 ;; ==================== tests ====================
 
