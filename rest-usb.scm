@@ -4,7 +4,7 @@
 (use spiffy uri-common)
 
 (define *mount-point* "/tmp")
-(define *server-port* 1034)
+(define *static-server-port* 1034)
 
 (set-db! "/tmp/files.db")
 
@@ -17,7 +17,7 @@
 
 ; /mount/usb/foo/bar.mp3 -> http://<host>:<port>/foo/bar.mp3
 (define (tid-transform host tid)
-  (let ((base-url (conc "http://" host ":" *server-port*)))
+  (let ((base-url (conc "http://" host ":" *static-server-port*)))
     (assert (string-prefix? *mount-point* tid)
             (conc "files outside " *mount-point* " not allowed"))
 
@@ -41,6 +41,6 @@
 (define (start-static-file-server)
   (root-path *mount-point*)
   (vhost-map `((".*" . ,(lambda (cont) (cont)))))
-  (start-server port: *server-port*))
+  (start-server port: *static-server-port*))
 
 ;; (define t (thread-start! (lambda () (start-static-file-server))))
