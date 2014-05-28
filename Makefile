@@ -12,7 +12,7 @@ ciflags ?= -s -keep-installed
 
 all: deps modules
 
-modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp dlna
+modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp dlna stty
 	$(ci) $(ciflags)
 
 dlna:
@@ -59,6 +59,13 @@ wimp:
 
 nics:
 	cd nics; $(ci) $(ciflags)
+
+stty:
+ifeq ($(ARCH),arm)
+	cd stty; $(ci) $(ciflags)
+else
+	$(ci) $(ciflags) stty
+endif
 
 # we patched up socket so it compiles with aosp-chicken-install.
 socket:
