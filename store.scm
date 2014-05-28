@@ -12,26 +12,51 @@
         (conc *store-location-android* filename)
         (conc *store-location-dev* filename))))
 
-(define (read-store name)
+
+(define (read-store filename default)
   (condition-case
-      (with-input-from-file (store-location name)
-        (lambda _ (let ((m (read))) (if (list? m) m '()))))
-    ((exn) '())))
+   (with-input-from-file filename
+     (lambda () (read)))
+   ((exn) default)))
 
-(define (write-store name value)
-  (with-output-to-file (store-location name)
-    (lambda _ (write value)))
-  `((status . "ok")))
+(define (write-store filename value)
+  (with-output-to-file filename
+    (lambda _ (write value))))
 
-(define (make-store name)
+;; name can be filename (string) or symbol (-> filename through
+;; store-location). should be thread-safe.
+(define (make-store name #!optional default)
+
   (define mutex (make-mutex (conc name "-store")))
+  (define filename (cond ((string? name) name)
+                         (else (store-location name))))
   (lambda (#!rest val)
     (dynamic-wind
       (lambda () (mutex-lock! mutex))
       (lambda ()
         (if (not (null? val))
             (let ((val (car val)))
-              (write-store name val))
-            (read-store name)))
+              (write-store filename val)
+              val)
+            (read-store filename default)))
       (lambda () (mutex-unlock! mutex)))))
+
+(use test)
+(test-group
+ "store"
+ (test "/data/data/wimp-store.scm"
+       (fluid-let ((directory? (lambda _ #t)))
+         (store-location "wimp")))
+
+ (let* ((filename (conc "/tmp/store-test." (+ 1000000 (random 1000000))))
+        (store (make-store filename 100)))
+   (test #f (file-exists? filename))
+   (test 100 (store)) ;; <-- use default value
+   (test 101 (store 101))
+   (test filename (file-exists? filename))
+   (test "make new store with same filename (should read file contents)"
+         101 ((make-store filename -1)))
+
+   (delete-file filename)))
+
 )
