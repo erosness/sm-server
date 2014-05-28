@@ -14,7 +14,7 @@
         (wimp-login! username password))
       (print "wimp - no login credentials found")))
 
-(define wimp-store (make-store 'wimp))
+(define wimp-store (make-store 'wimp '()))
 (condition-case
     (do-wimp-login (wimp-store))
   ((exn) (print "wimp - login failed")))
