@@ -4,21 +4,20 @@
 (define *store-base-url* "/v1/catalog/state/")
 
 (define *state* (condition-case
-                    (with-input-from-file *store-file* (lambda _
-                                                  (let ((m (read)))
-                                                    (alist->hash-table m))))
-                  ((exn) (make-hash-table))))
+                    (with-input-from-file *store-file*
+                      (lambda _ (read)))
+                  ((exn) '())))
 
 (define (state-ref* key)
-  (hash-table-ref *state* key))
+  (or (alist-ref key *state*) '()))
 
 (define (state-ref/default* key default)
-  (hash-table-ref/default *state* key default))
+  (or (alist-ref key *state*) default))
 
 (define (state-set!* key value)
-  (hash-table-set! *state* key value)
-  (with-output-to-file *store-file* (lambda _
-                               (write (hash-table->alist *state*)))))
+  (set! *state* (alist-update! key value *state*))
+  (with-output-to-file *store-file-path* (lambda _
+                               (write *state*))))
 
 (define state-mutex (make-mutex))
 (define (with-state-mutex proc)
