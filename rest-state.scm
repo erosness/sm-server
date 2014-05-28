@@ -1,11 +1,19 @@
 (import rest concurrent-utils)
 
-(define *store-file* "/tmp/cube-server.store")
+(define *store-file* "/data/cube-server-storage.scm")
+(define *store-file-android* (conc "/data" *store-file*))
+(define *store-file-dev*     (conc (current-directory) *store-file* ))
+
+(define *store-file-path* (if (regular-file? *store-file-android*)
+                              *store-file-android*
+                              *store-file-dev*))
+
 (define *store-base-url* "/v1/catalog/state/")
 
 (define *state* (condition-case
-                    (with-input-from-file *store-file*
-                      (lambda _ (read)))
+                    (with-input-from-file *store-file-path*
+                      (lambda _ (let ((m (read)))
+                             (if (list? m) m '()))))
                   ((exn) '())))
 
 (define (state-ref* key)
