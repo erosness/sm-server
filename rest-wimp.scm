@@ -141,23 +141,24 @@
           call))))))
 
 
-(test-group
- "wimp-rest"
+(if *wimp-session-params*
+ (test-group
+  "wimp-rest"
 
- (test "artist/albums"
-       #t
-       (->> (/v1/catalog/wimp/artist/albums)
-            (return-wimp-uri)
-            (with-request "?artist=1234")
-            (irregex-search "/artists/1234")
-            ((conjoin identity))))
+  (test "artist/albums"
+        #t
+        (->> (/v1/catalog/wimp/artist/albums)
+             (return-wimp-uri)
+             (with-request "?artist=1234")
+             (irregex-search "/artists/1234")
+             ((conjoin identity))))
 
- (test "artist/albums"
-       #t
-       (->> (/v1/catalog/wimp/album/tracks)
-            (return-wimp-uri)
-            (with-request "?album=9876")
-            (irregex-search "/albums/9876")
-            ((conjoin identity)))))
+  (test "artist/albums"
+        #t
+        (->> (/v1/catalog/wimp/album/tracks)
+             (return-wimp-uri)
+             (with-request "?album=9876")
+             (irregex-search "/albums/9876")
+             ((conjoin identity))))))
 
 )
