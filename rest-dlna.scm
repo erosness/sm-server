@@ -59,10 +59,12 @@
                     (track (uri . "uri")  (title . "bar") (id . "gone!"))))))
 
 (define-handler /v1/catalog/dlna/browse
-  (lambda ()
-    (make-search-result
-     ;; TODO: do this properly
-     100 0 100
+  ;; TODO: note that we query the server for all search-results, and
+  ;; just drop off the ones our cube-clients don't want. there's
+  ;; probably a way to limit the search-query in this way for the
+  ;; DLNA-server too.
+  (pagize
+   (lambda ()
      (append-map
       (lambda (devc)
         (talist->mblist
