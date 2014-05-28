@@ -1,45 +1,28 @@
 (import rest concurrent-utils incubator)
 
-(define *store-file* "/data/cube-server-storage.scm")
-(define *store-file-android* (conc "/data" *store-file*))
-(define *store-file-dev*     (conc (current-directory) *store-file* ))
+(define *store-location-android* "/data/data")
+(define *store-location-dev*     (conc (current-directory) "/data"))
 
-(define *store-file-path* (if (regular-file? *store-file-android*)
-                              *store-file-android*
-                              *store-file-dev*))
+(define (store-location name)
+  (let ((filename (conc "/" name "-store.scm")))
+   (if (directory? *store-location-android*)
+       (conc *store-location-android* filename)
+       (conc *store-location-dev* filename))))
 
-(define *store-base-url* "/v1/catalog/state/")
+(define (read-store name)
+  (condition-case
+      (with-input-from-file (store-location name)
+        (lambda _ (let ((m (read))) (if (list? m) m '()))))
+    ((exn) '())))
 
-(define *state* (condition-case
-                    (with-input-from-file *store-file-path*
-                      (lambda _ (let ((m (read)))
-                             (if (list? m) m '()))))
-                  ((exn) '())))
+(define (write-store name value)
+  (with-output-to-file (store-location name)
+    (lambda _ (write value)))
+  `((status . "ok")))
 
-(define (state-ref* key)
-  (or (alist-ref key *state*) '()))
-
-(define (state-ref/default* key default)
-  (or (alist-ref key *state*) default))
-
-(define (state-set!* key value)
-  (set! *state* (alist-update! key value *state*))
-  (with-output-to-file *store-file-path* (lambda _
-                               (write *state*))))
-
-(define (state-merge!* key value)
-  (let ((current-value (state-ref* key)))
-    (state-set!* 'wimp (alist-merge current-value value))
-    `(status . ok)))
-
-(define state-mutex (make-mutex))
-(define (with-state-mutex proc)
-  (lambda (#!rest args)
-    ((with-mutex-lock state-mutex (lambda () (apply proc args))))))
-
-(begin
-  (define state-ref (with-state-mutex state-ref*))
-  (define state-ref/default (with-state-mutex state-ref/default*))
-  (define state-set! (with-state-mutex state-set!*))
-  (define state-merge! (with-state-mutex state-merge!*)))
-
+(define (make-store name)
+  (lambda (#!rest val)
+    (if (not (null? val))
+        (let ((val (car val)))
+          (write-store name val))
+        (read-store name))))
