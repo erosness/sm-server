@@ -119,13 +119,23 @@
   (lambda ()
     (condition-case
      (handler)
-     ;; wimp login errored. convert to nice 401 respons with json.
+
+     ;; this happens when a login to wimp services errors. convert to
+     ;; nice 401 respons with json.
      (e (exn http client-error)
         ;; login failed. return 401 and wimp's unmodified json response
         ;; (found in the exception message as a string).
         (values (read-json ((condition-property-accessor 'client-error 'body) e))
                 'unauthorized #|401|#))
-     ;; TODO : catch wimp-login! not called error (thrown by wimp egg)
+
+     ;; this happens when wimp egg doesn't have any credentials
+     ;; stored:
+     (e (wimp missing-login)
+        (values `((service . "wimp")
+                  (url . "/v1/catalog/wimp/login")
+                  (_debug . ((msg  . "no loging credentials available")
+                             (wimp-store . ,(wimp-store)))))
+                'unauthorized))
      )))
 
 (define (wrap-wimp search-proc convert #!optional (query-param 'q))
