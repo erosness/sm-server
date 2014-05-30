@@ -1,4 +1,4 @@
-(module rest-wimp ()
+(module rest-wimp (clear-wimp-session!)
 
 (import chicken scheme data-structures)
 (use wimp uri-common test clojurian-syntax restlib
@@ -223,5 +223,12 @@
              (with-request "?album=9876")
              (irregex-search "/albums/9876")
              ((conjoin identity))))))
+
+;; for debugging purposes
+(define (clear-wimp-session!)
+  (set! *wimp-session-params*
+        `((sessionId . "00000000-0000-0000-0000-000000000000")
+          (countryCode . "NO")))
+  (print "wimp session cleared!"))
 
 )
