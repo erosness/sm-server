@@ -15,7 +15,7 @@
                    pq-add-current-change-listener)
 
 (import chicken scheme data-structures srfi-1)
-(use srfi-18 uri-common test uuid)
+(use srfi-18 uri-common test uuid extras)
 
 (import concurrent-utils player)
 
@@ -92,12 +92,22 @@
     (find (lambda (elem) (equal? (alist-ref 'id elem) id))
           (pq-list pq))))
 
+;; chance of collision is 2 / (expt 62 4). in the future we could use
+;; pq to check that the id doesn't already exists.
+;;
+;; (map make-unique-id (iota 40))
+(define make-unique-id
+  (let ((alphabet (string->list "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+    (lambda (pq)
+      (list->string
+       (list-tabulate 4 (lambda (idx) (list-ref alphabet (random (length alphabet)))))))))
+
 (define (pq-add* pq item)
   (assert-pq-item item)
   (and (alist-ref 'id item)
        (error "item already has id field" item))
 
-  (let ((item (alist-cons 'id (uuid-v4) item)))
+  (let ((item (alist-cons 'id (make-unique-id pq) item)))
     (pq-list-set! pq (add-back (pq-list pq) item))
     item))
 
