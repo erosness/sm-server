@@ -116,6 +116,16 @@
 
 
 (define (wrap-wimp-login-status handler)
+
+  ;; extras should be an alist
+  (define (make-wimp-login-error #!optional (extras '()))
+    (values `((service . "wimp")
+              (url . "/v1/catalog/wimp/login")
+              (_debug . ((msg  . "no loging credentials available")
+                         (wimp-store . ,(wimp-store))))
+              ,@extras)
+            'unauthorized))
+
   (lambda ()
     (condition-case
      (handler)
@@ -125,18 +135,15 @@
      (e (exn http client-error)
         ;; login failed. return 401 and wimp's unmodified json response
         ;; (found in the exception message as a string).
-        (values (read-json ((condition-property-accessor 'client-error 'body) e))
-                'unauthorized #|401|#))
+        (make-wimp-login-error
+         `((wimp-response . ,(read-json
+                              ((condition-property-accessor
+                                'client-error
+                                'body) e))))))
 
      ;; this happens when wimp egg doesn't have any credentials
      ;; stored:
-     (e (wimp missing-login)
-        (values `((service . "wimp")
-                  (url . "/v1/catalog/wimp/login")
-                  (_debug . ((msg  . "no loging credentials available")
-                             (wimp-store . ,(wimp-store)))))
-                'unauthorized))
-     )))
+     (e (wimp missing-login) (make-wimp-login-error)))))
 
 (define (wrap-wimp search-proc convert #!optional (query-param 'q))
   (wrap-wimp-login-status
