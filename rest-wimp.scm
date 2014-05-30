@@ -122,8 +122,8 @@
   (define (make-wimp-login-error #!optional (extras '()))
     (values `((service . "wimp")
               (url . "/v1/catalog/wimp/login")
-              (_debug . (((wimp-store
-                           . ((username . ,(alist-ref 'username (wimp-store))))))))
+              (_debug . ((wimp-store
+                          . ((username . ,(alist-ref 'username (wimp-store)))))))
               ,@extras)
             'unauthorized))
 
