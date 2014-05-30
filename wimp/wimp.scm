@@ -49,11 +49,21 @@
                                      read-json)
                                   (select-keys '(sessionId countryCode))))))
 
+(define (wimp-login-fail!)
+  (abort
+   (make-composite-condition
+    (make-property-condition 'wimp)
+    (make-property-condition 'missing-login)
+    (make-property-condition 'exn
+                             'message "wimp login missing"
+                             'arguments '()))))
+
 ;; construct a wimp url, using the current *wimp-session-params*
 (define (wimp-url name #!optional params)
-  (update-uri (wimp-base-url name) query: (append (or *wimp-session-params*
-                                                      (error "wimp-login! not ran"))
-                                                  (or params '()))))
+  (update-uri (wimp-base-url name)
+              query: (append (or *wimp-session-params*
+                                 (wimp-login-fail!))
+                             (or params '()))))
 
 ;; Perform the actual server-request, return json.
 ;; (call-wimp '() "tracks" 1234)
