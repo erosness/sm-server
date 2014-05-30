@@ -8,3 +8,9 @@
   (syntax-rules ()
     ((comment body ...)
      (void))))
+
+
+(define-syntax module**
+  (syntax-rules ()
+    ((module** name export body ... )
+     (begin body ...))))
