@@ -74,14 +74,14 @@
     ;; (current-json) should return false on GET requests and a truthy
     ;; value for PUT/POST
     (case (request-method (current-request))
-      [(GET) (send-json (handler))]
+      [(GET) (call-with-values handler send-json)]
       [(PUT POST)
        (let* ((req-string (request-string!))
               (json (or (read-json req-string)
                         (string-null? req-string)
                         (error "invalid json" req-string))))
          (parameterize ((current-json (or json '())))
-           (send-json (handler))))]
+           (call-with-values handler send-json)))]
       (else (error (conc "unsupported method " (request-method (current-request))))))))
 
 (define (wrap-continue handler)
