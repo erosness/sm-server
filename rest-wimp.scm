@@ -2,6 +2,7 @@
 
 (import chicken scheme data-structures)
 (use wimp uri-common test clojurian-syntax restlib
+     medea
      matchable)
 
 (import rest turi store)
@@ -112,16 +113,34 @@
                         (wimp-process-result process result))))
 
 
+
+
+(define (wrap-wimp-login-status handler)
+  (lambda ()
+    (condition-case
+     (handler)
+     ;; wimp login errored. convert to nice 401 respons with json.
+     (e (exn http client-error)
+        ;; login failed. return 401 and wimp's unmodified json response
+        ;; (found in the exception message as a string).
+        (values (read-json ((condition-property-accessor 'client-error 'body) e))
+                'unauthorized #|401|#))
+     ;; TODO : catch wimp-login! not called error (thrown by wimp egg)
+     )))
+
 (define (wrap-wimp search-proc convert #!optional (query-param 'q))
-  (argumentize
-   (make-wimp-search-call search-proc convert)
-   query-param '(limit "10") '(offset "0")))
+  (wrap-wimp-login-status
+   (argumentize
+    (make-wimp-search-call search-proc convert)
+    query-param '(limit "10") '(offset "0"))))
+
 
 ;;==================== handlers ====================
 (define-handler /v1/catalog/wimp
-  (lambda () `((tabs . #( ((title . "Artists") (uri . "/catalog/wimp/artist"))
-                     ((title . "Albums")  (uri . "/catalog/wimp/album"))
-                     ((title . "Tracks")  (uri . "/catalog/wimp/track")))))))
+  (wrap-wimp-login-status
+   (lambda () `((tabs . #( ((title . "Artists") (uri . "/catalog/wimp/artist"))
+                      ((title . "Albums")  (uri . "/catalog/wimp/album"))
+                      ((title . "Tracks")  (uri . "/catalog/wimp/track"))))))))
 
 (define-handler /v1/catalog/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
 (define-handler /v1/catalog/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
@@ -134,20 +153,22 @@
   (wrap-wimp wimp-album-tracks track->search-result 'album))
 
 (define-handler /v1/catalog/wimp/login
-  (lambda ()
-    (if (current-json)
-        (or (and-let* ((username (alist-ref 'username (current-json)))
-                       (password (alist-ref 'password (current-json))))
-              (do-wimp-login (current-json))
-              (wimp-store (current-json)))
+  (wrap-wimp-login-status
+   (lambda ()
+     (if (current-json)
+         (or (and-let* ((username (alist-ref 'username (current-json)))
+                        (password (alist-ref 'password (current-json))))
+               (let ((result (do-wimp-login (current-json))))
+                 (wimp-store (current-json))
+                 result))
+             ;; couldn't find login credentials in request
+             (error "expected username and password keys in body " (current-json)))
+         '())
 
-            ;; couldn't find login credentials
-            (error "expected username and password keys in body " (current-json))))
-
-    ;; return current login status
-    `((user . ,(if *wimp-session-params*
-                   (alist-ref 'username (wimp-store))
-                   #f)))))
+     ;; return current login status
+     `((user . ,(if *wimp-session-params*
+                    (alist-ref 'username (wimp-store))
+                    #f))))))
 
 ;; ==================== tests ====================
 
