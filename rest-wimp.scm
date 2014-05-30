@@ -31,7 +31,8 @@
 ;; OBS: returning WIMP's metadata directly (and assuming it's url
 ;; field is the http url for the streaming url).
 (define (play-command/wimp tid)
-  (wimp-track-streamurl tid))
+  ;; need to return 1 value only (second would be HTTP status-code)
+  (values (wimp-track-streamurl tid)))
 
 (define-turi-adapter tid->turi "wimp" (lambda (id) (play-command/wimp id)))
 
