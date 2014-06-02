@@ -121,7 +121,7 @@
   ;; extras should be an alist
   (define (make-wimp-login-error #!optional (extras '()))
     (values `((service . "wimp")
-              (url . ,(return-url "/v1/catalog/wimp/login"))
+              (url . ,(return-url "/catalog/wimp/login"))
               (_debug . ((wimp-store
                           . ((username . ,(alist-ref 'username (wimp-store)))))))
               ,@extras)
