@@ -2,6 +2,7 @@
               set-handler!
               wrap-changes
               define-handler
+              return-url
               json-handler
               log-handler
               log?
@@ -62,6 +63,22 @@
 ;; (define-handler tst identity)
 ;; (define-handler /v1/tst identity)
 ;; (define-handler a b c)
+
+
+;; simple helper to keep track of where we produce URLs that point
+;; back to ourselves. currently only useful for assertions.
+(define-syntax return-url
+  (ir-macro-transformer
+   (lambda (x e t)
+     (let ((parts (cdr x)))
+
+       (define (check str)
+         (if (string-prefix? "/v1" str)
+             (error "don't include /v1/ in return urls. they are version-protocol-relative.")))
+
+       (for-each (lambda (x) (and (string? x) (check x))) parts)
+       `(conc ,@parts)))))
+
 
 
 ;; ==================== test utils ====================

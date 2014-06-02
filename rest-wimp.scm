@@ -90,14 +90,14 @@
     ;; -    (image . ,(artist->artist-image-uri artist))))
     (title  . ,(alist-ref 'name artist))
     (image  . ,(artist->artist-image-uri artist))
-    (uri    . ,(conc "/catalog/wimp/artist/albums?artist=" (alist-ref 'id artist)))))
+    (uri    . ,(return-url "/catalog/wimp/artist/albums?artist=" (alist-ref 'id artist)))))
 
 (define (album->search-result album)
   `((id     . ,(alist-ref 'id album))
     (subtitle . ,(track/album->artist-name album))
     (title  . ,(alist-ref 'title album))
     (image  . ,(album->album-cover-uri album))
-    (uri    . ,(conc "/catalog/wimp/album/tracks?album=" (alist-ref 'id album)))))
+    (uri    . ,(return-url "/catalog/wimp/album/tracks?album=" (alist-ref 'id album)))))
 
 
 (define (wimp-process-result result-proc result)
@@ -121,7 +121,7 @@
   ;; extras should be an alist
   (define (make-wimp-login-error #!optional (extras '()))
     (values `((service . "wimp")
-              (url . "/v1/catalog/wimp/login")
+              (url . ,(return-url "/v1/catalog/wimp/login"))
               (_debug . ((wimp-store
                           . ((username . ,(alist-ref 'username (wimp-store)))))))
               ,@extras)
@@ -156,9 +156,9 @@
 ;;==================== handlers ====================
 (define-handler /v1/catalog/wimp
   (wrap-wimp-login-status
-   (lambda () `((tabs . #( ((title . "Artists") (uri . "/catalog/wimp/artist"))
-                      ((title . "Albums")  (uri . "/catalog/wimp/album"))
-                      ((title . "Tracks")  (uri . "/catalog/wimp/track"))))))))
+   (lambda () `((tabs . #( ((title . "Artists") (uri . ,(return-url "/catalog/wimp/artist")))
+                      ((title . "Albums")  (uri . ,(return-url "/catalog/wimp/album")))
+                      ((title . "Tracks")  (uri . ,(return-url "/catalog/wimp/track")))))))))
 
 (define-handler /v1/catalog/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
 (define-handler /v1/catalog/wimp/album         (wrap-wimp wimp-search-album  album->search-result))

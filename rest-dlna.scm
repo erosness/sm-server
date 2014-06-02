@@ -32,7 +32,7 @@
 (define-handler /v1/catalog/dlna/track  (%dlnas dlna-search/track))
 
 (define-handler /v1/catalog/dlna
-  (lambda () `((tabs . #( ((title . "Browse") (uri . "/catalog/dlna/browse")))))))
+  (lambda () `((tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/dlna/browse"))))))))
 
 (define (talist->mblist talists)
   (map
