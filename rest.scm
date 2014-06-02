@@ -67,6 +67,9 @@
 
 ;; simple helper to keep track of where we produce URLs that point
 ;; back to ourselves. currently only useful for assertions.
+(begin-for-syntax
+ (import chicken)
+ (use srfi-13)) ;; for compile-time string-prefix?
 (define-syntax return-url
   (ir-macro-transformer
    (lambda (x e t)
