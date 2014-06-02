@@ -5,6 +5,8 @@
      clojurian-syntax parley
      intarweb)
 
+(include "incubator.scm")
+(import incubator)
 ;; ==================== repl helpers ====================
 
 (define original-input-port (current-input-port))
@@ -200,49 +202,6 @@
         ((flip sort) string>?)))
 ;; (pp (urls "http://localhost:5055/_urls"))
 
-(define (alist=? a b)
-  (define (key>? a b)  (string>= (->string (car a)) (->string (car b))))
-
-  (and (list? a) (list? b)
-       (equal? (sort a key>?)
-               (sort b key>?))))
-
-(define (equal/alist? a b)
-  (or (equal? a b) (alist=? a b)))
-
-(test-group
- "equal/alist?"
- (test #t (equal/alist? 1 1))
- (test #f (equal/alist? 1 0))
- (test #t (equal/alist? "a" "a"))
-
-
- (test #t (equal/alist? `((a . 1) (b . 2))
-                        `((b . 2) (a . 1))))
-
- (test #f (equal/alist? `((a . 1) (b . 1))
-                        `((a . 1) (b . 2)))))
-
-;; like alist-ref, but we're comparing keys as string and doing it
-;; recursively. also doen't vomit if state if #f. kinda like clojure,
-;; I guess! you'll love this, Peder.
-(define (get-in state . keys)
-  (let loop ((state state)
-             (keys keys))
-    (if (pair? keys)
-        (and state
-             (loop (alist-ref (car keys) state equal?) (cdr keys)))
-        state)))
-
-(test-group
- "get-in"
- (test #f (get-in '() 'a))
- (test #f (get-in '() 'a 'b))
-
- (test 1 (get-in '((a . 1)) 'a))
- (test #f (get-in '((a . ((b . 0)))) 'a 'x))
-
- (test 2 (get-in '((a . ((b . 2)))) 'a 'b)))
 
 
 (define (state-volume state)        (get-in state "/v1/player/volume" 'value))
