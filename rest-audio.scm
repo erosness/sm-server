@@ -21,7 +21,7 @@
 
 (define (equalizer? eq)
   (and (= 5 (vector-length eq))
-       (every number? (vector->list eq))))
+       (every fixnum? (vector->list eq))))
 
 (test-group
  "equalizer?"
