@@ -3,8 +3,6 @@
 ;;; Defines REST interface to manipulate and play sound from a
 ;;; playqueue.
 ;;;
-(use pefat)
-
 (include "incubator.scm")
 
 (include "closing-http-client.scm")
