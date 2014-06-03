@@ -61,11 +61,7 @@ nics:
 	cd nics; $(ci) $(ciflags)
 
 stty:
-ifeq ($(ARCH),arm)
 	cd stty; $(ci) $(ciflags)
-else
-	$(ci) $(ciflags) stty
-endif
 
 # we patched up socket so it compiles with aosp-chicken-install.
 socket:
