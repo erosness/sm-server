@@ -1,5 +1,5 @@
 
-(use dlna)
+(use dlna restlib spiffy)
 
 (import rest)
 

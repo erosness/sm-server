@@ -1,7 +1,4 @@
-(use spiffy intarweb uri-common
-     srfi-69 pefat restlib
-     clojurian-syntax)
-
+(use pefat)
 ;; this guys takes in a lot of our dependencies as well
 (include "cspeaker.scm")
 

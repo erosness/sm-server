@@ -1,4 +1,4 @@
-(use test)
+(use test restlib)
 (import rest)
 
 (define mute      #f)
