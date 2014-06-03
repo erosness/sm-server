@@ -49,12 +49,23 @@
   ;; assuming we never play clips shorter than a second
   (test "duration (<1s)"       #t   (>= (alist-ref 'duration response) 1)))
 
+(test-begin "player")
+
 (test-group
  "simple /player/current"
 
  (let ((turi (tone-turi 400)))
    (test-current turi (query "/player/current" `((turi . ,turi))))
    (test-current turi (query "/player/current"))))
+
+(test-group
+ "simple volume"
+
+ (test "volume setter" `((value . 55)) (query "/player/volume" `((value . 55))))
+ (test "volume setter" `((value . 33)) (query "/player/volume" `((value . 33))))
+ (test "volume getter" `((value . 33)) (query "/player/volume")))
+
+(test-end "player")
 
 ;; check that tabs is json where each element has a uri field.
 (define (validate-tabs tabs)
