@@ -11,8 +11,6 @@
 (include "rest-dlna.scm")
 (include "rest-usb.scm")
 
-(include "dummy-browser.scm")
-
 
 ;; for your repl pleasure:
 ;; (define dns-sd-unregister!/browser (dns-sd-register "repl" 5060 service-type/cube-browser))
