@@ -7,7 +7,7 @@
      irregex                    ;; quess again!
      srfi-13                    ;; for string-null? (chicken-install
                                 ;; complains if this is missing)
-     srfi-69
+     srfi-69 srfi-18
      )
 
 ;;; ******************** misc ********************
@@ -226,6 +226,22 @@
     (filter (lambda (item) (irregex-search query (conc item))) data)))
 
 
+;; ==================== server ====================
+
+
+(define *server-port* #f)
+;; spawns thread!
+(define (start-rest-server! port)
+  (set! *server-port* port)
+  (thread-start!
+   (lambda ()
+     (define handler (->> (lambda () (json-handler))
+                          (wrap-json)
+                          (wrap-errors)
+                          (log-handler)))
+
+     (vhost-map `((".*" . ,(lambda (continue) (handler)))))
+     (start-server port: port))))
 
 ;; ==================== test utils ====================
 

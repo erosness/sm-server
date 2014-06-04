@@ -1,16 +1,13 @@
 (module rest (wrap-changes
               return-url
               log?
-              current-host
-              *server-port*
-              start-rest-server!)
+              current-host)
 
 (import chicken scheme data-structures notify)
 (use srfi-18 srfi-69 ports
      test uri-common medea multicast spiffy intarweb
      restlib clojurian-syntax matchable)
 
-(define *server-port* #f)
 ;; ==================== handler ====================
 
 
@@ -117,18 +114,6 @@
        (uri-reference "http://localhost/")
        (current-host)))
 
-;; spawns thread!
-(define (start-rest-server! port)
-  (set! *server-port* port)
-  (thread-start!
-   (lambda ()
-     (define handler (->> (lambda () (json-handler))
-                          (wrap-json)
-                          (wrap-errors)
-                          (log-handler)))
-
-     (vhost-map `((".*" . ,(lambda (continue) (handler)))))
-     (start-server port: port))))
 
 
 )
