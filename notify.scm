@@ -6,8 +6,7 @@
 ;;; change-message: a HTTP-like packet describing a change in the
 ;;; statemap
 
-;;; TODO: rename this to something a little more descriptive (notifications?)
-(module broadcast (change-message)
+(module notify (change-message)
 
 (import chicken scheme ports data-structures)
 (use socket intarweb spiffy medea multicast)
@@ -31,5 +30,5 @@
                                        (else #f)))))))
 
 
-(include "broadcast.tests.scm")
+(include "notify.tests.scm")
 )

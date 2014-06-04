@@ -11,7 +11,7 @@
               *server-port*
               start-rest-server!)
 
-(import chicken scheme data-structures broadcast)
+(import chicken scheme data-structures notify)
 (use srfi-18 srfi-69 ports
      test uri-common medea multicast spiffy intarweb
      restlib clojurian-syntax matchable)

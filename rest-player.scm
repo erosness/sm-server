@@ -5,7 +5,7 @@
 (import rest player playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras
-     medea broadcast multicast incubator)
+     medea notify multicast incubator)
 
 (define *pq* (make-pq
               '( ((id . "400") (turi . "tr://localhost:5060/t2s?type=tone&id=400"))
@@ -112,7 +112,7 @@
 ;; (/player/pq/prev)
 
 ;; ==================== seek position hearbeat ====================
-(import broadcast)
+(import notify)
 (use looper multicast medea)
 
 
