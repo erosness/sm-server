@@ -39,16 +39,22 @@
                    "object.item.audioItem.musicTrack"))))))
  (test
   "container->folder"
-  '(container (id . "1$7") (title . "Album"))
+  '(container (id . "1$7")
+              (title . "Album")
+              (subtitle . "Artist")
+              (image . "file.jpg"))
   (container->talist '(container
                        (@ (id "1$7"))
-                       (http://purl.org/dc/elements/1.1/:title "Album"))))
+                       (http://purl.org/dc/elements/1.1/:title "Album")
+                       (urn:schemas-upnp-org:metadata-1-0/upnp/:artist "Artist")
+                       (urn:schemas-upnp-org:metadata-1-0/upnp/:albumArtURI "file.jpg"))))
 
  ;; this one should implicitly test container->talist and item->talist
 
  (test
   "containers->folders"
-  '((container (id . "1$7") (title . "Album"))
+  '((container (id . "1$7") (title . "Album") (subtitle . "Artist") (image . "albumArtURI"))
+    ;; important: missing subtitle, image etc don't produce fields with #f.
     (container (id . "1$6") (title . "Artist"))
     (track (id . "tid")
            (artist . "artist")
@@ -59,7 +65,9 @@
    '(*TOP* (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:DIDL-Lite
             (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:container
              (@ (id "1$7"))
-             (http://purl.org/dc/elements/1.1/:title "Album"))
+             (http://purl.org/dc/elements/1.1/:title "Album")
+             (urn:schemas-upnp-org:metadata-1-0/upnp/:artist "Artist")
+             (urn:schemas-upnp-org:metadata-1-0/upnp/:albumArtURI "albumArtURI"))
             (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:container
              (@ (id "1$6"))
              (http://purl.org/dc/elements/1.1/:title "Artist"))

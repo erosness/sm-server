@@ -17,10 +17,19 @@
 
 ;; convert verbose container-sxml into blurp. (type "id" "title" attr ...)
 (define (container->talist container)
-  (define container-title (sxpath/car "pe:title/text()" ns))
-  (define container-id    (sxpath "string(@id)" ns))
-  `(container (id . ,(container-id container))
-              (title . ,(container-title container))))
+
+  (define (r field sxpathproc)
+    (let ((result (sxpathproc container)))
+      (if result `((,field . ,result)) '())))
+
+  (define container-title  (sxpath/car "pe:title/text()" ns))
+  (define container-id     (sxpath "string(@id)" ns))
+  (define container-artist (sxpath/car "u:artist/text()" ns))
+  (define container-image  (sxpath/car "u:albumArtURI/text()" ns))
+  `(container ,@(r 'id container-id)
+              ,@(r 'title container-title)
+              ,@(r 'subtitle container-artist)
+              ,@(r 'image container-image)))
 
 ;; convert an sxml item into pretty blurps
 (define (track->talist item)
@@ -144,5 +153,3 @@
               (search/sxml query parent)))
 
 (include "didl.test.scm")
-
-
