@@ -6,7 +6,7 @@
 ;;; change-message: a HTTP-like packet describing a change in the
 ;;; statemap
 
-(module notify (change-message)
+(module notify (send-notification)
 
 (import chicken scheme ports data-structures)
 (use socket intarweb spiffy medea multicast)
@@ -28,6 +28,9 @@
                                         (lambda (req)
                                           (header-value 'echo (request-headers req))))
                                        (else #f)))))))
+
+(define (send-notification path body port)
+  (udp-multicast (change-message path body port)))
 
 
 (include "notify.tests.scm")

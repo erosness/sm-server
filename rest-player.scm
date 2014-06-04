@@ -13,7 +13,7 @@
                  ((id . "999") (turi . "tr://localhost:5060/t2s?type=tone&id=999")))))
 
 (define ((change-callback path) oldval newval)
-  (udp-multicast (change-message path newval *server-port*)))
+  (send-notification path newval *server-port*))
 
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
@@ -119,10 +119,9 @@
 ;; do this on every player hearbeat interval
 (define (player-thread-iteration)
   (if (playing?) ;; running and not paused?
-      (udp-multicast
-       (change-message "/v1/player/pos"
-                       (player-pos-info)
-                       *server-port*))))
+      (send-notification "/v1/player/pos"
+                         (player-pos-info)
+                         *server-port*)))
 
 (define player-seek-thread
   (thread-start!
