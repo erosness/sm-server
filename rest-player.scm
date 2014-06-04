@@ -7,7 +7,9 @@
         playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras
-     medea notify multicast incubator)
+     medea multicast incubator)
+
+(import notify)
 
 (define *pq* (make-pq
               '( ((id . "400") (turi . "tr://localhost:5060/t2s?type=tone&id=400"))
