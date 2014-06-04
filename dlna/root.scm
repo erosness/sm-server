@@ -62,7 +62,9 @@
            (with-input-from-request uri #f read-sxml)
            ((exn http client-error) #f)
            ;; in case of error, just print it for now and return #f
-           (e () (pp (condition->list e)) #f))))
+           (e ()
+              (pp `(dlna error ,uri ,(condition->list e)))
+              #f))))
 
 
 ;; query an UPnP server's rootdescriptor for it's ContentDirectory:1
