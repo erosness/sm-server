@@ -10,7 +10,7 @@
 
 (include "debug-utils.scm")
 (include "concurrent-utils.scm")
-(include "broadcast.scm")
+(include "notify.scm")
 
 (include "rest.scm")
 

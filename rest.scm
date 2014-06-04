@@ -1,64 +1,18 @@
-(module rest (*uris*
-              set-handler!
-              wrap-changes
-              define-handler
+(module rest (wrap-changes
               return-url
-              json-handler
-              log-handler
               log?
-              with-request
               current-host
               *server-port*
               start-rest-server!)
 
-(import chicken scheme data-structures broadcast)
+(import chicken scheme data-structures notify)
 (use srfi-18 srfi-69 ports
      test uri-common medea multicast spiffy intarweb
      restlib clojurian-syntax matchable)
 
 (define *server-port* #f)
 ;; ==================== handler ====================
-(define *uris* (make-hash-table))
 
-(define (set-handler! url thunk)
-  (assert (string? url))
-  (hash-table-set! *uris* url thunk))
-
-(define (find-accessor uri #!optional (uris *uris*))
-  (hash-table-ref/default uris uri #f))
-
-
-
-(define log? #f)
-(define (log-handler thunk)
-  (lambda () (if log? (print ";; request: " (uri->string (request-uri (current-request)))))
-     (thunk)))
-
-(define (json-handler)
-  (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
-    (let ((handler (find-accessor uri)))
-      (if handler
-          (handler)
-          (begin
-            (print ";; invalid url visit:" (uri->string (request-uri (current-request))))
-            `((error       . ,(conc "not found: " uri))
-              (valid-urls  . ,(list->vector (hash-table-keys *uris*)))))))))
-
-;; (define-handler /path (lambda () #f)) now defaults to /v1/path on the
-;; interface. this will be a lot of fun to maintain in the long run.
-(define-syntax define-handler
-  (ir-macro-transformer
-   (lambda (x e t)
-     (let ((path (e (cadr x)))
-           (body (caddr x))
-           (rest (cdddr x)))
-       (if (pair? rest) (error "illegal define-handler" x))
-       (if (not (equal? (substring (conc (symbol->string path) "   ") 0 4)
-                        "/v1/"))
-           (error "path must start with /v1/" path))
-       `(begin
-          (define ,path ,body)
-          (set-handler! ,(symbol->string path) ,path))))))
 
 ;; (define-handler tst identity)
 ;; (define-handler /v1/tst identity)
@@ -84,19 +38,6 @@
 
 
 
-;; ==================== test utils ====================
-
-;; run body in the context of the uri path.
-(define-syntax with-request
-  (syntax-rules ()
-    ((_ (uri hdrs) body ...)
-     (parameterize ((current-request (make-request uri: (uri-reference uri)
-                                                   headers: (headers hdrs))))
-       body ...))
-
-    ((_ uri body ...) (with-request (uri '()) body ...))))
-
-
 ;; ==================== rest combinators ====================
 
 ;; returns a procedure which announces it was been called using UDP
@@ -107,7 +48,7 @@
                         (lambda () (not (eq? 'GET (request-method (current-request)))))))
          #!rest args)
   (let* ((response (apply proc args)))
-    (if (send-message?) (udp-multicast (change-message path response *server-port*)))
+    (if (send-message?) (send-notification path response *server-port*))
     response))
 
 

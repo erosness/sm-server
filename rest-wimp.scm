@@ -5,7 +5,9 @@
      medea
      matchable)
 
-(import rest turi store)
+(import turi
+        rest ;; <-- return-url
+        store)
 
 (define (do-wimp-login store)
   (or (and-let* (((list? store))

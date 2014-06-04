@@ -3,7 +3,7 @@
 (import chicken scheme data-structures)
 
 (use irregex restlib)
-(import rest turi)
+(import turi)
 
 
 ;; taken from http://trac.ffmpeg.org/wiki/FancyFilteringExamples

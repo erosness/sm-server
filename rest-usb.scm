@@ -1,7 +1,7 @@
 (include "dlna-sql.scm")
 
-(import dlna-sql rest)
-(use spiffy uri-common intarweb)
+(import dlna-sql)
+(use spiffy uri-common intarweb restlib)
 
 (define *mount-point* "/tmp")
 (define *static-server-port* 1034)

@@ -2,10 +2,12 @@
 
 (import chicken scheme data-structures)
 
-(import rest player playqueue)
+(import player
+        rest ;; <-- *server-port*
+        playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras
-     medea broadcast multicast incubator)
+     medea notify multicast incubator)
 
 (define *pq* (make-pq
               '( ((id . "400") (turi . "tr://localhost:5060/t2s?type=tone&id=400"))
@@ -13,7 +15,7 @@
                  ((id . "999") (turi . "tr://localhost:5060/t2s?type=tone&id=999")))))
 
 (define ((change-callback path) oldval newval)
-  (udp-multicast (change-message path newval *server-port*)))
+  (send-notification path newval *server-port*))
 
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
@@ -112,17 +114,16 @@
 ;; (/player/pq/prev)
 
 ;; ==================== seek position hearbeat ====================
-(import broadcast)
+(import notify)
 (use looper multicast medea)
 
 
 ;; do this on every player hearbeat interval
 (define (player-thread-iteration)
   (if (playing?) ;; running and not paused?
-      (udp-multicast
-       (change-message "/v1/player/pos"
-                       (player-pos-info)
-                       *server-port*))))
+      (send-notification "/v1/player/pos"
+                         (player-pos-info)
+                         *server-port*)))
 
 (define player-seek-thread
   (thread-start!
