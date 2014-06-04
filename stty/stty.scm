@@ -72,8 +72,6 @@
   term-attrs-cflag term-attrs-cflag-set!
   term-attrs-lflag term-attrs-lflag-set!
   term-attrs-cc term-attrs-cc-set!
-  term-attrs-ispeed term-attrs-ispeed-set!
-  term-attrs-ospeed term-attrs-ospeed-set!
   TCSANOW TCSADRAIN TCSAFLUSH)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -83,21 +81,6 @@
 (declare (foreign-declare "#include <termios.h>\n"))
 (declare (foreign-declare "typedef struct termios struct_termios;\n"))
 
-(cond-expand
- ((and _HAVE_STRUCT_TERMIOS_C_ISPEED _HAVE_STRUCT_TERMIOS_C_OSPEED)
-  (define-foreign-record-type (term-attrs struct_termios)
-    (constructor: make-term-attrs)
-    (destructor: free-term-attrs)
-    (unsigned-long c_iflag term-attrs-iflag term-attrs-iflag-set!)
-    (unsigned-long c_oflag term-attrs-oflag term-attrs-oflag-set!)
-    (unsigned-long c_cflag term-attrs-cflag term-attrs-cflag-set!)
-    (unsigned-long c_lflag term-attrs-lflag term-attrs-lflag-set!)
-    (unsigned-char (c_cc 22) term-attrs-cc term-attrs-cc-set!)
-    (unsigned-long c_ispeed term-attrs-ispeed term-attrs-ispeed-set!)
-    (unsigned-long c_ospeed term-attrs-ospeed term-attrs-ospeed-set!)
-    )
-  )
- (else
   (define-foreign-record-type (term-attrs struct_termios)
     (constructor: make-term-attrs)
     (destructor: free-term-attrs)
@@ -110,7 +93,6 @@
   (define term-attrs-ispeed-set! (lambda (_ _) #f))
   (define term-attrs-ospeed      (lambda (_)  #f))
   (define term-attrs-ospeed-set! (lambda (_ _) #f))
-  ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; constants

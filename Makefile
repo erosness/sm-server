@@ -10,7 +10,10 @@ DEPS = clojurian bitstring spiffy intarweb uri-common \
 ci ?= chicken-install
 ciflags ?= -s -keep-installed
 
-all: deps modules
+# make sure our stty target is called before any eggs (parley) tries
+# to install it. Trying to install stty from henrietta on android
+# fails the build
+all: stty deps modules
 
 modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp dlna stty
 	$(ci) $(ciflags)
@@ -61,7 +64,11 @@ nics:
 	cd nics; $(ci) $(ciflags)
 
 stty:
+ifeq ($(ARCH),arm)
 	cd stty; $(ci) $(ciflags)
+else
+	$(ci) $(ciflags) stty
+endif
 
 # we patched up socket so it compiles with aosp-chicken-install.
 socket:
@@ -73,4 +80,4 @@ endif
 
 
 .PHONY: socket restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all \
-	multicast pefat dlna looper nics
+	multicast pefat dlna looper nics stty

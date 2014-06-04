@@ -2,7 +2,7 @@
 
 (
  (egg "stty.egg")
- (needs setup-helper foreigners feature-test)
+ (needs setup-helper foreigners)
  (synopsis "stty-style interface to termios")
  (category io)
  (license "BSD")

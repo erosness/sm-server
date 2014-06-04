@@ -1,7 +1,5 @@
-(compile stty-features.scm)
-(run (./stty-features > stty-config.scm))
 
-(compile -shared -O2 -j stty -X stty-config.scm stty.scm)
+(compile -shared -O2 -j stty stty.scm)
 (compile -shared -O2 stty.import.scm)
 
 (install-extension 'stty
