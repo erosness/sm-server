@@ -1,8 +1,6 @@
 
 (use dlna restlib spiffy)
 
-(import rest)
-
 (define *devices* (ssdp-search))
 
 ;; dlna searches may return containers and tracks. containers are

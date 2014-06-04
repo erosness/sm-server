@@ -2,7 +2,9 @@
 
 (import chicken scheme data-structures)
 
-(import rest player playqueue)
+(import player
+        rest ;; <-- *server-port*
+        playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras
      medea notify multicast incubator)
