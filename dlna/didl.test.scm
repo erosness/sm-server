@@ -37,6 +37,25 @@
                  (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:item
                   (urn:schemas-upnp-org:metadata-1-0/upnp/:class
                    "object.item.audioItem.musicTrack"))))))
+
+ (test
+  "track->talist with minidlna snippet"
+  `(track (id . "x")
+          (turi . "http://host/file.mp3")
+          (title . "title")
+          (subtitle . "Michael Buble")
+          (album . "With Love")
+          (image . "cover.jpg"))
+  (track->talist
+   `(urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:item
+     (@ (id "x"))
+     (http://purl.org/dc/elements/1.1/:title "title")
+     (urn:schemas-upnp-org:metadata-1-0/upnp/:class "object.item.audioItem.musicTrack")
+     (urn:schemas-upnp-org:metadata-1-0/upnp/:artist "Michael Buble")
+     (urn:schemas-upnp-org:metadata-1-0/upnp/:album "With Love")
+     (urn:schemas-upnp-org:metadata-1-0/upnp/:albumArtURI "cover.jpg")
+     (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:res "http://host/file.mp3"))))
+
  (test
   "container->folder"
   '(container (id . "1$7")
@@ -57,10 +76,11 @@
     ;; important: missing subtitle, image etc don't produce fields with #f.
     (container (id . "1$6") (title . "Artist"))
     (track (id . "tid")
-           (artist . "artist")
-           (album . "album")
+           (turi . "tr://example/tid")
            (title . "title")
-           (turi . "tr://example/tid")))
+           (subtitle . "artist")
+           (album . "album")
+           (image . "http://albums.com/")))
   (didl->talist
    '(*TOP* (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:DIDL-Lite
             (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:container

@@ -33,16 +33,22 @@
 
 ;; convert an sxml item into pretty blurps
 (define (track->talist item)
+  (define (r field proc)
+    (let ((result (proc item)))
+      (if result `((,field . ,result)) `())))
+
   (define item-id     (sxpath     "string(@id)" ns))
   (define item-title  (sxpath/car "pe:title/text()" ns))
   (define item-artist (sxpath/car "u:artist/text()" ns))
   (define item-album  (sxpath/car "u:album/text()" ns))
+  (define item-image  (sxpath/car "u:albumArtURI/text()" ns))
   (define item-turi   (sxpath/car "d:res/text()" ns))
   `(track (id     . ,(item-id item))
-          (artist . ,(item-artist item))
-          (album  . ,(item-album item))
+          (turi   . ,(item-turi item))
           (title  . ,(item-title item))
-          (turi   . ,(item-turi item))))
+          (subtitle . ,(item-artist item))
+          (album  . ,(item-album item))
+          ,@(r 'image item-image)))
 
 (define doc-containers (sxpath "//d:DIDL-Lite/d:container" ns))
 (define doc-tracks (sxpath
