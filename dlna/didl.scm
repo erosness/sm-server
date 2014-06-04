@@ -43,12 +43,12 @@
   (define item-album  (sxpath/car "u:album/text()" ns))
   (define item-image  (sxpath/car "u:albumArtURI/text()" ns))
   (define item-turi   (sxpath/car "d:res/text()" ns))
-  `(track (id     . ,(item-id item))
-          (turi   . ,(item-turi item))
-          (title  . ,(item-title item))
-          (subtitle . ,(item-artist item))
-          (album  . ,(item-album item))
-          ,@(r 'image item-image)))
+  `(track ,@(r 'id       item-id)
+          ,@(r 'turi     item-turi)
+          ,@(r 'title    item-title)
+          ,@(r 'subtitle item-artist)
+          ,@(r 'album    item-album)
+          ,@(r 'image    item-image)))
 
 (define doc-containers (sxpath "//d:DIDL-Lite/d:container" ns))
 (define doc-tracks (sxpath
