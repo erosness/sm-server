@@ -23,9 +23,11 @@
   (print "running " (discovery-command name port servicetype))
   (let ((pid (process-run (discovery-command name port servicetype))))
     (set! -last-dns-sd-pid- pid)
-    (lambda ()
+    (define (kill-announcer)
       (warning "killing service announce daemon" pid)
-      (process-signal pid))))
+      (process-signal pid))
+    (on-exit kill-announcer)
+    kill-announcer))
 
 ;; (define dns-sd-unregister! (dns-sd-register "repl service test" 6600 service-type/cube-browser))
 ;; (dns-sd-unregister!)
