@@ -65,9 +65,8 @@
 ;; false if request is GET or if wrap-json hasn't been invoked
 (define current-json (make-parameter #f))
 
-;; convert response to json (alist => json object, etc) and convert
-;; request payload (if any) from json.
-(define (wrap-json handler)
+;; convert request payload (if any) from json.
+(define (wrap-incoming-json handler)
   (lambda ()
     ;; on GET, call handler with no args. on PUT, call it with parsed
     ;; json input. in both cases, return json-representation of
@@ -75,15 +74,22 @@
     ;; (current-json) should return false on GET requests and a truthy
     ;; value for PUT/POST
     (case (request-method (current-request))
-      [(GET) (call-with-values handler send-json)]
+      [(GET) (handler)]
       [(PUT POST)
        (let* ((req-string (request-string!))
               (json (or (read-json req-string)
                         (string-null? req-string)
                         (error "invalid json" req-string))))
          (parameterize ((current-json (or json '())))
-           (call-with-values handler send-json)))]
+           (handler)))]
       (else (error (conc "unsupported method " (request-method (current-request))))))))
+
+;; convert both request payload and response to json
+(define (wrap-json handler)
+  (lambda ()
+    (let ((handler (wrap-incoming-json handler)))
+      (call-with-values handler send-json))))
+
 
 (define (wrap-continue handler)
   (lambda ()
@@ -254,3 +260,5 @@
        body ...))
 
     ((_ uri body ...) (with-request (uri '()) body ...))))
+
+
