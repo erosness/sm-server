@@ -47,7 +47,7 @@
        (fluid-let ((directory? (lambda _ #t)))
          (store-location "wimp")))
 
- (let* ((filename (conc "/tmp/store-test." (+ 1000000 (random 1000000))))
+ (let* ((filename (conc "store-test." (+ 1000000 (random 1000000))))
         (store (make-store filename 100)))
    (test #f (file-exists? filename))
    (test 100 (store)) ;; <-- use default value
