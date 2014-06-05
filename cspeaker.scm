@@ -24,8 +24,5 @@
 (include "rest-audio.scm")
 (include "rest-player.scm")
 
-(use parley)
-;; parley-based repl
-(define (repl*)
-  (parameterize ((current-input-port (make-parley-port (current-input-port))))
-    (repl)))
+(use nrepl restlib)
+(define (repl*) (nrepl (+ *server-port* 1)))
