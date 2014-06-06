@@ -10,6 +10,8 @@
                    pq-add-list
                    pq-current
                    pq-current-set!
+                   pq-loop
+                   pq-loop-set!
                    pq-play
                    make-pq
                    pq-add-current-change-listener)

@@ -30,12 +30,15 @@
                      (paused .   ,(player-paused?))))
       '()))
 
+(define (pq-info pq)
+  `((loop . ,(pq-loop pq))))
 
 ;; Manipulate current track.
 ;; POST: Looks for three keys; turi, paused, pos.
 ;; If turi is present adds this item to pq and starts playing.
 ;; If paused is present, toggles pause state
 ;; If pos is present, seek to that position
+;; If loop is present, toggles loop state of pq
 ;; Returns: new value of current
 ;; GET: returns value of current with updated pos.
 (define-handler /v1/player/current
@@ -60,12 +63,16 @@
           (and-let* ((pause (assoc 'paused json-request)))
             (if (cdr pause) (player-pause) (player-unpause)))
 
+          ;; Change loop?
+          (and-let* ((loop (assoc 'loop json-request)))
+            (pq-loop-set! *pq* (cdr loop)))
+
           ;; Set and NOTIFY new current value
-          (let ((new-current (alist-merge current (player-pos-info))))
+          (let ((new-current (alist-merge current (player-pos-info) (pq-info *pq*))))
             (pq-current-set! *pq* new-current)
             new-current))
         ;else
-        (alist-merge (pq-current *pq*) (player-pos-info)))))
+        (alist-merge (pq-current *pq*) (player-pos-info) (pq-info *pq*)))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
