@@ -145,15 +145,30 @@
     (if update-current
         (pq-current-set! pq item))))
 
+;; Play next song
+;; - if we're currently at the last song, play first song
 (define (pq-play-next* pq)
   (or (and-let* ((next (pq-next* pq)))
-        (pq-play* pq next))
-      (pq-current-set! pq #f)))
+            (pq-play* pq next))
+      ;; End of list?
+      (and-let* (((not (null? (pq-list pq))))
+                 (head (car (pq-list pq))))
+        (pq-play* pq head))))
 
+
+;; Play previous song
+;; - if current song has played for more than 2 seconds, seek to start
+;; - if this is the first song, seek to start
 (define (pq-play-prev* pq)
-  (or (and-let* ((prev (pq-prev* pq)))
-        (pq-play* pq prev))
-      (pq-current-set! pq #f)))
+  (or (and-let* ((prev (pq-prev* pq))
+                 (pos (player-pos)))
+        (if (< 2.0 pos)
+            (player-seek 0)
+            (pq-play* pq prev)))
+
+      ;; Handle first song in pq
+      (and-let* ((c (pq-current pq)))
+        (player-seek 0))))
 
 ;; ==================== thread-safety ====================
 (define (with-pq-mutex proc)
