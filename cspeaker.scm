@@ -23,6 +23,7 @@
 ;; rest plugin layers
 (include "rest-audio.scm")
 (include "rest-player.scm")
+(include "rest-version.scm")
 
 (use nrepl posix srfi-18)
 
