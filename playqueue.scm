@@ -140,7 +140,21 @@
 (define (pq-play* pq item #!optional (update-current #t))
   (let* ((item (or (pq-ref* pq item) (error "not found in pq" item)))
          (track (alist-ref 'turi item)))
-    (play! (play-command track) (lambda () (pq-play-next pq)))
+    (play! (play-command track)
+           (lambda ()
+             ;; try to play next song, if anything goes wrong, print
+             ;; and exit. it's important we check for errors here,
+             ;; otherwise we get abandoned mutexes.
+             ;;
+             ;; the tricky part here is that this will catch errors
+             ;; inside pq-play* too because pq-play-next will call it.
+             ;; we only want to catch those errors, we do not want to
+             ;; catch the errors that were caused by a direct curl
+             ;; /v1/player/current because those errors are nicely
+             ;; propegated back to the REST response. the errors in
+             ;; this callback, however, will crash the server:
+             (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
+                                (pq-play-next pq))))
     (print "playing " track)
     (if update-current
         (pq-current-set! pq item))))
