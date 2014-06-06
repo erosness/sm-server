@@ -5,6 +5,7 @@
       ((cube-version
         (ir-macro-transformer
          (lambda (x e t)
+           (use posix)
            (string-trim-right
             (with-input-from-pipe
              "git describe --tags --always"
