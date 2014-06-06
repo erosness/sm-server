@@ -2,8 +2,6 @@
 #
 # use this script to create a sandbox for chicken
 
-
-
 if [ $# -ne 1 ]; then
     echo "usage: '. $0 <abs path to repository>'"
     return
@@ -26,4 +24,4 @@ export CHICKEN_C_INCLUDE_PATH=$eggsdir/include/chicken
 export CHICKEN_INCLUDE_PATH=$eggsdir/share/chicken
 export CHICKEN_REPOSITORY=$eggsdir/lib/chicken/$binversion
 export CHICKEN_INSTALL_PREFIX=$eggsdir
-alias chicken-install='chicken-install -p $eggsdir'
+alias chicken-install='chicken-install -p $CHICKEN_INSTALL_PREFIX'
