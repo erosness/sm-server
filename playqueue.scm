@@ -57,18 +57,19 @@
 
 
 ;; ==================== pq record ====================
-(define-record-type pq (%make-pq list mutex current)
+(define-record-type pq (%make-pq list mutex current loop)
   pq?
   (list pq-list pq-list-set!)
   (mutex pq-mutex)
-  (current %pq-current))
+  (current %pq-current)
+  (loop pq-loop pq-loop-set!))
 
 (define-record-printer (pq x port)
   (display (conc "#<pq " (length (pq-list x)) " current: "
                  (state-value (%pq-current x)) ">") port))
 
-(define (make-pq #!optional (lst '()) (current #f))
-  (%make-pq lst (make-mutex) (make-state current)))
+(define (make-pq #!optional (lst '()) (current #f) (loop #f))
+  (%make-pq lst (make-mutex) (make-state current) loop))
 
 (define (pq-current pq)
   (state-value (%pq-current pq)))
