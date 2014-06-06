@@ -135,6 +135,8 @@
      ;; return the next element of the first match
      (and (pair? (cdr tail)) (cadr tail)))))
 
+;; play either the obvious next song, or if we're at the last song,
+;; play first iff looping is enabled
 (define (pq-next* pq #!optional (force-loop #f))
   (or (pq-next/lst* pq (pq-list pq))
 
@@ -168,7 +170,6 @@
         (pq-current-set! pq item))))
 
 ;; Play next song
-;; - if we're currently at the last song, play first song
 (define (pq-play-next* pq #!optional (force-loop #f))
   (or (and-let* ((next (pq-next* pq force-loop)))
         (pq-play* pq next))
