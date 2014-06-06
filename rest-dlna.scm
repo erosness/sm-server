@@ -1,7 +1,31 @@
 
-(use dlna restlib spiffy)
+(use dlna restlib spiffy srfi-18
+     looper)
 
-(define *devices* (ssdp-search))
+(define *devices* (lambda () '()))
+
+;; this is a bit hacky. we keep searching, but we should really have
+;; implemented the multicast listener interface for incoming
+;; server-up/server-down messages. this way, we'll only find new
+;; servers every 60 seconds and puts extra pressure on the network.
+(begin
+  (handle-exceptions e #f (thread-terminate! *dlna-search-thread*))
+  (define *dlna-search-thread*
+    (thread-start!
+     (make-thread
+      (loop (lambda ()
+              ;; let's request a search and wait for replies for 1
+              ;; minute.
+              (define temp-searcher (ssdp-search 60))
+              ;; let's not modify *devices* immediately because it'd
+              ;; temporarily say that there are 0 devices before
+              ;; anybody replies. let's wait for some replies:
+              (thread-sleep! 10)
+              ;; now make these new discoveries available outside:
+              (set! *devices* temp-searcher)
+              ;; let it slide for a while before we search again
+              (thread-sleep! 50)))
+      "*dlna-search-thread*"))))
 
 ;; dlna searches may return containers and tracks. containers are
 ;; useful for browsing. tracks should contain turis available for
