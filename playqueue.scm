@@ -128,14 +128,21 @@
 (define (pq-next/lst* pq lst)
   (and
    (pq-current pq)
-   (let* ((id (alist-ref 'id (pq-current pq)))
+   (and-let* ((id (alist-ref 'id (pq-current pq)))
           (tail (find-tail
                  (lambda (x) (equal? id (alist-ref 'id x)))
                  lst)))
      ;; return the next element of the first match
      (and (pair? (cdr tail)) (cadr tail)))))
 
-(define (pq-next* pq) (pq-next/lst* pq (pq-list pq)))
+(define (pq-next* pq #!optional (force-loop #f))
+  (or (pq-next/lst* pq (pq-list pq))
+
+      (and-let* (((or (pq-loop pq) force-loop
+                      (not (pq-current pq))))
+                 ((not (null? (pq-list pq)))))
+        (car (pq-list pq)))))
+
 (define (pq-prev* pq) (pq-next/lst* pq (reverse (pq-list pq))))
 
 (define (pq-play* pq item #!optional (update-current #t))
@@ -162,13 +169,12 @@
 
 ;; Play next song
 ;; - if we're currently at the last song, play first song
-(define (pq-play-next* pq)
-  (or (and-let* ((next (pq-next* pq)))
-            (pq-play* pq next))
-      ;; End of list?
-      (and-let* (((not (null? (pq-list pq))))
-                 (head (car (pq-list pq))))
-        (pq-play* pq head))))
+(define (pq-play-next* pq #!optional (force-loop #f))
+  (or (and-let* ((next (pq-next* pq force-loop)))
+        (pq-play* pq next))
+      (begin
+        (pq-current-set! pq #f)
+        (player-quit))))
 
 
 ;; Play previous song
@@ -237,6 +243,27 @@
                     `((id . "b")))))
    (test "pq-next*" `((id . "c")) (pq-next* pq))
    (test "pq-prev*" `((id . "a")) (pq-prev* pq)))
+
+
+ ;; pq-next
+ (let ((pq (make-pq '( ((id . "a")) ((id . "b")) )
+                    ;; current
+                    '((id . "a")))))
+   (test "next" '((id . "b")) (pq-next* pq))
+
+   (pq-current-set! pq '((id . b)))
+   (test "false if no next"
+         #f (pq-next* pq))
+   (test "  unless forced"
+         '((id . "a")) (pq-next* pq #t))
+   (pq-loop-set! pq #t)
+   (test "  or pq-loop is true"
+         '((id . "a")) (pq-next* pq #t))
+
+   (pq-current-set! pq #f)
+   (test "first if current #f"
+         '((id . "a")) (pq-next* pq)))
+
 
  (let ((pq (make-pq `(((id . "a"))) '((id . "a")))))
    (test "past last is #f"
