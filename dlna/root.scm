@@ -63,7 +63,7 @@
            ((exn http client-error) #f)
            ;; in case of error, just print it for now and return #f
            (e ()
-              (pp `(dlna error ,uri ,(condition->list e)))
+              (pp `(dlna warning ,uri ,(condition->list e)))
               #f))))
 
 
