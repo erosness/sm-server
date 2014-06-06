@@ -11,10 +11,7 @@
 
 (import notify incubator)
 
-(define *pq* (make-pq
-              '( ((id . "400") (turi . "tr://localhost:5060/t2s?type=tone&id=400"))
-                 ((id . "800") (turi . "tr://localhost:5060/t2s?type=tone&id=800"))
-                 ((id . "999") (turi . "tr://localhost:5060/t2s?type=tone&id=999")))))
+(define *pq* (make-pq))
 
 (define ((change-callback path) oldval newval)
   (send-notification path newval *server-port*))
