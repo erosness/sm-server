@@ -24,5 +24,29 @@
 (include "rest-audio.scm")
 (include "rest-player.scm")
 
-(use nrepl restlib)
-(define (repl*) (nrepl (+ *server-port* 1)))
+(use nrepl posix srfi-18)
+
+(define (make-nonblocking-stdin)
+
+  (define cip (current-input-port))
+  (set-buffering-mode! cip #:none) ;; <-- important!
+
+  (make-input-port (lambda ()
+                     (let loop ()
+
+                       (if (char-ready? cip)
+                           (read-char cip)
+                           (begin
+                             (thread-wait-for-i/o! (port->fileno cip) #:input)
+                             (loop)))))
+                   (lambda () (char-ready? cip))
+                   (lambda () (close-input-port cip))))
+
+;; TODO: make a prettier repl here. parley is pretty but stty's all
+;; messed up on Android.
+(define (repl*)
+  ;; provide a repl on our network:
+  (thread-start! (lambda () (nrepl (+ *server-port* 1))))
+  ;; provide a repl on stdin:
+  (nrepl-loop (make-nonblocking-stdin)
+              (current-output-port)))
