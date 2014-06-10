@@ -10,6 +10,7 @@
 (include "rest-wimp.scm")
 (include "rest-dlna.scm")
 (include "rest-usb.scm")
+(include "rest-tunein.scm")
 
 
 ;; for your repl pleasure:
