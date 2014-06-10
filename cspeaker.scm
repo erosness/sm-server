@@ -5,6 +5,7 @@
 ;;;
 (use pefat)
 (include "incubator.scm")
+(include "store.scm")
 
 (include "closing-http-client.scm")
 
