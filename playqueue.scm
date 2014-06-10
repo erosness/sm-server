@@ -10,8 +10,8 @@
                    pq-add-list
                    pq-current
                    pq-current-set!
-                   pq-loop
-                   pq-loop-set!
+                   pq-loop?
+                   pq-loop?-set!
                    pq-play
                    make-pq
                    pq-add-current-change-listener)
@@ -59,12 +59,12 @@
 
 
 ;; ==================== pq record ====================
-(define-record-type pq (%make-pq list mutex current loop)
+(define-record-type pq (%make-pq list mutex current loop?)
   pq?
   (list pq-list pq-list-set!)
   (mutex pq-mutex)
   (current %pq-current)
-  (loop pq-loop pq-loop-set!))
+  (loop? pq-loop? pq-loop?-set!))
 
 (define-record-printer (pq x port)
   (display (conc "#<pq " (length (pq-list x)) " current: "
@@ -142,7 +142,7 @@
 (define (pq-next* pq #!optional (force-loop #f))
   (or (pq-next/lst* pq (pq-list pq))
 
-      (and-let* (((or (pq-loop pq) force-loop
+      (and-let* (((or (pq-loop? pq) force-loop
                       (not (pq-current pq))))
                  ((not (null? (pq-list pq)))))
         (car (pq-list pq)))))
@@ -259,8 +259,8 @@
          #f (pq-next* pq))
    (test "  unless forced"
          '((id . "a")) (pq-next* pq #t))
-   (pq-loop-set! pq #t)
-   (test "  or pq-loop is true"
+   (pq-loop?-set! pq #t)
+   (test "  or pq-loop? is true"
          '((id . "a")) (pq-next* pq #t))
 
    (pq-current-set! pq #f)

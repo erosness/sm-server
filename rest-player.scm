@@ -31,7 +31,7 @@
       '()))
 
 (define (pq-info pq)
-  `((loop . ,(pq-loop pq))))
+  `((loop . ,(pq-loop? pq))))
 
 ;; Manipulate current track.
 ;; POST: Looks for three keys; turi, paused, pos.
@@ -65,7 +65,7 @@
 
           ;; Change loop?
           (and-let* ((loop (assoc 'loop json-request)))
-            (pq-loop-set! *pq* (cdr loop)))
+            (pq-loop?-set! *pq* (cdr loop)))
 
           ;; Set and NOTIFY new current value
           (let ((new-current (alist-merge current (player-pos-info) (pq-info *pq*))))
