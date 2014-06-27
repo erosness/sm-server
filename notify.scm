@@ -6,7 +6,7 @@
 ;;; change-message: a HTTP-like packet describing a change in the
 ;;; statemap
 
-(module notify (send-notification)
+(module notify (send-notification make-notify-handler)
 
 (import chicken scheme ports data-structures)
 (use socket intarweb spiffy medea multicast srfi-1 srfi-18 restlib)
@@ -31,14 +31,19 @@
                                           (header-value 'echo (request-headers req))))
                                        (else #f)))))))
 
+;; TODO: clean this bit up a bit. we don't need heavyweight defaults
+;; like this
 (define *notify-connections* '())
 
-(define (send-notification path body port)
+(define (send-notification path body port #!optional
+                           (connections (getter-with-setter
+                                         (lambda () *notify-connections*)
+                                         (lambda (new) (set! *notify-connections* new)))))
   (let ((msg (change-message path body port)))
 
     ;; run through all current notify TCP connections
     ;; TODO: make this thread-safe
-    (set! *notify-connections*
+    (set! (connections)
           (filter
            (lambda (port)
 
@@ -53,32 +58,40 @@
                  #f) ;; <-- filter out
               ))
 
-           *notify-connections*))
+           (connections)))
 
     ;; standard UDP multicast
     (udp-multicast msg)))
 
-;; handler for TCP notification listeners. this is an offer for client
-;; outside of our LAN/multicast range.
-(define-handler /v1/player/notify
-  (lambda ()
+(define (make-notify-handler #!optional
+                             (connections
+                              (getter-with-setter (lambda () *notify-connections*)
+                                                  (lambda (new) (set! *notify-connections* new)))))
+  (define (notify-handler)
     (let ((port (response-port (current-response))))
       ;; add out-port to our pool
       ;; TODO: make this thread-safe
-      (set! *notify-connections*
-            (cons port *notify-connections*))
-      ;; TODO: exit this somehow
+      (set! (connections) (cons port (connections)))
+
       (let loop ()
         (thread-sleep! 5)
         ;; if connection has been deleted, let's exit our thread
-        (if (find (lambda (x) (eq? x port)) *notify-connections*)
+        (if (find (lambda (x) (eq? x port)) (connections))
             (loop)))
 
       ;; this is dirty. we actually want to exit this thread
       ;; immediately, but that will clean up TCP connections and send a
       ;; HTTP respone etc so we can't do that. at this point, the
       ;; connection is probably terminated by the client anyway.
-      (error "exiting thread for port " port))))
+      (error "exiting thread for port " port)))
+
+  ;; return a named procedure
+  notify-handler)
+
+;; handler for TCP notification listeners. this is an offer for client
+;; outside of our LAN/multicast range.
+;; TODO: put this elsewhere.
+(define-handler /v1/player/notify (make-notify-handler))
 
 
 (include "notify.tests.scm")
