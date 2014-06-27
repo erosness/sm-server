@@ -99,7 +99,8 @@
 ;; bugs?)
 (define (current-host)
   (update-uri (request-origin (current-request))
-              path: '(/ "")))
+              path: '(/ "")
+              query: '()))
 
 (test-group
  "current-host"
