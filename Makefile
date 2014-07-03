@@ -62,9 +62,14 @@ nics:
 
 # we patched up socket so it compiles with aosp-chicken-install.
 socket:
-ifeq ($(ARCH),arm)
+# you can inspect env variables with this:
+#	$(error	"what to do" $(shell env))
+# but make sure you uninstall socket.so from out/host/
+ifneq ($(ANDROID_BUILD_TOP),"")
+# building for aosp
 	cd socket; $(ci) $(ciflags)
 else
+# building for dev-machine
 	$(ci) $(ciflags) socket
 endif
 
