@@ -4,7 +4,7 @@
 (define (tunein-turi->suri turi)
   ;; tunein happens to use the same "url" field as us. I don't think
   ;; we need to convert
-  (let ((tunein-json (first (tunein-query (uri-decode-string turi)))))
+  (let ((tunein-json (first (tunein-query turi))))
     (or (alist-ref 'is_direct tunein-json) (error "missing is_direct" tunein-json))
     tunein-json))
 
@@ -26,7 +26,7 @@
            (alist-update 'uri (rewrite-uri uri) cjson)))
         ((alist-ref 'turi cjson) =>
          (lambda (turi)
-           (alist-update 'turi (tunein-uri->turi (uri-encode-string turi))
+           (alist-update 'turi (tunein-uri->turi turi)
                          cjson)))
         (else (error "no uri nor turi" cjson))))
 
