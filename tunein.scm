@@ -36,13 +36,17 @@
   (parameterize ((form-urlencoded-separator "&"))
     (uri->string
      (update-uri uri
-                 query: (cons `(render . "json")
-                              (uri-query uri))))))
+                 query: (alist-update 'render "json"
+                                      (uri-query uri))))))
 
 (test-group
  "tunein-uri"
- (test "http://opml.radiotime.com/Browse.ashx?render=json&joe=a"
-       (tunein-uri "Browse.ashx?joe=a")))
+ (test "http://opml.radiotime.com/Browse.ashx?joe=a&render=json"
+       (tunein-uri "Browse.ashx?joe=a"))
+
+ (test "support nested tunein-uri"
+       "http://x/path?render=json"
+       (tunein-uri (tunein-uri "http://x/path"))))
 
 (define (tunein-query path)
   (vector->list
