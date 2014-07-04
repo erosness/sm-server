@@ -3,10 +3,11 @@
 
 (define (fm-send-audio! khz #!optional (duration 0.5))
   ;; send a sound snippet to cplay
-  (process-run
+  (with-output-to-pipe
    (conc "ffmpeg -loglevel quiet -f lavfi "
          " -i \"aevalsrc=sin(" khz "*2*PI*t):d=" duration "\" "
-         " -f s8 udp://localhost:3000?listen")))
+         " -f s8 udp://localhost:3000?listen")
+   void))
 
 ;; (fm-send-audio! 1000)
 ;; (fm-send-audio! 440 7)
@@ -24,7 +25,7 @@
     (thread-start!
      (lambda ()
        (let loop ()
-         (process-wait (fm-send-audio! *freq* 0.1))
+         (fm-send-audio! *freq* 0.1)
          (thread-sleep! 0.2)
          (loop))))))
 
