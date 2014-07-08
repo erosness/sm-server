@@ -43,8 +43,3 @@
                         (tunein-query (if (string? lnk) lnk "/Browse.ashx")))))
                 ;; HACK: we can't have #f as a default value ... using non-string
                 '(lnk 0))))
-
-
-(uri-decode-string "http%3A%2F%2Fopml.radiotime.com%2FBrowse.ashx%3Fid%3Dc424725%26filter%3Dl111&q=&limit=25&offset=0")
-
-(pp (tunein-query "http://opml.radiotime.com/Browse.ashx?id=c424725&filter=l111"))
