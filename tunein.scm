@@ -21,7 +21,6 @@
 
 (use http-client medea uri-common test)
 
-(import turi)
 
 (define (tunein-uri url)
 

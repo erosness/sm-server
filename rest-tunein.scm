@@ -1,6 +1,8 @@
 ;; TODO: make module?
 (include "tunein.scm")
 
+(import turi)
+
 (define (tunein-turi->suri turi)
   ;; tunein happens to use the same "url" field as us. I don't think
   ;; we need to convert
