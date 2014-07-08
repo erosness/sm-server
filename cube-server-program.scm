@@ -21,7 +21,8 @@
 
 (import rest)
 (define dns-sd-unregister!/browser (dns-sd-register nickname port service-type/cube-browser))
-(define dns-sd-unregister!/pq      (dns-sd-register nickname port service-type/cube-pq))
+(define dns-sd-unregister!/pq      (register-pq-with-icon-store nickname port))
+
 (define server-thread (start-rest-server! port))
 
 (repl*)
