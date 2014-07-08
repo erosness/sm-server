@@ -1,5 +1,6 @@
 ;;; use avahi/dns-sd to register a service. it spawns a sub-process
-(use posix)
+(use posix medea)
+(import store)
 
 (define service-type/cube-browser  "_cube-browser._tcp")
 (define service-type/cube-pq            "_cube-pq._tcp")
@@ -17,11 +18,30 @@
 
     name port servicetype))
 
+;; Add txt record if requested and available
+(define (get-txt-record symbol)
+  (define (txt-record txt)
+    (if txt (conc " '" txt "'") ""))
+
+  (and-let* ((symbol)
+             (store (make-store symbol))
+             (data (store))
+             (as-json (with-output-to-string (lambda () (write-json data)))))
+    (txt-record as-json)))
+
 ;; start announce-process asynchronously. returns a procedure which
 ;; will stop it.
-(define (dns-sd-register name port servicetype)
-  (print "running " (discovery-command name port servicetype))
-  (let ((pid (process-run (discovery-command name port servicetype))))
+(define (dns-sd-register name port servicetype #!optional (txt-record-symbol #f))
+
+  (define txt (or (and txt-record-symbol
+                       (get-txt-record txt-record-symbol))
+                  ""))
+
+  (let* ((cmd (discovery-command name port servicetype))
+         (cmd (conc cmd txt))
+         (_ (print "running " cmd))
+         (pid (process-run cmd)))
+
     (set! -last-dns-sd-pid- pid)
     (define (kill-announcer)
       (warning "killing service announce daemon" pid)

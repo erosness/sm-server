@@ -1,5 +1,5 @@
 ;; minimum includes for cspeaker to work
-(use pefat spiffy matchable)
+(use pefat spiffy matchable medea)
 
 
 ;; launch a main program
@@ -10,12 +10,12 @@
 
 ;; does not contain deps (it's included from cube-server.scm too)
 (include "cspeaker.scm")
+(import store)
 
 (print "started cspeaker on http://localhost:" port)
 
 (import rest)
-(define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-pq))
+;; (define dns-sd-unregister! (register-pq-with-icon-store nickname port))
 (define server-thread (start-rest-server! port))
 
 (repl*)
-

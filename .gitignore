@@ -58,3 +58,4 @@
 /stty/stty.so
 /stty/stty-config.scm
 /stty/stty-features
+/data/dns-*
