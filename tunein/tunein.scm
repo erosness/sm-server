@@ -186,7 +186,7 @@
              (if is_direct
                  ;; no turi->suri conversion needed.
                  `((turi . ,url))
-                 (error "is_direct is false" json))))
+                 `((turi . ,(find-direct-uri url))))))
           (else (error "unknown element type" json)))))
 
 (test-group

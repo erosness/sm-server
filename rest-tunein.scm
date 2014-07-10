@@ -5,9 +5,10 @@
 (define (tunein-turi->suri turi)
   ;; tunein happens to use the same "url" field as us. I don't think
   ;; we need to convert
-  (let ((tunein-json (first (tunein-query turi))))
-    (or (alist-ref 'is_direct tunein-json) (error "missing is_direct" tunein-json))
-    tunein-json))
+  (let* ((tunein-json (first (tunein-query turi)))
+         (cjson (tjson->cjsons tunein-json))
+         (url    (alist-ref 'turi cjson)))
+    `((url . ,url))))
 
 (define-turi-adapter tunein-uri->turi "tunein" tunein-turi->suri)
 
