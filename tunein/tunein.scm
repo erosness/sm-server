@@ -135,14 +135,13 @@
      (title . "title")
      (subtitle . "description")
      (image . "http://host/image.png")))
-  (fluid-let ((*server-port* #f))
-    (tjson->cjsons
-     `((element . "outline")
-       (type . "audio")
-       (text . "title")
-       (URL . "http://host/audio.mp3")
-       (subtext . "description")
-       (image . "http://host/image.png")))))
+  (tjson->cjsons
+   `((element . "outline")
+     (type . "audio")
+     (text . "title")
+     (URL . "http://host/audio.mp3")
+     (subtext . "description")
+     (image . "http://host/image.png"))))
 
  (test
   "audio element"
