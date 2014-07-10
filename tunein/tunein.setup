@@ -1,0 +1,7 @@
+;; -*- scheme -*-
+
+(compile -s tunein-module.scm -o tunein.so -J)
+(compile -s tunein.import.scm)
+
+(install-extension 'tunein
+                   '("tunein.so" "tunein.import.so"))

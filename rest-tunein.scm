@@ -1,5 +1,4 @@
-;; TODO: make module?
-(include "tunein.scm")
+(use tunein)
 
 (import turi)
 
