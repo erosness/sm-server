@@ -12,7 +12,7 @@ ciflags ?= -s -keep-installed
 
 all: deps modules
 
-modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp dlna
+modules: blobbery looper pefat multicast tone-generator dab dsp i2c restlib wimp tunein dlna
 	$(ci) $(ciflags)
 
 dlna:
@@ -56,6 +56,9 @@ restlib:
 
 wimp:
 	cd wimp; $(ci) $(ciflags)
+
+tunein:
+	cd tunein; $(ci) $(ciflags)
 
 nics:
 	cd nics; $(ci) $(ciflags)
