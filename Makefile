@@ -78,4 +78,4 @@ endif
 
 
 .PHONY: socket restlib i2c dsp biquad q523 dab tone-generator blobbery deps wimp all \
-	multicast pefat dlna looper nics
+	multicast pefat dlna looper nics tunein
