@@ -19,7 +19,8 @@
 ;;; same url and give the elements). for now, let's just dump the
 ;;; elements in our list too.
 
-(use http-client medea uri-common test)
+(use http-client medea uri-common irregex files ports data-structures fmt
+     test)
 
 
 (define (tunein-uri url)
@@ -80,8 +81,83 @@
                    ((a) (b) (c))
                  #f)))))
 
+;; remove the query part of the url
+(define (strip-query url)
+  (cond ((uri-reference url) => (lambda (u) (uri->string (update-uri u fragment: #f query: '()))))
+        (else url)))
 
-;; note that we have an element type "audio", and element type
+;; find the 4-character-or-less filename extension as symbol
+(define (guess-extension url)
+  (and-let* ((x (pathname-extension (strip-query url))))
+    (and (< (string-length x) 4) (string->symbol x))))
+
+
+(test-group
+ "guess-extension"
+ (test 'mp3 (guess-extension "file.mp3"))
+ (test 'pls (guess-extension  "/mp3/live.pls?service=a6bb&platform=tunein"))
+ ;; strip fragments and query params
+ (test 'dtb (guess-extension "index.dtb?type=animal&name=narwhal#nose"))
+ (test #f (guess-extension "file.toolongm3u")))
+
+
+;; this projects' coolest procedure so far. find a url. anything,
+;; anything at all. XML, m3u, pls - we can do it all man!
+(define (pick-a-uri string)
+  ;; regex for a uri
+  (define $uri  `(: (** 2 5 alpha) ;; schema
+                    "://"
+                    (* (or alphanumeric #\.))
+                    (* (~ "\r\n\"\t <"))))
+
+  (cond ((irregex-search
+          ;; get ASX right by matching a url after something like
+          ;; <ref href="...
+          `(: (w/nocase "<" (* space) "ref ")
+              (: "href" (* space) "=" (? "\""))
+              (submatch ,$uri))
+          string) => (cut irregex-match-substring <> 1))
+        ((irregex-search $uri string) => irregex-match-substring)
+        (else #f)))
+
+
+(test-group
+ "pick-a-uri"
+
+ (define url.blobs (include "tests/raw-data.scm"))
+ (test "enough raw test-data" #t (> (length url.blobs) 10))
+ (for-each (lambda (url.blob)
+             (test (fmt #f (trim 65 "pick-a-uri " (car url.blob)))
+                   (car url.blob)
+                   (pick-a-uri (cdr url.blob))))
+           url.blobs))
+
+
+(define (parse-playlist-uri uri)
+  ;; read max 50k of response
+  (let ((str (with-input-from-request uri #f (cut read-string (* 1024 50)))))
+    (pick-a-uri str)))
+
+;; lookup the uri, if necessary, and return the most likely uri that
+;; can be passed to cplay/ffmpeg for actual audio content. it's more
+;; of a heuristic than anything else, really.
+(define (find-direct-uri uri)
+  ;; check for filename-extension first. even if tunein's is_direct is
+  ;; false, it might still be a direct url. if it ends with .mp3, for
+  ;; example, it's probably a direct url - whatever tunein tells ut.
+  ;; if tunein tells us it _is_ a direct-url, then we trust tunein
+  ;; (for now).
+  (case (guess-extension uri)
+    ;; if extension is one of the supported codecs, assume
+    ;; it's direct.
+    ;; http://inside.radiotime.com/developers/guide/solutions/streaming/chapter3
+    ((mp3 aac wmv wma asf flac ogg mp4) uri)
+    (else (parse-playlist-uri uri) )))
+
+
+
+
+;; NOTE THAT we have an element type "audio", and element type
 ;; "outline" with a type "audio". i think the outline is just one
 ;; level of indirection. we use turi's for outline/audio types.
 ;; outline/link types fit perfectly our turi/uri REST scheme.
