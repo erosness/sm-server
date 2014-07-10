@@ -40,11 +40,15 @@
        (make-pathname (*wimp-base-url*))
        (absolute-uri)))
 
+;; for tokens and docs, see:
+;; http://stage.developer.wimpmusic.com/apps
+;; https://docs.google.com/a/adellica.com/document/d/1TwYNG-bcwwwtDl1ni5TZvYIvPsh59L_GdqpNg1-aWnk
 (define (wimp-login! username password)
   (let ((params `((username . ,username)
                   (password . ,password)
-                  (clientName . "iOS_WiMP-2.5.1.no"))))
-    (set! *wimp-session-params* (-> ((*wimp-query*) (wimp-base-url "login")
+                  (clientName . "iOS_WiMP-2.5.1.no")
+                  (token . "xRxdq-jJNdbCc7La"))))
+    (set! *wimp-session-params* (-> ((*wimp-query*) (wimp-base-url "login/username")
                                      params
                                      read-json)
                                   (select-keys '(sessionId countryCode))))))
