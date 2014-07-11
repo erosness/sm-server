@@ -90,8 +90,9 @@
 ;; Removes and item referenced by id from the playqueue
 ;; Does nothing if id is not found in playqueue
 (define-handler /v1/player/pq/del
-  (lambda () (let* ((id (alist-ref 'id (current-json))))
-          (pq-del *pq* id)
+  (lambda () (and-let* ((json (current-json))
+                   ((alist-ref 'id json)))
+          (pq-del *pq* json)
           `((status . "ok")))))
 
 

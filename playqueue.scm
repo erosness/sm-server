@@ -121,7 +121,10 @@
 
 (define (pq-del* pq item)
   (or (pq-ref* pq item) (error "cannot find" item))
-  (pq-list-set! pq (delete item (pq-list pq))))
+  (and-let* ((itemid (alist-ref 'id item)))
+    (pq-list-set! pq (remove (lambda (x)
+                            (let ((xid (alist-ref 'id x)))
+                              (equal? xid itemid))) (pq-list pq)))))
 
 (define (pq-clear* pq)
   (pq-list-set! pq '())
