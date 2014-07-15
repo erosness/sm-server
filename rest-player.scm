@@ -34,7 +34,7 @@
 (define (player-information #!optional (current (pq-current *pq*)))
   (alist-merge current
                (player-pos-info)
-               `((loop . ,(pq-loop? pq)))))
+               `((loop . ,(pq-loop? *pq*)))))
 
 ;; Manipulate current track.
 ;; POST: Looks for three keys; turi, paused, pos.
