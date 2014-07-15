@@ -33,6 +33,11 @@
 (define (pq-info pq)
   `((loop . ,(pq-loop? pq))))
 
+(define (player-information #!optional (current (pq-current *pq*)))
+  (alist-merge current
+               (player-pos-info)
+               (pq-info *pq*)))
+
 ;; Manipulate current track.
 ;; POST: Looks for three keys; turi, paused, pos.
 ;; If turi is present adds this item to pq and starts playing.
@@ -68,11 +73,11 @@
             (pq-loop?-set! *pq* (cdr loop)))
 
           ;; Set and NOTIFY new current value
-          (let ((new-current (alist-merge current (player-pos-info) (pq-info *pq*))))
+          (let ((new-current (player-information current)))
             (pq-current-set! *pq* new-current)
             new-current))
-        ;else
-        (alist-merge (pq-current *pq*) (player-pos-info) (pq-info *pq*)))))
+        ;;else
+        (player-information))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
@@ -109,12 +114,12 @@
 (define-handler /v1/player/next
   (lambda ()
     (pq-play-next *pq* #t)
-    (pq-current *pq*)))
+    (player-information)))
 
 (define-handler /v1/player/prev
   (lambda ()
     (pq-play-prev *pq*)
-    (pq-current *pq*)))
+    (player-information)))
 
 ;; ==================== seek position hearbeat ====================
 (import notify)
