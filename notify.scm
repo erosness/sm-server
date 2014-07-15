@@ -83,7 +83,12 @@
       ;; immediately, but that will clean up TCP connections and send a
       ;; HTTP respone etc so we can't do that. at this point, the
       ;; connection is probably terminated by the client anyway.
-      (error "exiting thread for port " port)))
+
+      ;; if we return here, we get "cannot write to socket - broken
+      ;; pipe" because Spiffy is trying to reply to an HTTP connection
+      ;; that we have hijacked. I wonder if thread-terminate! will
+      ;; leak anything?
+      (thread-terminate! (current-thread))))
 
   ;; return a named procedure
   notify-handler)
