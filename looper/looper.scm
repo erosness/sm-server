@@ -75,6 +75,28 @@
          (continue? (lambda () (not (timeout?)))))
     (loop/when continue? thunk)))
 
+;; eval thunk maximum every `seconds` seconds.
+;; (loop/interval 1 (lambda () (print "hello world"))) will print every second.
+(define (loop/interval seconds thunk)
+  ;; like current-seconds but with ms precision
+  (define (current-secs) (* (current-milliseconds) 0.001))
+  ;; keep track of when thunk was last started
+  (define last-run #f)
+  ;; mark thunk as started
+  (define (run!)    (set! last-run (current-secs)))
+  ;; how many seconds since thunk was last started
+  (define (elapsed) (- (current-secs) last-run))
+  ;; how long to wait before thunk is allowed to be called again
+  (define (wait-time)
+    (if last-run
+        (max 0 (- seconds (elapsed)))
+        0))
+  (lambda ()
+    (thread-sleep! (wait-time))
+    (run!)
+    (thunk)))
+
+
 ;; retry loop as until thunk returns #f, or (handler e) in case of
 ;; error. your error-handler returns #f to exit the loop.
 (define (loop/exceptions handler thunk)
@@ -134,6 +156,33 @@
    (test 1 (to))
    (thread-sleep! 0.02)
    (test #f (to))))
+
+(test-group
+ "loop/interval"
+
+ (let ((clock (start-timer))
+       (interval 0.05)
+       (count 3))
+
+   (test "ran three times"
+         "\n\n\n"
+         (->> (loop/count count print)
+              (loop/interval interval)
+              (loop)
+              (with-output-to-string)))
+
+   (test (conc "took " interval "s each time")
+         #t
+         (> (clock) (* count interval))))
+
+ (test
+  "nested can exit interval"
+  "x"
+  (->> (loop/interval 0.01 (lambda () (display "x") #f))
+       (loop)
+       (with-output-to-string))))
+
+
 
 (test-group
  "socket timeout"
