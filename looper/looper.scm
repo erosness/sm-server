@@ -54,6 +54,18 @@
 (define (loop/when pred thunk)
   (lambda () (and (pred) (thunk))))
 
+;; call thunk maximum count times. exit on reaching count or thunk
+;; returning #f.
+(define (loop/count count thunk)
+  (define counter count)
+  (define (inc!) (set! counter (sub1 counter)))
+  (lambda ()
+    (if (> counter 0)
+        (let ((result (thunk)))
+          (inc!)
+          result)
+        #f)))
+
 ;; retry loop as long as thunk and (thread-closed?) don't return #f
 (define (loop/thread thunk #!optional (continue? thread-closed?))
   (loop/when continue? thunk))
@@ -100,6 +112,21 @@
  "loop/when"
  (test "loop/when continue"  1 ((loop/when (lambda () #t) (lambda () 1))))
  (test "loop/when break" #f ((loop/when (lambda () #f) (lambda () 1)))))
+
+
+(test-group
+ "loop/count"
+
+ (test
+  "loop/count counter"
+  "\n\n\n"
+  (with-output-to-string (loop (loop/count 3 print))))
+
+ (test
+  "loop/count thunk exit"
+  "x"
+  (with-output-to-string (loop (loop/count 10 (lambda () (display "x") #f))))))
+
 
 (test-group
  "loop/timeout"
