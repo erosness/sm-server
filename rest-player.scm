@@ -116,9 +116,6 @@
     (pq-play-prev *pq*)
     (pq-current *pq*)))
 
-;; (/player/pq/next)
-;; (/player/pq/prev)
-
 ;; ==================== seek position hearbeat ====================
 (import notify)
 (use looper multicast medea)
