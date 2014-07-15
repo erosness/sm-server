@@ -25,18 +25,16 @@
 ;; playing)
 (define (player-pos-info)
   (if (player-pos) ;; <- active cplay?
-      (alist-merge `((pos .      ,(player-pos))
-                     (duration . ,(player-duration))
-                     (paused .   ,(player-paused?))))
+      `((pos .      ,(player-pos))
+        (duration . ,(player-duration))
+        (paused .   ,(player-paused?)))
       '()))
 
-(define (pq-info pq)
-  `((loop . ,(pq-loop? pq))))
 
 (define (player-information #!optional (current (pq-current *pq*)))
   (alist-merge current
                (player-pos-info)
-               (pq-info *pq*)))
+               `((loop . ,(pq-loop? pq)))))
 
 ;; Manipulate current track.
 ;; POST: Looks for three keys; turi, paused, pos.
