@@ -107,15 +107,14 @@
 (define-handler /v1/player/pq (lambda () (list->vector (pq-list *pq*))))
 
 (define-handler /v1/player/next
-  (lambda () (let ((nx (pq-next *pq* #t)))
-          (pq-play-next *pq* #t)
-          nx)))
+  (lambda ()
+    (pq-play-next *pq* #t)
+    (pq-current *pq*)))
 
 (define-handler /v1/player/prev
-  (lambda () (let ((nx (pq-prev *pq*)))
-          (pq-play-prev *pq*)
-          nx)))
-
+  (lambda ()
+    (pq-play-prev *pq*)
+    (pq-current *pq*)))
 
 ;; (/player/pq/next)
 ;; (/player/pq/prev)
