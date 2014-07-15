@@ -131,7 +131,7 @@
     (thread-start!
      (make-thread
       (->> (lambda () (fm-thread-iteration))
-           (loop/interval 2)
+           (loop/interval 0.5)
            (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
                                                 ,(condition->list e)))
                                #t))
