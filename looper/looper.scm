@@ -175,7 +175,7 @@
 
    (test (conc "took " interval "s each time")
          #t
-         (> (clock) (* count interval))))
+         (>= (clock) (* count interval))))
 
  (test
   "nested can exit interval"
