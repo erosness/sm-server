@@ -94,9 +94,8 @@
   (define fm-thread
     (thread-start!
      (make-thread
-      (->> (lambda ()
-             (thread-sleep! 1)
-             (fm-thread-iteration))
+      (->> (lambda () (fm-thread-iteration))
+           (loop/interval 2)
            (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
                                                 ,(condition->list e)))
                                #t))

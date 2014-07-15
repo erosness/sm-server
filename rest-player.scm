@@ -135,9 +135,8 @@
 (define player-seek-thread
   (thread-start!
    (make-thread
-    (->> (lambda ()
-           (thread-sleep! 1)
-           (player-thread-iteration))
+    (->> (lambda () (player-thread-iteration))
+         (loop/interval 1)
          (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
                                               ,(condition->list e))) #t))
          (loop))
