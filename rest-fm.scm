@@ -99,6 +99,6 @@
              (fm-thread-iteration))
            (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
                                                 ,(condition->list e)))
-                               #f))
+                               #t))
            (loop))
       "fm-thread"))))
