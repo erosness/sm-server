@@ -12,17 +12,27 @@
 
 ;; return a procedure which tells you if seconds has passed since
 ;; start-timer was evaluated. useful for timeouts.
-(define (start-timer seconds)
-  (let ((end (+ (current-milliseconds)
-                (* seconds 1000))))
-    (lambda () (> (current-milliseconds) end))))
+(define (start-timer #!optional (seconds 0))
+  (define start (current-milliseconds))
+  (define (elapsed) (* (- (current-milliseconds) start) 0.001))
+  (lambda ()
+    (if (>= (elapsed) seconds)
+        (elapsed)
+        #f)))
 
 (test-group
  "start-timer"
- (let ((timeout? (start-timer 0.05)))
-   (test #f (timeout?))
+ (let ((clock (start-timer)))
+   (test "never return #f with 0-timer" #t (flonum? (clock)))
    (thread-sleep! 0.1)
-   (test #t (timeout?))))
+   (test "not too fast" #t (>= (clock) 0.1))
+   (test "not too slow" #t (<= (clock) 0.2)))
+
+ (let ((timeout? (start-timer 0.05)))
+   (test "timeout not reached == #f" #f (timeout?))
+   (thread-sleep! 0.1)
+   (test "timeout starts (evals to true)" #t (and (timeout?) #t))) )
+
 
 ;; ==================== thread clean close ====================
 
