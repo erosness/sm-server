@@ -1,5 +1,5 @@
 (use pefat)
-(use http-client multicast test irregex srfi-18 socket utils
+(use http-client test irregex srfi-18 socket utils
      medea
      fmt looper uri-common
      clojurian-syntax parley
@@ -72,11 +72,6 @@
  )
 
 
-(define s (multicast-listen-socket 5055))
-
-;; for your repl pleasures:
-;; (and (socket-receive-ready? s) (socket-receive-from s 2048))
-
 ;; our global server-state
 (define state `())
 
@@ -143,7 +138,7 @@
      (->> (lambda ()
             ;; so that nrepl don't steal our original terminal output
             ;; prompt
-            (receive (packet addr) (socket-receive-from s 2048)
+            (receive (packet addr) (error "TODO: get NOTIFY msgs from /v1/player/notify")
               ;; TODO: check addr is our current server
               (if (current-player? addr)
                   (begin

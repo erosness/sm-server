@@ -5,7 +5,7 @@
 
 (import chicken scheme data-structures notify)
 (use srfi-18 srfi-69 ports
-     test uri-common medea multicast spiffy intarweb
+     test uri-common medea spiffy intarweb
      restlib clojurian-syntax matchable)
 
 ;; ==================== handler ====================

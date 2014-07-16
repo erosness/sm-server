@@ -1,7 +1,6 @@
 ;;; helpers for broadcasting alerts to peers.
 ;;;
 ;;; === glossary ===
-;;; broadcast: any UDP multicase/broadcast message
 ;;;
 ;;; change-message: a HTTP-like packet describing a change in the
 ;;; statemap
@@ -9,9 +8,8 @@
 (module notify (send-notification make-notify-handler)
 
 (import chicken scheme ports data-structures)
-(use socket intarweb spiffy medea multicast srfi-1 srfi-18 restlib)
+(use socket intarweb spiffy medea srfi-1 srfi-18 restlib)
 
-(import multicast)
 
 ;; create a message that represents `path` changing into `body`. port
 ;; specifies "owner" so change-message origins can be identified
@@ -58,10 +56,7 @@
                  #f) ;; <-- filter out
               ))
 
-           (connections)))
-
-    ;; standard UDP multicast
-    (udp-multicast msg)))
+           (connections)))))
 
 (define (make-notify-handler #!optional
                              (connections

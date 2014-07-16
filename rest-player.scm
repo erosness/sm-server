@@ -7,7 +7,7 @@
         playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras
-     medea multicast)
+     medea)
 
 (import notify incubator)
 
@@ -121,7 +121,7 @@
 
 ;; ==================== seek position hearbeat ====================
 (import notify)
-(use looper multicast medea)
+(use looper medea)
 
 
 ;; do this on every player hearbeat interval
