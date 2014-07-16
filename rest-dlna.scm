@@ -1,5 +1,6 @@
 
 (use dlna restlib spiffy srfi-18
+     srfi-13 ;; string-hash
      looper)
 
 (define *devices* (lambda () '()))
@@ -56,7 +57,86 @@
 (define-handler /v1/catalog/dlna
   (lambda () `((tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/dlna/browse"))))))))
 
-(define (talist->mblist talists)
+
+
+;; ==================== glossary ====================
+;;
+;; id - id param in turi (t2s&type=dlna&id=...)
+;; bid - browse-id, string used to id DLNA containers
+;; service - url to a DLNA content-dir service
+;; sid - hash of service url (for turi shortness)
+
+;; compute a sid based on service-string. just to shorten long urls
+;; down to some "hash" value. we use this hash to pick the original
+;; url back. chance of collision should be small! specially
+;; considering there are normally only one or two possible originals.
+(define (service->sid service)
+  (conc (string-hash service 99999)))
+
+;; return original service-string from sid or #f
+(define (sid->service sid services)
+  (find (lambda (s) (equal? (service->sid s) sid))
+        services))
+
+;; turi id string (uri-encoded) <====> service & browse-id. a service
+;; is a url, and the the browse-id is the container id of the folder
+;; to browse.
+(define (service&bid->id service #!optional (bid "0"))
+  ;; add preceeding b for "browse", in case we need an "s" for
+  ;; "search" later.
+  (uri-encode-string (conc "b" (service->sid service) "." bid)))
+
+(define (id->service&bid id)
+  (let* ((id (uri-decode-string id))
+         (idx (string-index id #\.)))
+
+    (unless (equal? (substring id 0 1) "b")
+      (error "invalid id" id))
+
+    (cons (substring id 1 idx) ;; remove "b" prefix
+          (substring id (add1 idx)))))
+
+(define (id->service id #!optional (devs (content-directories (*devices*))))
+  (sid->service (car (id->service&bid id)) devs))
+
+(define (id->bid id)
+  (cdr (id->service&bid id)))
+
+(test-group
+ "id->service and friends"
+
+ (test "b5543.0"   (service&bid->id "foo"))
+ (test "b5543.%3A" (service&bid->id "foo" ":"))
+
+ (test "0" (id->bid "b5543.0"))
+ (test ":" (id->bid "b5543.%3A"))
+
+ (test "foo" (id->service "b5543.XXX" '("foo")))
+
+ ;; the ultimate challenge. crazy strings back and forth.
+ (let* ((services '("*&:?://dawdfaf.!@$#%^&(*^^_&^>.#$#%+__+:" "b"))
+        (service (car services))
+        (bid "(*&DAWDAD^$#%R.>:AW\"D?><+_+_-_+")
+        ;; final conversion:
+        (id (service&bid->id service bid)))
+   ;; (print "id is " id)
+   (test bid     (id->bid id))
+   (test service (id->service      id services))))
+
+;; compute a proper return-url for browsing.
+(define (service-browse-uri service #!optional (bid "0"))
+  (return-url "/catalog/dlna/browse?id=" (service&bid->id service bid)))
+
+
+;; list all services in a turi-like fashion.
+(define (rest-dlna-services)
+  (map (lambda (service)
+         `((uri . ,(service-browse-uri service))
+           (title . ,"TODO: friendlyname")
+           (subtitle . ,(return-url service))))
+       (content-directories (*devices*))))
+
+(define (talist->mblist talists service)
   (map
    (lambda (item)
      (let ((type (car item))
@@ -65,7 +145,7 @@
        ;; media-browser rest apis. this may be a bad thing.
        (case type
          ((container)
-          `((uri . ,(conc "/catalog/dlna/browse?id=" (alist-ref 'id alst)))
+          `((uri . ,(service-browse-uri service (alist-ref 'id alst)))
             ,@(alist-delete 'id alst)))
          ((track) (alist-delete 'id alst))
          (else (error "invalid talist" item)))))
@@ -80,19 +160,31 @@
   (talist->mblist `((container (id . "0") (title . "foo"))
                     (track (uri . "uri")  (title . "bar") (id . "gone!"))))))
 
+;; browse-query for `service`
+(define (dlna-query/turi service bid)
+  (talist->mblist
+   (didl->talist
+    (browse-query service bid))
+   service))
+
+;; for descriptive errors and easy repl access to sids.
+(define (services&sids)
+  (map (lambda (service) (cons service (service->sid service)))
+      (content-directories (*devices*))))
+
 (define-handler /v1/catalog/dlna/browse
   ;; TODO: note that we query the server for all search-results, and
   ;; just drop off the ones our cube-clients don't want. there's
   ;; probably a way to limit the search-query in this way for the
   ;; DLNA-server too.
   (pagize
-   (lambda ()
-     (append-map
-      (lambda (devc)
-        (talist->mblist
-         (didl->talist
-          (browse-query devc
-                        (or (and (current-request)
-                                 (current-query-param 'id))
-                            "0")))))
-      (content-directories (*devices*))))))
+   (argumentize (lambda (id)
+                  (cond ((number? id) ;; <-- hack for argumentize (no #f default)
+                         (rest-dlna-services)) ;; <-- list all DLNA servers
+                        (else ;; browse a particular server (we have id param)
+                         (let* ((service (or (id->service id)
+                                             (error "sid not found" id
+                                                    (services&sids))))
+                                (bid (id->bid id)))
+                           (dlna-query/turi service bid)))))
+                '(id 0))))
