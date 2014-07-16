@@ -148,10 +148,11 @@
  "rest-dlna talist->mblist"
 
  (test
-  `(((uri . "/catalog/dlna/browse?id=0") (title . "foo"))
+  `(((uri . ,(conc "/catalog/dlna/browse?id=b" (service->sid "service") ".0")) (title . "foo"))
     ((uri . "uri") (title . "bar")))
   (talist->mblist `((container (id . "0") (title . "foo"))
-                    (track (uri . "uri")  (title . "bar") (id . "gone!"))))))
+                    (track (uri . "uri")  (title . "bar") (id . "gone!")))
+                  "service")))
 
 ;; browse-query for `service`
 (define (dlna-query/turi service bid)
