@@ -45,7 +45,7 @@
                         (lambda () (not (eq? 'GET (request-method (current-request)))))))
          #!rest args)
   (let* ((response (apply proc args)))
-    (if (send-message?) (send-notification path response *server-port*))
+    (if (send-message?) (send-notification path response (rest-server-port)))
     response))
 
 
@@ -61,13 +61,11 @@
   (match (and request (header-value 'host (request-headers request)))
     ((host . port) (update-uri (request-uri request)
                                host: host
-                               port: (or port (current-port)
-                                         *server-port* ;;<-- only applicable in repl
-                                         )))
+                               port: (or port (rest-server-port))))
     ;; put together some sensible results when request is #f (ie
     ;; called from repl)
     (else (make-uri host: "localhost"
-                    port: *server-port*
+                    port: (rest-server-port)
                     scheme: 'http
                     query: '()))))
 
@@ -80,18 +78,19 @@
         (request-origin)
         ((lambda (origin) (and origin (uri->string origin))))))
 
- ;; note: http scheme is missing. spiffy adds these on real
- ;; requests, though.
- (test "host + port in header"
-       "//domain:111/"
-       (str->origin "GET / HTTP/1.1\r\nHost: domain:111"))
- (test "host in header"
-       "//domain/"
-       (str->origin "GET / HTTP/1.1\r\nHost: domain"))
+ (parameterize ((rest-server-port 80))
+  ;; note: http scheme is missing. spiffy adds these on real
+  ;; requests, though.
+  (test "host + port in header"
+        "//domain:111/"
+        (str->origin "GET / HTTP/1.1\r\nHost: domain:111"))
+  (test "host in header"
+        "//domain:80/"
+        (str->origin "GET / HTTP/1.1\r\nHost: domain"))
 
- (test "no host in header"
-       "http://localhost"
-       (str->origin "GET / HTTP/1.1\r\n")))
+  (test "no host in header"
+        "http://localhost"
+        (str->origin "GET / HTTP/1.1\r\n"))))
 
 
 ;; pick our current hostname (look up request's host header), or
@@ -105,15 +104,16 @@
 (test-group
  "current-host"
 
- (test "host from header value"
-       (uri-reference "//domain.com/")
-       (with-request ("/" `((host ("domain.com" . #f))))
-                     (current-host)))
+ (parameterize ((rest-server-port #f))
+   (test "host from header value"
+         (uri-reference "//domain.com/")
+         (with-request ("/" `((host ("domain.com" . #f))))
+                       (current-host)))
 
 
- (test "default host"
-       (uri-reference "http://localhost/")
-       (current-host)))
+   (test "default host"
+         (uri-reference "http://localhost/")
+         (current-host))))
 
 
 

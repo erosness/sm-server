@@ -234,11 +234,12 @@
 
 ;; ==================== server ====================
 
+;; copying spiffy's server-port parameter.
+(define rest-server-port server-port)
 
-(define *server-port* #f)
+
 ;; spawns thread!
 (define (start-rest-server! port)
-  (set! *server-port* port)
   (thread-start!
    (lambda ()
      (define handler (->> (lambda () (json-handler))

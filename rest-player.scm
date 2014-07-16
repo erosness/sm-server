@@ -3,7 +3,7 @@
 (import chicken scheme data-structures)
 
 (import player
-        rest ;; <-- *server-port*
+        rest ;; <-- (rest-server-port)
         playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras
@@ -14,7 +14,7 @@
 (define *pq* (make-pq))
 
 (define ((change-callback path) oldval newval)
-  (send-notification path newval *server-port*))
+  (send-notification path newval (rest-server-port)))
 
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
@@ -129,7 +129,7 @@
   (if (playing?) ;; running and not paused?
       (send-notification "/v1/player/pos"
                          (player-pos-info)
-                         *server-port*)))
+                         (rest-server-port))))
 
 (define player-seek-thread
   (thread-start!

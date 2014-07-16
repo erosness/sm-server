@@ -119,7 +119,7 @@
    (lambda ()
      (send-notification "/v1/catalog/fm/seek"
                         (fm-get-state)
-                        *server-port*
+                        (rest-server-port)
                         (getter-with-setter (lambda () *catalog-notify-connections*)
                                             (lambda (new) (set! *catalog-notify-connections* new)))))))
 

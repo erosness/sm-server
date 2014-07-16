@@ -48,7 +48,7 @@
 ;; messed up on Android.
 (define (repl*)
   ;; provide a repl on our network:
-  (thread-start! (lambda () (nrepl (+ *server-port* 1))))
+  (thread-start! (lambda () (nrepl (+ (rest-server-port) 1))))
   ;; provide a repl on stdin:
   (nrepl-loop (make-nonblocking-stdin)
               (current-output-port)))
