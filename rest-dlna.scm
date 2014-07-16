@@ -104,15 +104,7 @@
   (cdr (id->service&bid id)))
 
 (test-group
- "id->service and friends"
-
- (test "b5543.0"   (service&bid->id "foo"))
- (test "b5543.%3A" (service&bid->id "foo" ":"))
-
- (test "0" (id->bid "b5543.0"))
- (test ":" (id->bid "b5543.%3A"))
-
- (test "foo" (id->service "b5543.XXX" '("foo")))
+ "service&bid->id and friends"
 
  ;; the ultimate challenge. crazy strings back and forth.
  (let* ((services '("*&:?://dawdfaf.!@$#%^&(*^^_&^>.#$#%+__+:" "b"))
