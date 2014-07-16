@@ -1,6 +1,7 @@
 
 (use dlna restlib spiffy srfi-18
      srfi-13 ;; string-hash
+     uri-common ;; uri-encode/decode
      looper)
 
 (define *devices* (lambda () '()))
