@@ -238,8 +238,8 @@
 (define rest-server-port server-port)
 
 
-;; spawns thread!
-(define (start-rest-server! port)
+;; spawns server in separate thread on port (rest-server-port).
+(define (start-rest-server!)
   (thread-start!
    (lambda ()
      (define handler (->> (lambda () (json-handler))
@@ -248,7 +248,7 @@
                           (log-handler)))
 
      (vhost-map `((".*" . ,(lambda (continue) (handler)))))
-     (start-server port: port))))
+     (start-server))))
 
 ;; ==================== test utils ====================
 

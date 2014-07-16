@@ -1,5 +1,6 @@
 ;; minimum includes for cspeaker to work
-(use pefat spiffy matchable medea)
+(use pefat)
+(use spiffy matchable medea restlib)
 
 
 ;; launch a main program
@@ -7,6 +8,9 @@
   (match (command-line-arguments)
     ((name . port) (values name (string->number (optional port "5066"))))
     (else (error "usage: name [port]"))))
+
+;; bind dynamic paramter for everybody to use.
+(rest-server-port port)
 
 ;; does not contain deps (it's included from cube-server.scm too)
 (include "cspeaker.scm")
@@ -16,6 +20,6 @@
 
 (import rest)
 ;; (define dns-sd-unregister! (register-pq-with-icon-store nickname port))
-(define server-thread (start-rest-server! port))
+(define server-thread (start-rest-server!))
 
 (repl*)
