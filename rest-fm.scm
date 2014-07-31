@@ -1,5 +1,5 @@
-(use test restlib notify clojurian-syntax)
-(import rest)
+(use test restlib clojurian-syntax)
+(import rest notify)
 
 (define (fm-send-audio! khz #!optional (duration 0.5))
   ;; send a sound snippet to cplay
