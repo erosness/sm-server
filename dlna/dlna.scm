@@ -7,17 +7,25 @@
 ;; fold procedure for ssdp-search, creating a list of
 ;; (rooturl (type . ctr-url) ...)
 ;; this isn't in ssdp.scm because we need root's query-control-urls
+;; TODO: this wraps a nice debug-printer. this debug-printer can be macroified!
 (define (%ssdp-search-fold packet address lst)
-  (let ((l (packet-location packet)))
-    ;; avoid duplicates
-    (if l ;; <--packet location may fail
-        (if (member l (map car lst))
-            lst
-            (let ((control-urls (query-control-urls l)))
-              (if control-urls
-                  (cons (cons l control-urls) lst)
-                  lst)))
-        lst)))
+  (handle-exceptions e
+    (begin
+      (pp `(error ssdp-search
+                  ,packet
+                  ,address
+                  ,(condition->list e)))
+      lst)
+    (let ((l (packet-location packet)))
+      ;; avoid duplicates
+      (if l ;; <--packet location may fail
+          (if (member l (map car lst))
+              lst
+              (let ((control-urls (query-control-urls l)))
+                (if control-urls
+                    (cons (cons l control-urls) lst)
+                    lst)))
+          lst))))
 
 ;; search for surrounding UPnP services. returns a procedure which
 ;; returns devices discovered this far:

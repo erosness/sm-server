@@ -74,9 +74,14 @@
 ;; absolute.
 (define (query-control-urls rootdesc-url)
   (and-let* ((doc (rootdesc-query rootdesc-url)))
-    (service-alist doc (or (base-url doc) ;; take base-url from doc if present
-                           rootdesc-url   ;; otherwise use request url
-                           ))))
+    (handle-exceptions e
+      (begin (pp
+              `(error query-control-urls
+                      ,doc
+                      ,(condition->list e))))
+      (service-alist doc (or (base-url doc) ;; take base-url from doc if present
+                             rootdesc-url ;; otherwise use request url
+                             )))))
 
 
 (include "root.test.scm")
