@@ -11,7 +11,7 @@
 (include "rest-usb.scm")
 (include "rest-tunein.scm")
 (include "rest-dummy-dab.scm")
-(include "rest-fm.scm")
+;; (include "rest-fm.scm")
 
 
 
