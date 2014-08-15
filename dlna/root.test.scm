@@ -155,7 +155,28 @@
        '((fw . "/fw")
          (lan . "/lan")
          (wan . "/wan"))
-       (service-alist doc "")))
+       (service-alist doc ""))
+
+
+ ;; service-type on doc here returns #f which wasn't handled
+ ;; gracefully before.
+ (test "empty services xml causes no errors"
+       '()
+       (service-alist
+        '(*TOP* (*PI* xml "version=\"1.0\" encoding=\"UTF-8\" ")
+                (urn:schemas-upnp-org:device-1-0:root
+                 (urn:schemas-upnp-org:device-1-0:device
+                  (urn:schemas-upnp-org:device-1-0:deviceType
+                   "urn:schemas-bmlinks-jp:device:bmlinks:1")
+                  (urn:schemas-upnp-org:device-1-0:friendlyName "MPC3001")
+                  (urn:schemas-upnp-org:device-1-0:modelName "Aficio MP C3001")
+                  (urn:schemas-upnp-org:device-1-0:serviceList
+                   (urn:schemas-upnp-org:device-1-0:service
+                    (urn:schemas-upnp-org:device-1-0:serviceType)
+                    (urn:schemas-upnp-org:device-1-0:serviceId)
+                    (urn:schemas-upnp-org:device-1-0:SCPDURL)
+                    (urn:schemas-upnp-org:device-1-0:controlURL)
+                    (urn:schemas-upnp-org:device-1-0:eventSubURL)))))))))
 
 ;; ==================== windown mediaserver ====================
 ;; wanna test against this?

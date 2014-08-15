@@ -50,10 +50,12 @@
 
 
 (define (service-alist doc #!optional (baseurl (base-url doc)))
-  (map (lambda (s)
-         (cons (string->symbol (service-type s))
-               (absolute-control-url baseurl s)))
-       (services doc)))
+  (filter-map
+   (lambda (s)
+     (and-let* ((st (service-type s)))
+       (cons (string->symbol st)
+             (absolute-control-url baseurl s))))
+   (services doc)))
 
 ;; perform a HTTP request against uri, returning response as sxml
 (define (rootdesc-query uri)
