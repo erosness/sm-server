@@ -10,7 +10,14 @@
   (let ((filename (conc "/" name "-store.scm")))
     (if (directory? *store-location-android*)
         (conc *store-location-android* filename)
-        (conc *store-location-dev* filename))))
+        (let ((loc (conc *store-location-dev* filename)))
+
+          (unless (directory? *store-location-dev*)
+              (begin
+                (print "creating store directory at " *store-location-dev*)
+                (create-directory *store-location-dev*)))
+
+          loc))))
 
 
 (define (read-store filename default)
