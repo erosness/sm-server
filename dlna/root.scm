@@ -57,11 +57,26 @@
              (absolute-control-url baseurl s))))
    (services doc)))
 
+(use http-client uri-common intarweb)
+;; stolen from closing-http-client.scm. how should this be properly shared?
+(define (with-input-from-request* req writer reader)
+  (let ((req (cond ((request? req) req)
+                   ((uri? req) (make-request uri: req))
+                   ((string? req) (make-request uri: (uri-reference req))))))
+    (with-input-from-request
+     (update-request
+      req
+      headers: (replace-header-contents 'connection
+                                        '(#(close ()))
+                                        (request-headers req)))
+     writer reader)))
+
+
 ;; perform a HTTP request against uri, returning response as sxml
 (define (rootdesc-query uri)
   (define (read-sxml) (ssax:xml->sxml (current-input-port) '()))
   (values (condition-case
-           (with-input-from-request uri #f read-sxml)
+           (with-input-from-request* uri #f read-sxml)
            ((exn http client-error) #f)
            ;; in case of error, just print it for now and return #f
            (e ()
