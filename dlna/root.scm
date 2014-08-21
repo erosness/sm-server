@@ -83,10 +83,9 @@
               (pp `(dlna warning ,uri ,(condition->list e)))
               #f))))
 
-
-;; query an UPnP server's rootdescriptor for it's ContentDirectory:1
-;; control urls. returns #f if none found. returned url is always
-;; absolute.
+;; query an UPnP server's rootdescriptor for it's control urls.
+;; returns #f if none found. returned url is always absolute (that's
+;; why we need the original url)
 (define (query-control-urls rootdesc-url)
   (and-let* ((doc (rootdesc-query rootdesc-url)))
     (handle-exceptions e
