@@ -157,26 +157,27 @@
          (wan . "/wan"))
        (service-alist doc ""))
 
+ (define doc
+   '(*TOP* (*PI* xml "version=\"1.0\" encoding=\"UTF-8\" ")
+           (urn:schemas-upnp-org:device-1-0:root
+            (urn:schemas-upnp-org:device-1-0:device
+             (urn:schemas-upnp-org:device-1-0:deviceType
+              "urn:schemas-bmlinks-jp:device:bmlinks:1")
+             (urn:schemas-upnp-org:device-1-0:friendlyName "MPC3001")
+             (urn:schemas-upnp-org:device-1-0:modelName "Aficio MP C3001")
+             (urn:schemas-upnp-org:device-1-0:serviceList
+              (urn:schemas-upnp-org:device-1-0:service
+               (urn:schemas-upnp-org:device-1-0:serviceType)
+               (urn:schemas-upnp-org:device-1-0:serviceId)
+               (urn:schemas-upnp-org:device-1-0:SCPDURL)
+               (urn:schemas-upnp-org:device-1-0:controlURL)
+               (urn:schemas-upnp-org:device-1-0:eventSubURL)))))))
 
  ;; service-type on doc here returns #f which wasn't handled
  ;; gracefully before.
- (test "empty services xml causes no errors"
-       '()
-       (service-alist
-        '(*TOP* (*PI* xml "version=\"1.0\" encoding=\"UTF-8\" ")
-                (urn:schemas-upnp-org:device-1-0:root
-                 (urn:schemas-upnp-org:device-1-0:device
-                  (urn:schemas-upnp-org:device-1-0:deviceType
-                   "urn:schemas-bmlinks-jp:device:bmlinks:1")
-                  (urn:schemas-upnp-org:device-1-0:friendlyName "MPC3001")
-                  (urn:schemas-upnp-org:device-1-0:modelName "Aficio MP C3001")
-                  (urn:schemas-upnp-org:device-1-0:serviceList
-                   (urn:schemas-upnp-org:device-1-0:service
-                    (urn:schemas-upnp-org:device-1-0:serviceType)
-                    (urn:schemas-upnp-org:device-1-0:serviceId)
-                    (urn:schemas-upnp-org:device-1-0:SCPDURL)
-                    (urn:schemas-upnp-org:device-1-0:controlURL)
-                    (urn:schemas-upnp-org:device-1-0:eventSubURL)))))))))
+ (test "empty services xml causes no errors" '() (service-alist doc))
+ (test "friendly-name" "MPC3001" (friendly-name doc))
+ (test "model-name" "Aficio MP C3001" (model-name doc)))
 
 ;; ==================== windown mediaserver ====================
 ;; wanna test against this?

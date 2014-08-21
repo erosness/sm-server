@@ -6,6 +6,7 @@
   (conc "dev:root/dev:device/" element end))
 (define device-type   (sxpath/car (%device "dev:deviceType") ns))
 (define friendly-name (sxpath/car (%device "dev:friendlyName") ns))
+(define model-name    (sxpath/car (%device "dev:modelName") ns))
 (define services      (sxpath     "*//dev:serviceList/dev:service" ns))
 (define service-type  (sxpath/car "dev:serviceType/text()" ns))
 (define control-url   (sxpath/car "/dev:controlURL/text()" ns))
