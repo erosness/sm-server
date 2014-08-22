@@ -2,24 +2,25 @@
 (use pefat)
 (use spiffy matchable medea restlib)
 
+(include "args.scm")
 
-;; launch a main program
-(define-values (nickname port)
-  (match (command-line-arguments)
-    ((name . port) (values name (string->number (optional port "5066"))))
-    (else (error "usage: name [port]"))))
+(with-args
+ (list (args:make-option (n) #:none "run non-interactively"))
+ (lambda (opts nickname #!optional (port/str "5060"))
+   (define port (string->number port/str))
+   ;; bind dynamic paramter for everybody to use.
+   (rest-server-port port)
 
-;; bind dynamic paramter for everybody to use.
-(rest-server-port port)
+   ;; does not contain deps (it's included from cube-server.scm too)
+   (include "cspeaker.scm")
+   (import store)
 
-;; does not contain deps (it's included from cube-server.scm too)
-(include "cspeaker.scm")
-(import store)
+   (print "started cspeaker on http://localhost:" port)
 
-(print "started cspeaker on http://localhost:" port)
+   (import rest)
+   (define dns-sd-unregister!/pq (register-pq-with-icon-store nickname port))
+   (define server-thread (start-rest-server!))
 
-(import rest)
-;; (define dns-sd-unregister! (register-pq-with-icon-store nickname port))
-(define server-thread (start-rest-server!))
-
-(repl*)
+   (if (alist-ref 'n opts)
+       (thread-join! server-thread)
+       (repl*))))
