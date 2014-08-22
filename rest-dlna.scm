@@ -98,11 +98,14 @@
 
 ;; list all services in a turi-like fashion.
 (define (rest-dlna-services)
-  (map (lambda (service)
-         `((uri . ,(service-browse-uri service))
-           (title . ,"TODO: friendlyname")
-           (subtitle . ,(return-url service))))
-       (append-map ssdp-device-content-directories (*devices*))))
+  (append-map
+   (lambda (device)
+     (map (lambda (service)
+            `((uri . ,(service-browse-uri service))
+              (title . ,(ssdp-device-friendly-name device))
+              (subtitle . ,(ssdp-device-model-name device))))
+          (ssdp-device-content-directories device)))
+   (*devices*)))
 
 ;; DLNA's list of typed-alists -> list of media-browser restful API
 ;; (the json-to-be for our clients)
