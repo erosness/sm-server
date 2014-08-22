@@ -6,6 +6,8 @@
 
 ;; fold procedure for ssdp-search, creating a list of
 ;; (rooturl (type . ctr-url) ...)
+;; fold procedure for ssdp-search, creating a list of devices. each
+;; device is: (rooturl . doc)
 ;; this isn't in ssdp.scm because we need root's query-control-urls
 ;; TODO: this wraps a nice debug-printer. this debug-printer can be macroified!
 (define (%ssdp-search-fold packet address lst)
