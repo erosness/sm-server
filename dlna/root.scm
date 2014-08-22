@@ -6,6 +6,7 @@
   (conc "dev:root/dev:device/" element end))
 (define device-type   (sxpath/car (%device "dev:deviceType") ns))
 (define friendly-name (sxpath/car (%device "dev:friendlyName") ns))
+(define model-name    (sxpath/car (%device "dev:modelName") ns))
 (define services      (sxpath     "*//dev:serviceList/dev:service" ns))
 (define service-type  (sxpath/car "dev:serviceType/text()" ns))
 (define control-url   (sxpath/car "/dev:controlURL/text()" ns))
@@ -82,21 +83,6 @@
            (e ()
               (pp `(dlna warning ,uri ,(condition->list e)))
               #f))))
-
-
-;; query an UPnP server's rootdescriptor for it's ContentDirectory:1
-;; control urls. returns #f if none found. returned url is always
-;; absolute.
-(define (query-control-urls rootdesc-url)
-  (and-let* ((doc (rootdesc-query rootdesc-url)))
-    (handle-exceptions e
-      (begin (pp
-              `(error query-control-urls
-                      ,doc
-                      ,(condition->list e))))
-      (service-alist doc (or (base-url doc) ;; take base-url from doc if present
-                             rootdesc-url ;; otherwise use request url
-                             )))))
 
 
 (include "root.test.scm")

@@ -29,31 +29,6 @@
               (thread-sleep! 50)))
       "*dlna-search-thread*"))))
 
-;; dlna searches may return containers and tracks. containers are
-;; useful for browsing. tracks should contain turis available for
-;; playback.
-(define (track? talist)
-  (and (pair? talist)
-       (eq? (car talist) 'track)))
-
-(define ((make-dlna-search-call search) q)
-
-  ;; not yet supported
-  (define limit 10)
-  (define offset 0)
-
-  (let ((result (filter track? (search (*devices*) q))))
-    (make-search-result limit offset
-                        (length result)
-                        (map cdr result))))
-
-(define (%dlnas p) (argumentize (make-dlna-search-call p) 'q))
-
-;; note: we don't need an audio host because turi's should be http
-;; from the UPnP server directly.
-(define-handler /v1/catalog/dlna/artist (%dlnas dlna-search/artist))
-(define-handler /v1/catalog/dlna/album  (%dlnas dlna-search/album))
-(define-handler /v1/catalog/dlna/track  (%dlnas dlna-search/track))
 
 (define-handler /v1/catalog/dlna
   (lambda () `((tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/dlna/browse"))))))))
@@ -97,7 +72,7 @@
     (cons (substring id 1 idx) ;; remove "b" prefix
           (substring id (add1 idx)))))
 
-(define (id->service id #!optional (devs (content-directories (*devices*))))
+(define (id->service id #!optional (devs (append-map ssdp-device-content-directories (*devices*))))
   (sid->service (car (id->service&bid id)) devs))
 
 (define (id->bid id)
@@ -123,12 +98,17 @@
 
 ;; list all services in a turi-like fashion.
 (define (rest-dlna-services)
-  (map (lambda (service)
-         `((uri . ,(service-browse-uri service))
-           (title . ,"TODO: friendlyname")
-           (subtitle . ,(return-url service))))
-       (content-directories (*devices*))))
+  (append-map
+   (lambda (device)
+     (map (lambda (service)
+            `((uri . ,(service-browse-uri service))
+              (title . ,(ssdp-device-friendly-name device))
+              (subtitle . ,(ssdp-device-model-name device))))
+          (ssdp-device-content-directories device)))
+   (*devices*)))
 
+;; DLNA's list of typed-alists -> list of media-browser restful API
+;; (the json-to-be for our clients)
 (define (talist->mblist talists service)
   (map
    (lambda (item)
@@ -164,7 +144,7 @@
 ;; for descriptive errors and easy repl access to sids.
 (define (services&sids)
   (map (lambda (service) (cons service (service->sid service)))
-      (content-directories (*devices*))))
+      (map ssdp-device-services (*devices*))))
 
 (define-handler /v1/catalog/dlna/browse
   ;; TODO: note that we query the server for all search-results, and

@@ -1,24 +1,32 @@
 (use test)
 
 
+;; test our simple data-structures and helpers
+(test-group
+ "ssdp-device and friends"
+ (define doc
+   '(*TOP* (*PI* xml "version=\"1.0\" encoding=\"UTF-8\" ")
+           (urn:schemas-upnp-org:device-1-0:root
+            (urn:schemas-upnp-org:device-1-0:device
+             (urn:schemas-upnp-org:device-1-0:friendlyName "MPC3001")
+             (urn:schemas-upnp-org:device-1-0:modelName "Aficio MP C3001")
+             (urn:schemas-upnp-org:device-1-0:serviceList
+              (urn:schemas-upnp-org:device-1-0:service
+               (urn:schemas-upnp-org:device-1-0:serviceType "st")
+               (urn:schemas-upnp-org:device-1-0:serviceId "sid")
+               (urn:schemas-upnp-org:device-1-0:controlURL "/ctl/url")))))))
+
+ (define dev (make-ssdp-device "http://root" doc))
+
+ (test "http://root" (ssdp-device-root-location dev))
+ (test "MPC3001" (ssdp-device-friendly-name dev))
+ (test "Aficio MP C3001" (ssdp-device-model-name dev))
+ (test `((st . "http://root/ctl/url")) (ssdp-device-services dev)))
+
+
 (test
  "%ssdp-search-fold"
-
- '(  ("http://b.com" (service . "ctrurl"))
-     ("http://a.com" (service . "ctrurl")))
-
- ;; query-control-urls requires network & server
- (fluid-let ((query-control-urls (lambda (l) '((service . "ctrurl")))))
-   (->> '()
-        (%ssdp-search-fold "http/1.1 200 ok\nlocation: http://a.com\n\n" #f)
-        (%ssdp-search-fold "http/1.1 200 ok\nlocation: http://b.com\n\n" #f))))
-
-
-(test
- "content-directories from devices"
- '("cdurl")
- (content-directories
-  '( ("http://10.0.0.19:8200/rootDesc.xml" ;; my MiniDLNA with mods
-      (urn:schemas-upnp-org:service:ContentDirectory:1 . "cdurl")
-      (urn:schemas-upnp-org:service:ConnectionManager:1 . "cmurl")
-      (urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1 . "msurl")))))
+ '( ("http://a.com" . (*TOP* (element))) )
+ ;; rootdesc-query requires network & server - mock it!
+ (fluid-let ((rootdesc-query (lambda (l) '(*TOP* (element)))))
+   (%ssdp-search-fold "http/1.1 200 ok\nlocation: http://a.com\n\n" 'addresss '())))
