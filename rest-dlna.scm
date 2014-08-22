@@ -72,7 +72,7 @@
     (cons (substring id 1 idx) ;; remove "b" prefix
           (substring id (add1 idx)))))
 
-(define (id->service id #!optional (devs (content-directories (*devices*))))
+(define (id->service id #!optional (devs (append-map ssdp-device-content-directories (*devices*))))
   (sid->service (car (id->service&bid id)) devs))
 
 (define (id->bid id)
@@ -102,7 +102,7 @@
          `((uri . ,(service-browse-uri service))
            (title . ,"TODO: friendlyname")
            (subtitle . ,(return-url service))))
-       (content-directories (*devices*))))
+       (append-map ssdp-device-content-directories (*devices*))))
 
 ;; DLNA's list of typed-alists -> list of media-browser restful API
 ;; (the json-to-be for our clients)
@@ -141,7 +141,7 @@
 ;; for descriptive errors and easy repl access to sids.
 (define (services&sids)
   (map (lambda (service) (cons service (service->sid service)))
-      (content-directories (*devices*))))
+      (map ssdp-device-services (*devices*))))
 
 (define-handler /v1/catalog/dlna/browse
   ;; TODO: note that we query the server for all search-results, and

@@ -4,8 +4,30 @@
 (include "root.scm")
 (include "didl.scm")
 
-;; fold procedure for ssdp-search, creating a list of
-;; (rooturl (type . ctr-url) ...)
+
+;; nice convenience wrappers around root.scm's API
+(define (make-ssdp-device root-location doc) (cons root-location doc))
+(define (ssdp-device-root-location device)   (car device))
+(define (ssdp-device-doc device)             (cdr device))
+(define (ssdp-device-friendly-name device)   (friendly-name (ssdp-device-doc device)))
+(define (ssdp-device-model-name device)      (model-name (ssdp-device-doc device)))
+
+
+;; xml urls may be relative to:
+;; - an root-url specified in the XML document itself
+;; - the root-descritor host from which the XML document was retrieved
+(define (ssdp-device-services device)
+  (let ((doc (ssdp-device-doc device)))
+    (service-alist doc
+                   (or (base-url doc) ;; take base-url from doc if present
+                       (ssdp-device-root-location device))))) ;; otherwise use request url
+
+;; like ssdp-device-services, but filter out just the
+;; ContentDirectory:1 services that can be used for searching and
+;; browsing of files.
+(define (ssdp-device-content-directories device)
+  (filter-map ContentDirectory:1 (ssdp-device-services device)))
+
 ;; fold procedure for ssdp-search, creating a list of devices. each
 ;; device is: (rooturl . doc)
 ;; this isn't in ssdp.scm because we need root's query-control-urls
@@ -21,12 +43,11 @@
     (let ((l (packet-location packet)))
       ;; avoid duplicates
       (if l ;; <--packet location may fail
-          (if (member l (map car lst))
+          (if (member l (map ssdp-device-root-location lst))
               lst
-              (let ((control-urls (query-control-urls l)))
-                (if control-urls
-                    (cons (cons l control-urls) lst)
-                    lst)))
+              (let ((doc (rootdesc-query l)))
+                (if doc (cons (make-ssdp-device l doc) lst)
+                    (error "cannot parse " l))))
           lst))))
 
 ;; search for surrounding UPnP services. returns a procedure which
@@ -37,23 +58,10 @@
   (ssdp-search* timeout/sec
                 %ssdp-search-fold
                 '()))
-
-;; given a list of UPnP devices, returns a list of control urls for
-;; all ContentDirectory:1's.
-(define (content-directories devices)
-  (append-map
-   (lambda (services) ;; <-- ((servicetype . url) (servicetype . url) ...)
-     (filter-map ContentDirectory:1 services))
-   (map cdr devices))) ;; <-- remove rootdesc url
-
-
 ;; search all devices for search-criteria (UPnP spec)
-(define (dlna-search devices search-criteria)
-  (append-map
-   (lambda (cdurl)
-     (->> (search-query cdurl search-criteria)
-          (didl->talist)))
-   (content-directories devices)))
+(define (dlna-search service-url search-criteria)
+  (->> (search-query service-url search-criteria)
+       (didl->talist)))
 
 (define ((%search proc) devices q)
   (dlna-search devices (proc q)))

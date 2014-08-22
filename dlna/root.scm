@@ -84,19 +84,5 @@
               (pp `(dlna warning ,uri ,(condition->list e)))
               #f))))
 
-;; query an UPnP server's rootdescriptor for it's control urls.
-;; returns #f if none found. returned url is always absolute (that's
-;; why we need the original url)
-(define (query-control-urls rootdesc-url)
-  (and-let* ((doc (rootdesc-query rootdesc-url)))
-    (handle-exceptions e
-      (begin (pp
-              `(error query-control-urls
-                      ,doc
-                      ,(condition->list e))))
-      (service-alist doc (or (base-url doc) ;; take base-url from doc if present
-                             rootdesc-url ;; otherwise use request url
-                             )))))
-
 
 (include "root.test.scm")
