@@ -51,13 +51,12 @@
           lst))))
 
 ;; search for surrounding UPnP services. returns a procedure which
-;; returns devices discovered this far:
-;;
-;; ( (rooturl (service-type . ctr-url) ...) ...)
+;; returns devices discovered this far
 (define (ssdp-search #!optional (timeout/sec 60))
   (ssdp-search* timeout/sec
                 %ssdp-search-fold
                 '()))
+
 ;; search all devices for search-criteria (UPnP spec)
 (define (dlna-search service-url search-criteria)
   (->> (search-query service-url search-criteria)
@@ -74,4 +73,4 @@
 
 ;; (define *devices* (ssdp-search))
 ;; (pp (*devices*))
-;; (pp (dlna-search/track (*devices*) "michael"))
+;; (pp (dlna-search/track "http://localhost:8000/ctl/ContentDir" "michael"))

@@ -32,5 +32,5 @@ commands:
 ")
 
 (repl)
-;; (ls "jackson")
-;; (devices)
+;; (search "jackson")
+;; (pp (*devices*))
