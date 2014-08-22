@@ -63,8 +63,8 @@
   (->> (search-query service-url search-criteria)
        (didl->talist)))
 
-(define ((%search proc) devices q)
-  (dlna-search devices (proc q)))
+(define ((%search proc) service-url q)
+  (dlna-search service-url (proc q)))
 
 (define dlna-search/artist (%search (cut conc "upnp:artist contains \"" <> "\"")))
 (define dlna-search/album  (%search (cut conc "upnp:album contains \""  <> "\"")))
