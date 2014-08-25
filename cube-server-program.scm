@@ -1,5 +1,4 @@
 (use pefat)
-(use srfi-18 matchable restlib)
 
 (include "args.scm")
 
@@ -16,6 +15,8 @@
 (with-args
  (list (args:make-option (n) #:none "run non-interactively"))
  (lambda (opts nickname #!optional (port/string "5055"))
+
+   (use srfi-18 matchable restlib)
 
    (define port (string->number port/string))
    ;; bind our server port "globally" for everybody to use

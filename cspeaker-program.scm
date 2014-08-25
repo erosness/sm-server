@@ -1,6 +1,5 @@
 ;; minimum includes for cspeaker to work
 (use pefat)
-(use spiffy matchable medea restlib)
 
 (include "args.scm")
 
@@ -8,6 +7,10 @@
  (list (args:make-option (n) #:none "run non-interactively"))
  (lambda (opts nickname #!optional (port/str "5060"))
    (define port (string->number port/str))
+
+
+   (use spiffy matchable medea restlib)
+
    ;; bind dynamic paramter for everybody to use.
    (rest-server-port port)
 
