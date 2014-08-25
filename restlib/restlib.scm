@@ -122,7 +122,8 @@
       (if handler
           (handler)
           (begin
-            (print ";; invalid url visit:" (uri->string (request-uri (current-request))))
+            (print ";; invalid url visit: " (uri->string (request-uri (current-request)))
+                   " from " (remote-address))
             `((error       . ,(conc "not found: " uri))
               (valid-urls  . ,(list->vector (hash-table-keys *uris*)))))))))
 
