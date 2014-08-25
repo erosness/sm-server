@@ -31,6 +31,6 @@
 
    (define server-thread (start-rest-server!))
 
-   (if (alist-ref 'n opts)
+   (if (assoc 'n opts)
        (thread-join! server-thread)
        (repl*))))

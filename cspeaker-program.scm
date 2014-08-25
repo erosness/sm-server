@@ -21,6 +21,6 @@
    (define dns-sd-unregister!/pq (register-pq-with-icon-store nickname port))
    (define server-thread (start-rest-server!))
 
-   (if (alist-ref 'n opts)
+   (if (assoc 'n opts)
        (thread-join! server-thread)
        (repl*))))
