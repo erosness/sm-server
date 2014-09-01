@@ -26,7 +26,7 @@
 (include "rest-player.scm")
 (include "rest-version.scm")
 
-(use nrepl posix srfi-18)
+(use nrepl posix srfi-18 spiffy)
 
 (define (make-nonblocking-stdin)
 
