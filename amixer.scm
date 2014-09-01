@@ -7,7 +7,7 @@
 (import chicken scheme extras)
 (use posix test data-structures irregex)
 
-;; parse the output of amixer cget and cset commands.
+;; parse the output of amixer cget and cget commands.
 (define (amixer-parse/cget str)
 
   (let ((regex '(: ":" (* space) "values=" (=> left (+ numeric)) )))
@@ -33,7 +33,7 @@
 
  (test "alsa_amixer android"
        13
-       (amixer-parse/cset
+       (amixer-parse/cget
         "numid=110,iface=MIXER,name='Playback Volume (plain)'
   ; type=INTEGER,access=rw---R--,values=1,min=0,max=8388608,step=0
   : values=13
