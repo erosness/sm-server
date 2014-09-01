@@ -45,7 +45,7 @@
                    (lambda () (close-input-port cip))))
 
 ;; provide a repl on our network
-(define (start-nrepl #!optional (port (+ (rest-server-port) 1)))
+(define (start-nrepl #!optional (port (+ (server-port) 1)))
   (thread-start! (lambda () (nrepl port))))
 
 ;; TODO: make a prettier repl here. parley is pretty but stty's all
