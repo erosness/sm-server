@@ -30,5 +30,15 @@
  (test #f (equalizer? '#(1 2 3 4 a))))
 
 (define-simple-wrapper /v1/player/mute   mute      boolean?)
-(define-simple-wrapper /v1/player/volume volume    number?)
 (define-simple-wrapper /v1/player/eq     equalizer equalizer?)
+
+(include "amixer.scm")
+(use amixer)
+
+;;(define-simple-wrapper /v1/player/volume volume    number?)
+(define-handler /v1/player/volume
+  (lambda ()
+    (let ((vol (if (current-json)
+                   (amixer-volume (alist-ref 'value (current-json)))
+                   (amixer-volume))))
+     `((value . ,vol)))))
