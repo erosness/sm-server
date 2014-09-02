@@ -74,7 +74,7 @@
 ;; we want to use the same API for both.
 (define (amixer-volume/cube #!optional value)
 
-  (let* ((scale (/ 65500 100))
+  (let* ((scale 1)
          (output (if value
                      ;; set volume
                      (with-input-from-pipe
