@@ -33,7 +33,7 @@
 (define-simple-wrapper /v1/player/eq     equalizer equalizer?)
 
 (include "amixer.scm")
-(use amixer)
+(import amixer)
 
 ;;(define-simple-wrapper /v1/player/volume volume    number?)
 (define-handler /v1/player/volume
