@@ -19,22 +19,27 @@
     name port servicetype))
 
 ;; Add txt record if requested and available
-(define (get-txt-record symbol)
+(define (get-txt-record symbol type)
   (define (txt-record txt)
     (if txt (conc " '" txt "'") ""))
 
   (and-let* ((symbol)
              (store (make-store symbol))
-             (data (store))
+
+             ;; always include type, (store) returns #f if empty
+             (data (cons `(type . ,type) (or (store) '())))
+
              (as-json (with-output-to-string (lambda () (write-json data)))))
     (txt-record as-json)))
 
+
+
 ;; start announce-process asynchronously. returns a procedure which
 ;; will stop it.
-(define (dns-sd-register name port servicetype #!optional (txt-record-symbol #f))
+(define (dns-sd-register name port servicetype #!optional (txt-record-symbol #f) (type #f))
 
   (define txt (or (and txt-record-symbol
-                       (get-txt-record txt-record-symbol))
+                       (get-txt-record txt-record-symbol type))
                   ""))
 
   (let* ((cmd (discovery-command name port servicetype))

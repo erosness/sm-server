@@ -61,11 +61,11 @@
 ;; record. Upon change the service is stopped and restarted with the
 ;; new txt record. We have to do this due to limitations in
 ;; avahi-publish.
-(define (register-pq-with-icon-store nickname port)
+(define (register-pq-with-icon-store nickname port #!optional (type "speaker"))
 
   (import rest)
   (define txt-record (string->symbol (conc "dns-" nickname "-" port)))
-  (define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-pq txt-record))
+  (define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-pq txt-record type))
 
   ;; TODO: don't hardcode /v1/player
   (define-handler /v1/player
