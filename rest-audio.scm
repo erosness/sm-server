@@ -40,7 +40,7 @@
     (let ((vol (if (current-json)
                    (amixer-volume (alist-ref 'value (current-json)))
                    (amixer-volume))))
-     `((value . ,vol)))))
+      `((value . ,vol)))))
 
 
 ;;(define-simple-wrapper /v1/player/eq     equalizer equalizer?)
@@ -51,6 +51,3 @@
                   (amixer-eq (vector->list (alist-ref 'value (current-json))))
                   (amixer-eq))))
       `((value . ,(list->vector eq))))))
-
-
-(amixer-eq '(1 2 3 4 5))
