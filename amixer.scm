@@ -54,7 +54,63 @@
    (cmd/getter-setter "alsa_amixer -c 1" "cget" "cset" "name=\"Playback Volume (plain)\"")))
 
 
+;; fp => (fp fp fp fp fp)
+(define (make-biquad-converter band #!optional (rate 48000) (slope 0.7))
+  (lambda (gain) (sigma-eq-coefficients gain band rate slope)))
+
+(define (eq-band-frequency band-index)
+  (alist-ref band-index
+             '((0 .    64)
+               (1 .   250)
+               (2 .  1000)
+               (3 .  4000)
+               (4 . 16000))))
+;; (eq-band-frequency 2)
+
+
+(define (make-amixer-eq band-index)
+  (assert (number? band-index))
+
+  ;; we don't have amixer getters for EQ Stages because we can only
+  ;; get coefficients back. so we cache EQ values (should be fixed in
+  ;; interface for kernel)
+  ;; TODO: make thread-safe or replace with a real cmdline getter
+  (define cached-value 0)
+
+  (define amixer-setter
+    (make-amixer-getter/setter
+     (cmd/getter-setter "alsa_amixer -c 1" "cget" "cset" (conc "name=\"EQ Stage " band-index "\""))))
+
+  (define gain->coefficients (make-biquad-converter (eq-band-frequency band-index)))
+
+  (lambda (#!optional val)
+    (if val
+        (begin
+          (set! cached-value val)
+          (amixer-setter (gain->coefficients val))))
+    cached-value))
+
+(define amixer-eq/cube
+  (let ()
+    ;; allocate 5 getter/setters with cached EQ-values
+    (define amixer-eqs (list-tabulate 5 (lambda (idx) (make-amixer-eq idx))))
+
+    ;; (or #f (fp fp fp ...))
+    (lambda (#!optional gains)
+      (map (lambda (getter/setter-proc gain)
+             (getter/setter-proc gain))
+           amixer-eqs
+           (or gains '(#f #f #f #f #f))))))
+
+;; on-device REPL?
+;;
+;; (test '(1 2 3 4 5) (amixer-eq/cube '(1 2 3 4 5)))
+;; (test '(1 2 3 4 5) (amixer-eq/cube))
+;; (amixer-volume/cube)
+
+
 (define amixer-volume amixer-volume/cube)
+(define amixer-eq amixer-eq/cube)
 
 (include "amixer.test.scm")
 )
