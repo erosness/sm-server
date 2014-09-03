@@ -43,11 +43,14 @@
   (lambda (#!optional vals)
     (assert (or (eq? #f vals) (and (list? vals))))
 
-    (amixer-parse/values
-     (with-input-from-pipe (if vals
-                               (cmd-proc vals)
-                               (cmd-proc))
-                           read-string))))
+    (let ((cmdstring (if vals
+                         (cmd-proc vals)
+                         (cmd-proc))))
+
+      (pp `(debug shell ,cmdstring))
+
+      (amixer-parse/values
+       (with-input-from-pipe cmdstring read-string)))))
 
 (define amixer-volume/cube
   (make-amixer-getter/setter
