@@ -111,8 +111,15 @@
 ;; (test '(1 2 3 4 5) (amixer-eq/cube))
 ;; (amixer-volume/cube)
 
+;; amixer APIs work on lists (multiple values, like for EQ or
+;; left-speaker volume, right-speaker volume). this creates a wrapper
+;; for single-valued controls.
+(define (amixer-wrap-singular proc)
+  (lambda (#!optional val) (if val
+                          (car (proc (list val)))
+                          (car (proc)))))
 
-(define amixer-volume amixer-volume/cube)
+(define amixer-volume (amixer-wrap-singular amixer-volume/cube))
 (define amixer-eq amixer-eq/cube)
 
 (include "amixer.test.scm")
