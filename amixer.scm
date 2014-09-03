@@ -8,32 +8,34 @@
 (use posix test data-structures irregex)
 
 ;; parse the output of amixer cget and cget commands.
-(define (amixer-parse/cget str)
+(define (amixer-parse/values str)
 
-  (let ((regex '(: ":" (* space) "values=" (=> left (+ numeric)) )))
+  (let ((regex '(: ":" (* space) "values=" (=> vals (+ (+ num) (or "," "\n"))))))
 
     (cond ((irregex-search regex str) =>
            (lambda (m)
-             (define (n->num label) (string->number (irregex-match-substring m label)))
-             (n->num 'left)))
+             (map string->number
+                  (string-split
+                   (irregex-match-substring m 'vals)
+                   ",\n"))))
           (else (error "could not parse" str)))))
 
 (test-group
- "amixer-parse/cget"
+ "amixer-parse/values"
 
- (test "simplest amixer case" '0 (amixer-parse/cget "\n  : values=0,0"))
+ (test "simplest amixer case" '(1 2) (amixer-parse/values "\n  : values=1,2\n"))
 
  (test "amixer result parser"
-       10
-       (amixer-parse/cget
+       '(11 22)
+       (amixer-parse/values
         "numid=3,iface=MIXER,name='Master Playback Volume'
   ; type=INTEGER,access=rw------,values=2,min=0,max=65536,step=1
-  : values=10,10\n"))
+  : values=11,22\n"))
 
 
  (test "alsa_amixer android"
-       13
-       (amixer-parse/cget
+       '(13)
+       (amixer-parse/values
         "numid=110,iface=MIXER,name='Playback Volume (plain)'
   ; type=INTEGER,access=rw---R--,values=1,min=0,max=8388608,step=0
   : values=13
@@ -86,7 +88,7 @@
                       "alsa_amixer -c 1 cget name=\"Playback Volume (plain)\" "
                       read-string))))
 
-    (/ (amixer-parse/cget output) scale)))
+    (/ (car (amixer-parse/values output)) scale)))
 
 
 (define (amixer-volume/simple #!optional (value #f))
