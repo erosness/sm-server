@@ -87,7 +87,7 @@
   (define gain->coefficients (make-biquad-converter (eq-band-frequency band-index)))
 
   (lambda (#!optional val)
-    (if val
+    (if (and val (not (eq? cached-value val))) ;; set if present and changed
         (begin
           (set! cached-value val)
           (amixer-setter (gain->coefficients val))))
