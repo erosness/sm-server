@@ -59,7 +59,18 @@
 
 ;; fp => (fp fp fp fp fp)
 (define (make-biquad-converter band #!optional (rate 48000) (slope 0.7))
-  (lambda (gain) (sigma-eq-coefficients gain band rate slope)))
+
+  ;; (test 0.5 (%->factor 75 1))
+  ;; (test -2.0 (%->factor 0))
+  (define (%->factor x #!optional (n 2))
+    (* (- x 50) #|[-50,50]|#
+       0.01     #|[-0.5 , 0.5]|#
+       2        #|[-1,1]|#
+       n        #|[-n,n]|#))
+
+  (lambda (gain%)
+    (map (o inexact->exact round (cut * <> 8388608))
+         (sigma-eq-coefficients  (%->factor gain%) band rate slope))))
 
 (define (eq-band-frequency band-index)
   (alist-ref band-index
