@@ -113,6 +113,10 @@
 (define wimp-track-streamurl       (wimp-lambda ()      "tracks"    tid "streamurl"))
 (define wimp-user-playlists        (wimp-lambda ()      "users"     uid "playlists"))
 
+;; TODO: cache this somehow. don't make requests all over the place.
+(define (wimp-current-user-id)
+  (alist-ref 'userId ((wimp-lambda () "sessions" id) (alist-ref 'sessionId *wimp-session-params*))))
+
 (define (wimp-album-cover-url aid #!optional (w 100) (h 100))
   (conc "http://images.osl.wimpmusic.com/im/im?w=" w "&h=" h "&albumid=" aid))
 
