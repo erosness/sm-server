@@ -89,7 +89,7 @@
   ;; get coefficients back. so we cache EQ values (should be fixed in
   ;; interface for kernel)
   ;; TODO: make thread-safe or replace with a real cmdline getter
-  (define cached-value 0)
+  (define cached-value 50)
 
   (define amixer-setter
     (make-amixer-getter/setter
