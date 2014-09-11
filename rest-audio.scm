@@ -34,20 +34,27 @@
 (include "amixer.scm")
 (import amixer)
 
-;;(define-simple-wrapper /v1/player/volume volume    number?)
-(define-handler /v1/player/volume
-  (lambda ()
-    (let ((vol (if (current-json)
-                   (amixer-volume (alist-ref 'value (current-json)))
-                   (amixer-volume))))
-      `((value . ,vol)))))
+;; HACK: use mock volume and eq on macosx
+(cond-expand
+ ((or macosx)
+  (define-simple-wrapper /v1/player/volume volume    number?))
+ (else
+  (define-handler /v1/player/volume
+    (lambda ()
+      (let ((vol (if (current-json)
+                     (amixer-volume (alist-ref 'value (current-json)))
+                     (amixer-volume))))
+        `((value . ,vol)))))))
 
 
-;;(define-simple-wrapper /v1/player/eq     equalizer equalizer?)
+(cond-expand
+ ((or macosx)
+  (define-simple-wrapper /v1/player/eq     equalizer equalizer?))
 
-(define-handler /v1/player/eq
-  (lambda ()
-    (let ((eq (if (current-json)
-                  (amixer-eq (vector->list (alist-ref 'value (current-json))))
-                  (amixer-eq))))
-      `((value . ,(list->vector eq))))))
+ (else
+  (define-handler /v1/player/eq
+    (lambda ()
+      (let ((eq (if (current-json)
+                    (amixer-eq (vector->list (alist-ref 'value (current-json))))
+                    (amixer-eq))))
+        `((value . ,(list->vector eq))))))))

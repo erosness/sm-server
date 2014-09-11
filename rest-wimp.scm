@@ -101,6 +101,9 @@
     (image  . ,(album->album-cover-uri album))
     (uri    . ,(return-url "/catalog/wimp/album/tracks?album=" (alist-ref 'id album)))))
 
+(define (playlist->search-result playlist)
+  `((title . ,(alist-ref 'title playlist))
+    (uri   . ,(return-url "/catalog/wimp/playlist/tracks?uuid=" (alist-ref 'uuid playlist)))))
 
 (define (wimp-process-result result-proc result)
   (map result-proc
@@ -154,6 +157,8 @@
     (make-wimp-search-call search-proc convert)
     query-param '(limit "10") '(offset "0"))))
 
+(define (wimp-user-playlists/current-user _ignored_ query-params)
+  (wimp-user-playlists (wimp-current-user-id) query-params))
 
 ;;==================== handlers ====================
 (define-handler /v1/catalog/wimp
@@ -166,11 +171,19 @@
 (define-handler /v1/catalog/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
 (define-handler /v1/catalog/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
 
+;; falls apart: no query parameter anymore
+(define-handler /v1/catalog/wimp/playlists
+  (wrap-wimp wimp-user-playlists/current-user playlist->search-result
+             '(uid . ,(lambda () (print "i wish defaults in argumentize could be dynamic")))))
+
 (define-handler /v1/catalog/wimp/artist/albums
   (wrap-wimp wimp-artist-albums album->search-result 'artist))
 
 (define-handler /v1/catalog/wimp/album/tracks
   (wrap-wimp wimp-album-tracks track->search-result 'album))
+
+(define-handler /v1/catalog/wimp/playlist/tracks
+  (wrap-wimp wimp-playlist-tracks track->search-result 'uuid))
 
 (define-handler /v1/catalog/wimp/login
   (wrap-wimp-login-status
