@@ -120,14 +120,26 @@
 (define fm.tuneStatus      (nt:b8  "\x03\x08\x00\x00"))
 (define fm.searchLevel     (nt:e8 "\x03\x05\x00\x00" all strong))
 
-;; fm rds
 (define fm.rds.active      (nt:e8  "\x03\x09\x01\x00" idle decoding))
 (define fm.rds.ps          (nt:c8  "\x03\x09\x02\x00"))
 (define fm.rds.pty         (nt:u8  "\x03\x09\x03\x00"))
 (define fm.rds.radioText   (nt:c8  "\x03\x09\x04\x00"))
 
-;; untested
-(define (misc.clock.localTime) ($item-get "\x06\x01\x01\x00"))
+;; audio
 (define (audio.sampleRate)     ($item-get "\x05\x03\x00\x00"))
+(define (audio.bitrate)     ($item-get "\x05\x04\x00\x00"))
+(define audio.mute (nt:e8 "\x05\x0a\x00\x00" not_mute mute))
+(define audio.status (nt:e8 "\x05\x13\x00\x00" end start underflow resume flush))
+(define audio.audioStatus (nt:e8 "\x05\x06\x00\x00" unknown mono stereo joint dual_channel))
+(define audio.codec (nt:e8 "\x05\x05\x00\x00" none mp2 aac))
+(define (audio.flags)    ($item-get "\x05\x0f\x00\x00"))
+(define (audio.drcScale) ($item-get "\x05\x08\x00\x00"))
 
+(define audio.spdif.state (nt:e8 "\x05\x16\x01\x00" disabled enabled))
 
+(define audio.buzzer.state     (nt:e8  "\x05\x0b\x00\x01" off on))
+
+;; misc
+(define misc.clock.source (nt:e8 "\x06\x01\x03\x00" user dab fm-rds))
+(define (misc.clock.localTime) ($item-get "\x06\x01\x01\x00"))
+(define (misc.clock.localDate) ($item-get "\x06\x01\x02\x00"))
