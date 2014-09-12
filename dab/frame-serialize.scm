@@ -22,6 +22,10 @@
   (syntax-rules ()
     ((_ adr) (nt:single adr x (#x0001 16) ((if x 1 0) 8)))))
 
+(define-syntax nt:u16
+  (syntax-rules ()
+    ((_ adr) (nt:single adr x (#x0002 16) (x 16 unsigned)))))
+
 (define-syntax nt:u32
   (syntax-rules ()
     ((_ adr) (nt:single adr x (#x0004 16) (x 32)))))
@@ -138,6 +142,7 @@
 (define audio.spdif.state (nt:e8 "\x05\x16\x01\x00" disabled enabled))
 
 (define audio.buzzer.state     (nt:e8  "\x05\x0b\x00\x01" off on))
+(define audio.buzzer.frequency (nt:u16 "\x05\x0b\x00\x02"))
 
 ;; misc
 (define misc.clock.source (nt:e8 "\x06\x01\x03\x00" user dab fm-rds))
