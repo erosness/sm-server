@@ -1,16 +1,4 @@
-(use srfi-18 bitstring
-     dab slip )
-
-(include "dab-init.uart.scm")
-(include "dab-init.i2c.scm")
-
-;; parameters are thread-local. (current-frame)
-(define current-frame (make-parameter 1))
-
-(define (dab-send frameless-msg)
-  (let ((response (dab-send-packet ($frame (current-frame) frameless-msg))))
-    (current-frame (add1 (current-frame)))
-    response))
+(use srfi-18 bitstring dab dab-i2c)
 
 ;; (dab-send (fm.state #f))
 (dab-send (dab.state #t))
@@ -46,21 +34,3 @@
 (dab-send (fm.rds.radioText #:notify #t))
 
 (dab-send (fm.searchLevel))
-
-;; ==============================
-;; repl helper that prints incoming frames
-(begin
-  (handle-exceptions e (void) (thread-terminate! dab-read-thread))
-  (define dab-read-thread
-    (thread-start!
-     (lambda ()
-       (let loop ()
-         (or
-          (let ((packet (dab-read-packet)))
-            (if (string-null? packet)
-                ;; sleep a little if we didn't get any packets. if we did, try
-                ;; reading the next one immediately
-                (thread-sleep! 0.1)
-                ;; only print if packet isn't empty
-                (pp (parse-frame packet)))))
-         (loop))))))

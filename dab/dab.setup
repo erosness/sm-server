@@ -1,2 +1,3 @@
 ;; -*- scheme -*-
 (standard-extension 'dab)
+(standard-extension 'dab-i2c)
