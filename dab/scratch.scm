@@ -47,21 +47,20 @@
 
 (dab-send (fm.searchLevel))
 
-;; (thread-sleep! 1)
 ;; ==============================
-;; repl helper that prints incoming frames:
-;; (thread-terminate! thread)
-(define thread
-  (thread-start!
-   (lambda ()
-     (let loop ()
-       (or
-        (let* ((packet (dab-read-packet))
-               (_ (string-null? packet)))
-          ;; only print if packet isn't empty
-          (pp (parse-frame packet)))
-        ;; sleep a little if we didn't get any packets. if we did, try
-        ;; reading the next one immediately
-        (thread-sleep! 0.1))
-       (loop)))))
-
+;; repl helper that prints incoming frames
+(begin
+  (handle-exceptions e (void) (thread-terminate! dab-read-thread))
+  (define dab-read-thread
+    (thread-start!
+     (lambda ()
+       (let loop ()
+         (or
+          (let ((packet (dab-read-packet)))
+            (if (string-null? packet)
+                ;; sleep a little if we didn't get any packets. if we did, try
+                ;; reading the next one immediately
+                (thread-sleep! 0.1)
+                ;; only print if packet isn't empty
+                (pp (parse-frame packet)))))
+         (loop))))))
