@@ -114,7 +114,7 @@
 (define dab.sl.station    (nt:u32 "\x02\x10\x01\x00"))
 (define dab.scan.state    (nt:b8  "\x02\x0a\x01\x00"))
 (define dab.udls          (nt:c8 "\x02\x11\x00\x00"))
-(define dab.tune.status   (nt:b8 "\x02\x06\x00\x00"))
+(define dab.tuneStatus   (nt:b8 "\x02\x06\x00\x00"))
 
 ;; fm
 (define fm.state           (nt:b8  "\x03\x01\x00\x00"))
