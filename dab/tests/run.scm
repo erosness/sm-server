@@ -166,7 +166,7 @@
        00 04       ;; payload-length
        00 00 00 17 ;; payload #x17 => 23
        )
- (bitstring->blob (dab.station 23)))
+ (bitstring->blob (dab.sl.station 23)))
 
 (test
  "item-setnotify udls on"

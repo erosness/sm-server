@@ -18,7 +18,7 @@
 (dab-send (dab.scan.state #t))
 (dab-send (dab.udls))
 (dab-send (dab.tune.status))
-(dab-send (dab.station 14))
+(dab-send (dab.sl.station 7))
 (dab-send (misc.clock.localTime))
 (dab-send (audio.sampleRate))
 
