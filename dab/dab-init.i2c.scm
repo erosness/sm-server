@@ -1,6 +1,6 @@
 (use i2c posix bitstring)
 
-(define dab-fd (i2c-open "/dev/i2c-0" #x75))
+(define dab-fd (i2c-open "/dev/i2c-2" #x75))
 
 ;; Add 2-byte "length" field, see FSAPI protocol reference API section
 ;; 4.3.3 on SCB framing
