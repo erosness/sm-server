@@ -8,6 +8,9 @@
 ;; turn off mute default
 (dab-command (audio.attenuation 0))
 
+(define-handler /v1/catalog/dab
+  (lambda () `((tabs . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
+
 (define-turi-adapter channel->turi "dab"
   (lambda (chidxstr)
     (let ((chidx (string->number chidxstr)))
