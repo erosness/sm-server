@@ -16,6 +16,7 @@
 (define (dab-send-packet bs)
   (let* ((len (/ (bitstring-length bs) 8))
          (zbs (bitconstruct (len 16) (bs bitstring))))
+    (pp `(DAB send-packet ,(bitstring->blob bs)))
     (file-write (current-dab-fd) (bitstring->string zbs))))
 
 (define (dab-read-packet)
@@ -24,10 +25,10 @@
     ;; remove i2c packet length header:
     (substring p 2 (+ 2 len))))
 
-
 ;; parameters are thread-local. (current-frame)
 (define current-frame (make-parameter 1))
 
+;; send a dab message (without frame)
 (define (dab-send frameless-msg)
   (let ((response (dab-send-packet ($frame (current-frame) frameless-msg))))
     (current-frame (add1 (current-frame)))
