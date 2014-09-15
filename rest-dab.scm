@@ -1,6 +1,8 @@
 (use restlib dab)
-(use dab-i2c)
-;; (import dab-i2c turi)
+(use dab-i2c) ;; or (import dab-i2c turi)
+
+(import turi)
+
 
 ;; turn on the actual radio module
 (dab-turn-on)
