@@ -110,14 +110,13 @@
                                ($field-short-label))))
 
 ;; dab
-(define dab.state         (nt:b8  "\x02\x01\x00\x00"))
+(define dab.state         (nt:e8  "\x02\x01\x00\x00" off on))
 (define dab.sl.station    (nt:u32 "\x02\x10\x01\x00"))
-(define dab.scan.state    (nt:b8  "\x02\x0a\x01\x00"))
+(define dab.scan.state    (nt:e8  "\x02\x0a\x01\x00" idle scan))
 (define dab.udls          (nt:c8 "\x02\x11\x00\x00"))
-(define dab.tuneStatus   (nt:b8 "\x02\x06\x00\x00"))
-
+(define dab.tuneStatus    (nt:e8 "\x02\x06\x00\x00" idle tuned selected))
 ;; fm
-(define fm.state           (nt:b8  "\x03\x01\x00\x00"))
+(define fm.state           (nt:e8  "\x03\x01\x00\x00" off on))
 (define fm.search          (nt:e8  "\x03\x04\x00\x00" idle up down))
 (define fm.signalStrength  (nt:u8  "\x03\x06\x00\x00"))
 (define fm.frequency       (nt:u32 "\x03\x03\x00\x00"))
@@ -130,18 +129,17 @@
 (define fm.rds.radioText   (nt:c8  "\x03\x09\x04\x00"))
 
 ;; audio
-(define (audio.sampleRate)     ($item-get "\x05\x03\x00\x00"))
-(define (audio.bitrate)     ($item-get "\x05\x04\x00\x00"))
-(define audio.mute (nt:e8 "\x05\x0a\x00\x00" not_mute mute))
-(define audio.status (nt:e8 "\x05\x13\x00\x00" end start underflow resume flush))
-(define audio.audioStatus (nt:e8 "\x05\x06\x00\x00" unknown mono stereo joint dual_channel))
-(define audio.codec (nt:e8 "\x05\x05\x00\x00" none mp2 aac))
-(define (audio.flags)    ($item-get "\x05\x0f\x00\x00"))
-(define (audio.drcScale) ($item-get "\x05\x08\x00\x00"))
-
-(define audio.spdif.state (nt:e8 "\x05\x16\x01\x00" disabled enabled))
-
-(define audio.buzzer.state     (nt:e8  "\x05\x0b\x00\x01" off on))
+(define audio.attenuation  (nt:u8  "\x05\x09\x00\x00"))
+(define (audio.sampleRate) ($item-get "\x05\x03\x00\x00"))
+(define (audio.bitrate)    ($item-get "\x05\x04\x00\x00"))
+(define audio.mute         (nt:e8 "\x05\x0a\x00\x00" not_mute mute))
+(define audio.status       (nt:e8 "\x05\x13\x00\x00" end start underflow resume flush))
+(define audio.audioStatus  (nt:e8 "\x05\x06\x00\x00" unknown mono stereo joint dual_channel))
+(define audio.codec        (nt:e8 "\x05\x05\x00\x00" none mp2 aac))
+(define (audio.flags)      ($item-get "\x05\x0f\x00\x00"))
+(define (audio.drcScale)   ($item-get "\x05\x08\x00\x00"))
+(define audio.spdif.state  (nt:e8 "\x05\x16\x01\x00" disabled enabled))
+(define audio.buzzer.state (nt:e8  "\x05\x0b\x00\x01" off on))
 (define audio.buzzer.frequency (nt:u16 "\x05\x0b\x00\x02"))
 
 ;; misc
