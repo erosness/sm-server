@@ -13,7 +13,8 @@
 (define-turi-adapter tunein-uri->turi "tunein" tunein-turi->suri)
 
 (define-handler /v1/catalog/tunein
-  (lambda () `((tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse"))))))))
+  (lambda () `((tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse")))
+                     ((title . "Search") (uri . ,(return-url "/catalog/tunein/search"))))))))
 
 ;; take a tunein url and make it point to ourselves
 (define (rewrite-uri url)
@@ -43,3 +44,16 @@
                         (tunein-query (if (string? lnk) lnk "/Browse.ashx")))))
                 ;; HACK: we can't have #f as a default value ... using non-string
                 '(lnk 0))))
+
+
+(define (tunein-search q)
+  (tunein-query (conc "/Search.ashx?query=" q)))
+
+(define-handler /v1/catalog/tunein/search
+  (pagize
+   (argumentize (lambda (query)
+                  (map rewrite-cjson
+                       (append-map
+                        tjson->cjsons (tunein-search query) )))
+                'q)))
+
