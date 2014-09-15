@@ -79,14 +79,87 @@
 ;; before any module can be turned on (eg dab.state), all the other
 ;; must be off. only one can be on at the same time.
 (define (dab-reset)
-  (dab-send (dab.state 'off))
-  (dab-send (fm.state 'off))
-  (dab-send (audio.buzzer.state 'off)))
+  (dab-command (dab.state 'off))
+  (dab-command (fm.state 'off))
+  (dab-command (audio.buzzer.state 'off)))
 
 (define (dab-turn-on)
   (dab-reset)
-  (dab-send (dab.state 'on))
-  (dab-send (dab.scan.state 'scan)))
+  (dab-command (dab.state 'on))
+  (dab-command (dab.scan.state 'scan)))
+
+
+;; ====================
+;; TODO: the following should be part of some dab module and i/o
+;; independent.
+
+
+;; TODO: apply this in all nt:e8 structures instead
+(define (parse-dab.scan.state data)
+  (match data
+    (('item-get-response (FS_OK . string))
+     (case (char->integer (string-ref string 0))
+       ((0) 'idle)
+       ((1) 'scan)
+       (else (error "invalid dab.scan.state return code " data))))
+    (else (error "invalid dab.scan.state data" data))))
+
+
+;; TODO: apply this to all $list-get instead
+(define (parse-dab.sl.uService data)
+  (match data
+    (('list-get-response 'FS_OK (channel . rest))
+     (string-trim-both channel (char-set #\space #\newline #\nul)))
+    (('list-get-response 'FS_FAIL "") #f)
+    (else (error "invalid dab.sl.uService response" data))))
+
+(define (parse-dab.tuneStatus data)
+  (match data
+    (('item-get-response ('FS_OK . str))
+     (match str
+       ("\x02" 'decoding)
+       ("\x01" 'tuned)
+       ("\x00" 'idle)
+       (else (error "no matching " str))))
+    (else (error "no matching" data))))
+
+;; return dab.sl.station as int. TODO: make generic
+(define (parse-dab.sl.station #!optional (data (dab-command (dab.sl.station))))
+  (match data
+    (('item-get-response (FS_OK . str))
+     (bitmatch str (((x 32)) x)))))
+
+(define (dab-channel-name idx)
+  (parse-dab.sl.uService (dab-command (dab.sl.uService idx))))
+
+;; list all channels (idx . "label"). this is slow.
+(define (dab-channels*)
+  (let loop ((n 1)
+             (res '()))
+    (let ((channel (dab-channel-name n)))
+      (if channel
+          (loop (add1 n)
+                (cons (cons n channel) res))
+          (reverse res)))))
+
+;; do a full scan. this takes a long time.
+(define (dab-full-scan)
+  (dab-command (dab.scan.state 'scan))
+  (let loop ()
+    (print ";; DAB is scanning ...")
+    (case (parse-dab.scan.state (dab-command (dab.scan.state)))
+      ((scan)
+       (thread-sleep! 1)
+       (loop))
+      (else (void)))))
+
+(define *dab-channels* '())
+(define (dab-refresh-channels!)
+  (dab-full-scan)
+  ;; TODO: thread safety
+  (set! *dab-channels* (dab-channels*)))
+
+(define (dab-channels) *dab-channels*)
 
 
 )
