@@ -42,3 +42,9 @@
       (dab.scan.state . , (symbol->string (parse-dab.scan.state (dab-command (dab.scan.state)))))
       (dab.sl.station . , (parse-dab.sl.station))
       (audio.sampleRate . ,(conc (dab-command (audio.sampleRate)))))))
+
+(define-handler /v1/catalog/dab/buzzer
+  (lambda ()
+    (dab-reset)
+    (dab-command (audio.buzzer.state 'on))
+    (dab-command (audio.buzzer.frequency 440))))
