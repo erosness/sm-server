@@ -62,3 +62,6 @@
 /tunein/tunein.import.scm
 /tunein/tunein.import.so
 /tunein/tunein.so
+/dab/dab-i2c.import.scm
+/dab/dab-i2c.import.so
+/dab/dab-i2c.so
