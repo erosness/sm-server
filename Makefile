@@ -36,7 +36,7 @@ multicast:
 tone-generator:
 	cd tone-generator; $(ci) $(ciflags)
 
-dab:
+dab: i2c
 	cd dab; $(ci) $(ciflags)
 
 q523:
