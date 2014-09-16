@@ -10,5 +10,11 @@
 (include "rest-dlna.scm")
 (include "rest-usb.scm")
 (include "rest-tunein.scm")
-(include "rest-dab.scm")
+
+(cond-expand
+ ((not arm)
+  (include "rest-dummy-dab.scm"))
+ (else
+  (include "rest-dab.scm")))
+
 ;; (include "rest-fm.scm")

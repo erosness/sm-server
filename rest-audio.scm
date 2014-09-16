@@ -36,7 +36,7 @@
 
 ;; HACK: use mock volume and eq on macosx
 (cond-expand
- ((or macosx)
+ ((not arm)
   (define-simple-wrapper /v1/player/volume volume    number?))
  (else
   (define-handler /v1/player/volume
@@ -48,7 +48,7 @@
 
 
 (cond-expand
- ((or macosx)
+ ((not arm)
   (define-simple-wrapper /v1/player/eq     equalizer equalizer?))
 
  (else
