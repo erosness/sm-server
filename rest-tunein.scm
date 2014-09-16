@@ -13,8 +13,8 @@
 (define-turi-adapter tunein-uri->turi "tunein" tunein-turi->suri)
 
 (define-handler /v1/catalog/tunein
-  (lambda () `((tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse")))
-                     ((title . "Search") (uri . ,(return-url "/catalog/tunein/search"))))))))
+  (lambda () `((tabs . #( ((title . "Search") (uri . ,(return-url "/catalog/tunein/search")))
+                     ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse"))))))))
 
 ;; take a tunein url and make it point to ourselves
 (define (rewrite-uri url)
