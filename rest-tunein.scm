@@ -50,7 +50,8 @@
 
 
 (define (tunein-search q)
-  (tunein-query (conc "/Search.ashx?query=" q)))
+  (let ((encoded-query (form-urlencode `(("query" . ,q)))))
+    (tunein-query (conc "/Search.ashx?" encoded-query))))
 
 (define-handler /v1/catalog/tunein/search
   (pagize
