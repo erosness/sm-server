@@ -31,7 +31,9 @@
 
 
 (define-handler /v1/catalog/dlna
-  (lambda () `((tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/dlna/browse"))))))))
+  (lambda () `((preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/dlna/browse")))))
+          ;; TODO: remove
+          (tabs . #( ((title . "Browse") (uri . ,(return-url "/catalog/dlna/browse"))))))))
 
 
 

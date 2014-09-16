@@ -163,7 +163,12 @@
 ;;==================== handlers ====================
 (define-handler /v1/catalog/wimp
   (wrap-wimp-login-status
-   (lambda () `((tabs . #( ((title . "Artists") (uri . ,(return-url "/catalog/wimp/artist")))
+   (lambda () `((search . #( ((title . "Artists") (uri . ,(return-url "/catalog/wimp/artist")))
+                      ((title . "Albums")  (uri . ,(return-url "/catalog/wimp/album")))
+                      ((title . "Tracks")  (uri . ,(return-url "/catalog/wimp/track")))))
+           (preload . #( ((title . "Playlists") (uri . ,(return-url "/catalog/wimp/playlists")))))
+           ;; TODO: remove
+           (tabs . #( ((title . "Artists") (uri . ,(return-url "/catalog/wimp/artist")))
                       ((title . "Albums")  (uri . ,(return-url "/catalog/wimp/album")))
                       ((title . "Tracks")  (uri . ,(return-url "/catalog/wimp/track")))))))))
 
