@@ -80,7 +80,7 @@
                         (lambda (new) (set! *catalog-notify-connections* new)))))
 
 ;; do a `curl localhost:5060/v1/catalog/notify` and check with
-;; (send-notification "foobar" `() 0 *catalog-notify-connections*)
+;; (send-notification "foobar" `() *catalog-notify-connections*)
 
 (define (call-when-modified data-thunk thunk)
   (define last #f)
@@ -119,7 +119,6 @@
    (lambda ()
      (send-notification "/v1/catalog/fm/seek"
                         (fm-get-state)
-                        (rest-server-port)
                         (getter-with-setter (lambda () *catalog-notify-connections*)
                                             (lambda (new) (set! *catalog-notify-connections* new)))))))
 

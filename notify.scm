@@ -33,10 +33,11 @@
 ;; like this
 (define *notify-connections* '())
 
-(define (send-notification path body port #!optional
+(define (send-notification path body #!optional
                            (connections (getter-with-setter
                                          (lambda () *notify-connections*)
-                                         (lambda (new) (set! *notify-connections* new)))))
+                                         (lambda (new) (set! *notify-connections* new))))
+                           (port (server-port)))
   (let ((msg (change-message path body port)))
 
     ;; run through all current notify TCP connections

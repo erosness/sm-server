@@ -45,7 +45,7 @@
                         (lambda () (not (eq? 'GET (request-method (current-request)))))))
          #!rest args)
   (let* ((response (apply proc args)))
-    (if (send-message?) (send-notification path response (rest-server-port)))
+    (if (send-message?) (send-notification path response))
     response))
 
 
