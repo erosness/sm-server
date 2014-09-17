@@ -1,4 +1,5 @@
-(use test restlib)
+(use test restlib looper clojurian-syntax)
+
 (include "amixer.scm")
 
 (import rest notify amixer)
@@ -93,3 +94,17 @@
                     (amixer-eq/notify (vector->list (alist-ref 'value (current-json))))
                     (amixer-eq/notify))))
         `((value . ,(list->vector eq))))))))
+
+;; volume watchdog thread. if the volume is modified externally
+;; (hardware volume button, for example), we pick it up in cube-server
+;; (and also broadcast the changes).
+(begin
+  (handle-exceptions e (void) (thread-terminate! amixer-poll-thread))
+  (define amixer-poll-thread
+    (thread-start!
+     (->> (lambda ()
+            (amixer-volume/notify)
+            (amixer-eq/notify))
+          (loop/interval 1)
+          (loop/exceptions (lambda (e) (pp `(error amixer-poll-thread ,(condition->list e))) #t))
+          (loop)))))
