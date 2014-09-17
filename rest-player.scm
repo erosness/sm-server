@@ -14,7 +14,7 @@
 (define *pq* (make-pq))
 
 (define ((change-callback path) oldval newval)
-  (send-notification path newval (rest-server-port)))
+  (send-notification path newval))
 
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
@@ -128,8 +128,7 @@
 (define (player-thread-iteration)
   (if (playing?) ;; running and not paused?
       (send-notification "/v1/player/pos"
-                         (player-pos-info)
-                         (rest-server-port))))
+                         (player-pos-info))))
 
 (define player-seek-thread
   (thread-start!

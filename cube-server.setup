@@ -1,6 +1,6 @@
 ;; -*- scheme -*-
 
-(compile -O0 cube-server-program.scm -o cube-server)
+(compile -O0 cube-server-program.scm -o cube-server -J)
 (compile -O0 cspeaker-program.scm -o cspeaker)
 
 (install-program 'cube-server
@@ -9,4 +9,8 @@
 (install-program 'cspeaker
                  '("cspeaker"))
 
+;; I want to copy .import files so that (import turi notify) will work
+;; from compiled code.
+(install-extension 'cube-server ;; <-- what?
+                   (glob "*.import.scm"))
 
