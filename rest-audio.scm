@@ -1,5 +1,8 @@
 (use test restlib)
+(include "amixer.scm")
+
 (import rest)
+(import amixer)
 
 (define mute      #f)
 (define volume    50)
@@ -31,8 +34,6 @@
 
 (define-simple-wrapper /v1/player/mute   mute      boolean?)
 
-(include "amixer.scm")
-(import amixer)
 
 ;; HACK: use mock volume and eq on macosx
 (cond-expand
