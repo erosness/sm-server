@@ -65,3 +65,4 @@
 /dab/dab-i2c.import.scm
 /dab/dab-i2c.import.so
 /dab/dab-i2c.so
+/*.import.scm
