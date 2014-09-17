@@ -1,9 +1,7 @@
 (use test restlib)
 (include "amixer.scm")
 
-(import rest)
-(import notify)
-(import amixer)
+(import rest notify amixer)
 
 (define mute      #f)
 (define volume    50)
