@@ -62,7 +62,7 @@
 
   ;; (test 0.5 (%->factor 75 1))
   ;; (test -2.0 (%->factor 0))
-  (define (%->factor x #!optional (n 2))
+  (define (%->factor x #!optional (n 10))
     (* (- x 50) #|[-50,50]|#
        0.01     #|[-0.5 , 0.5]|#
        2        #|[-1,1]|#
@@ -74,11 +74,11 @@
 
 (define (eq-band-frequency band-index)
   (alist-ref band-index
-             '((0 .    64)
-               (1 .   250)
-               (2 .  1000)
-               (3 .  4000)
-               (4 . 16000))))
+             '((0 .    63)
+               (1 .   120)
+               (2 .  500)
+               (3 .  2000)
+               (4 . 10000))))
 ;; (eq-band-frequency 2)
 
 
