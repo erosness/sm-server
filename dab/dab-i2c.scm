@@ -78,6 +78,8 @@
 ;; (pp (map thread-join! (list-tabulate 10 (lambda (idx) (thread-start! (lambda () (thread-yield!) (dab-command (dab.tuneStatus))))))))
 
 
+;; turn off all submodules.
+;;
 ;; before any module can be turned on (eg dab.state), all the other
 ;; must be off. only one can be on at the same time.
 (define (dab-reset)
@@ -85,10 +87,10 @@
   (dab-command (fm.state 'off))
   (dab-command (audio.buzzer.state 'off)))
 
+;; turn off everything, then turn dab back on
 (define (dab-turn-on)
   (dab-reset)
-  (dab-command (dab.state 'on))
-  (dab-command (dab.scan.state 'scan)))
+  (dab-command (dab.state 'on)))
 
 
 ;; ====================
