@@ -16,12 +16,13 @@
 (define (dab-send-packet bs)
   (let* ((len (/ (bitstring-length bs) 8))
          (zbs (bitconstruct (len 16) (bs bitstring))))
-    (pp `(DAB send-packet ,(bitstring->blob bs)))
+    (pp `(DAB send-packet ,(current-thread) ,(bitstring->blob bs)))
     (file-write (current-dab-fd) (bitstring->string zbs))))
 
 (define (dab-read-packet)
   (let* ((p (car (file-read (current-dab-fd) 512)))
          (len (bitmatch p ( ((l 16) (rest bitstring)) l))))
+    (pp `(DAB read-packet ,(current-thread) ,len))
     ;; remove i2c packet length header:
     (substring p 2 (+ 2 len))))
 
