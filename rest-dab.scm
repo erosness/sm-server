@@ -19,7 +19,7 @@
   (lambda (chidxstr)
     (let ((chidx (string->number chidxstr)))
       (pp `(rest-dab station ,chidx))
-      (dab-send (dab.sl.station chidx))
+      (dab-command (dab.sl.station chidx))
       ;; TODO: find IP so zones can reach DAB
       `((url . "http://127.0.0.1:8090/dab/hi")))))
 

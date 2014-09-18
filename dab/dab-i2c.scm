@@ -28,12 +28,6 @@
 ;; parameters are thread-local. (current-frame)
 (define current-frame (make-parameter 1))
 
-;; send a dab message (without frame)
-(define (dab-send frameless-msg)
-  (let ((response (dab-send-packet ($frame (current-frame) frameless-msg))))
-    (current-frame (add1 (current-frame)))
-    response))
-
 ;; if we forget to read responses after sending commands, we'll have
 ;; unexpected responses buffered. this should clear those. but it
 ;; should never be necessary!
@@ -47,6 +41,13 @@
 ;; thread-safe too (important because of dab-refresh-channels!)
 (define dab-command
   (let ()
+
+    ;; send a dab message asynchronously (without frame)
+    (define (dab-send frameless-msg)
+      (let ((response (dab-send-packet ($frame (current-frame) frameless-msg))))
+        (current-frame (add1 (current-frame)))
+        response))
+
     (define mutex (make-mutex 'dab-command))
     (lambda (bs)
       (handle-exceptions e
