@@ -50,19 +50,16 @@
                 '(lnk 0))))
 
 
+
+;; TODO: refactor
 (define (tunein-search q)
   (let ((encoded-query (form-urlencode `(("query" . ,q)))))
     (tunein-query (conc "/Search.ashx?" encoded-query))))
 
 (define (tunein-search-artist q)
-  (print "hello!")
   (let ((encoded-query (form-urlencode `(("c" . "song,artist")
                                          ("query" . ,q)))))
-    (print "form is " encoded-query)
-    (let ((res (tunein-query (conc "/Search.ashx?" encoded-query))))
-      (print "tunein returned")
-      (pp res)
-      res)))
+    (tunein-query (conc "/Search.ashx?" encoded-query))))
 
 (define-handler /v1/catalog/tunein/search-artist
   (pagize
