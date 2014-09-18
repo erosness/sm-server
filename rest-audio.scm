@@ -61,7 +61,7 @@
 ;; will set that value using amixer, cache it for later comparison,
 ;; and send notify messages to everybody.
 (define amixer-volume/notify
-  (with-notification "/v1/player/volume" amixer-volume
+  (with-notification "/v1/player/volume" (lambda (#!optional x) (amixer-volume x))
                      (lambda (volume)
                        `((value . ,(amixer-volume volume))))))
 
