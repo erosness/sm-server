@@ -13,7 +13,8 @@
 (define-turi-adapter tunein-uri->turi "tunein" tunein-turi->suri)
 
 (define-handler /v1/catalog/tunein
-  (lambda () `((search . #( ((title . "Search") (uri . ,(return-url "/catalog/tunein/search")))))
+  (lambda () `((search . #( ((title . "Stations playing Artist") (uri . ,(return-url "/catalog/tunein/search-artist")))
+                       ((title . "Stations") (uri . ,(return-url "/catalog/tunein/search")))))
           (preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse")))))
           ;; TODO: remove
           (tabs . #( ((title . "Search") (uri . ,(return-url "/catalog/tunein/search")))
@@ -49,9 +50,24 @@
                 '(lnk 0))))
 
 
+
+;; TODO: refactor
 (define (tunein-search q)
   (let ((encoded-query (form-urlencode `(("query" . ,q)))))
     (tunein-query (conc "/Search.ashx?" encoded-query))))
+
+(define (tunein-search-artist q)
+  (let ((encoded-query (form-urlencode `(("c" . "song,artist")
+                                         ("query" . ,q)))))
+    (tunein-query (conc "/Search.ashx?" encoded-query))))
+
+(define-handler /v1/catalog/tunein/search-artist
+  (pagize
+   (argumentize (lambda (query)
+                  (map rewrite-cjson
+                       (append-map
+                        tjson->cjsons (tunein-search-artist query) )))
+                'q)))
 
 (define-handler /v1/catalog/tunein/search
   (pagize
