@@ -13,8 +13,8 @@
 (define-turi-adapter tunein-uri->turi "tunein" tunein-turi->suri)
 
 (define-handler /v1/catalog/tunein
-  (lambda () `((search . #( ((title . "Search Artist") (uri . ,(return-url "/catalog/tunein/search-artist")))
-                       ((title . "Search") (uri . ,(return-url "/catalog/tunein/search")))))
+  (lambda () `((search . #( ((title . "Stations playing Artist") (uri . ,(return-url "/catalog/tunein/search-artist")))
+                       ((title . "Stations") (uri . ,(return-url "/catalog/tunein/search")))))
           (preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse")))))
           ;; TODO: remove
           (tabs . #( ((title . "Search") (uri . ,(return-url "/catalog/tunein/search")))
