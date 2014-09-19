@@ -15,10 +15,7 @@
 (define-handler /v1/catalog/tunein
   (lambda () `((search . #( ((title . "Stations playing Artist") (uri . ,(return-url "/catalog/tunein/search-artist")))
                        ((title . "Stations") (uri . ,(return-url "/catalog/tunein/search")))))
-          (preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse")))))
-          ;; TODO: remove
-          (tabs . #( ((title . "Search") (uri . ,(return-url "/catalog/tunein/search")))
-                     ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse"))))))))
+          (preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/tunein/browse"))))))))
 
 ;; take a tunein url and make it point to ourselves
 (define (rewrite-uri url)

@@ -3,9 +3,7 @@
 ;;; json format.
 
 (define-handler /v1/catalog/dab
-  (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations"))))
-          ;; TODO: remove
-          (tabs . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
+  (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
 
 
 (define-handler /v1/catalog/dab/stations
