@@ -98,13 +98,17 @@
 ;; volume watchdog thread. if the volume is modified externally
 ;; (hardware volume button, for example), we pick it up in cube-server
 ;; (and also broadcast the changes).
-(begin
-  (handle-exceptions e (void) (thread-terminate! amixer-poll-thread))
-  (define amixer-poll-thread
-    (thread-start!
-     (->> (lambda ()
-            (amixer-volume/notify)
-            (amixer-eq/notify))
-          (loop/interval 1)
-          (loop/exceptions (lambda (e) (pp `(error amixer-poll-thread ,(condition->list e))) #t))
-          (loop)))))
+
+(cond-expand
+ ((or arm)
+  (begin
+    (handle-exceptions e (void) (thread-terminate! amixer-poll-thread))
+    (define amixer-poll-thread
+      (thread-start!
+       (->> (lambda ()
+              (amixer-volume/notify)
+              (amixer-eq/notify))
+            (loop/interval 1)
+            (loop/exceptions (lambda (e) (pp `(error amixer-poll-thread ,(condition->list e))) #t))
+            (loop))))))
+ (else '()))
