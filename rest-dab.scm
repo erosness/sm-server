@@ -38,7 +38,10 @@
   (handle-exceptions e (void) (thread-terminate! dab-channels-thread))
   ;; (thread-state dab-channels-thread)
   (define dab-channels-thread
-    (thread-start! (lambda () (dab-refresh-channels!)))))
+    (thread-start!
+     (lambda ()
+       (let loop ()
+         (handle-exceptions e (loop) (dab-refresh-channels!)))))))
 
 
 ;; helper utils. TODO: allow us to output pretty HTML here with a meta
