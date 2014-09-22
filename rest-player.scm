@@ -196,7 +196,7 @@
           (loop/exceptions (lambda (e)
                              (pp `(,(current-thread),(condition->list e)))
                              (thread-sleep! 10)
-                              #t #|<-- keep going|#))
+                             #t #|<-- keep going|#))
           (loop)
           ((flip make-thread) "spotify-monitor")))))
 
