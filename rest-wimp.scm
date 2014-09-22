@@ -3,10 +3,11 @@
 (import chicken scheme data-structures)
 (use wimp uri-common test clojurian-syntax restlib
      medea
-     matchable)
+     matchable srfi-18)
 
 (import turi
         rest ;; <-- return-url
+        concurrent-utils
         store)
 
 (define (do-wimp-login store)
@@ -16,6 +17,46 @@
         (print "please wait while logging in to wimp...")
         (wimp-login! username password))
       (print "wimp - no login credentials found")))
+
+
+;; ============= sessions ====================
+(define wimp-sessions '())
+(define wimp-sessions-mutex (make-mutex))
+
+(define (wimp-add-session username session)
+  (define (remove key)
+    (let loop ((s wimp-sessions)
+               (r '()))
+      (if (null? s)
+          (reverse r)
+          (if (equal? (caar s) key)
+              (loop (cdr s) r)
+              (loop (cdr s) (cons (car s) r))))))
+
+  ((with-mutex-lock
+    wimp-sessions-mutex
+    (lambda ()
+      (set! wimp-sessions
+            (cons (cons username session)
+                  (remove username)))))))
+
+(define (wimp-get-session username)
+  (alist-ref username wimp-sessions equal?))
+
+(fluid-let ((wimp-sessions '()))
+  (test-group
+   "wimp-sessons"
+   (wimp-add-session "foo" "bar")
+   (test
+    "set/get"
+    "bar" (wimp-get-session "foo"))
+   (wimp-add-session "foo" "baz")
+   (test
+    "overwrites old"
+    "baz" (wimp-get-session "foo"))
+   (test
+    "old was removed"
+    1 (length wimp-sessions))))
 
 (define wimp-store (make-store 'wimp '()))
 (condition-case
