@@ -7,6 +7,7 @@
 ;; typically holds current sessionId and countryCode
 (define *wimp-base-url*     (make-parameter "https://api.wimpmusic.com/v1"))
 (define *wimp-query*        (make-parameter with-input-from-request))
+(define current-session-params (make-parameter #f))
 (define *wimp-session-params* #f)
 
 ;; most servers don't allow ; as query separator, even though it's in
@@ -48,10 +49,10 @@
                   (password . ,password)
                   (clientName . "iOS_WiMP-2.5.1.no")
                   (token . "xRxdq-jJNdbCc7La"))))
-    (set! *wimp-session-params* (-> ((*wimp-query*) (wimp-base-url "login/username")
-                                     params
-                                     read-json)
-                                  (select-keys '(sessionId countryCode))))))
+    (-> ((*wimp-query*) (wimp-base-url "login/username")
+         params
+         read-json)
+      (select-keys '(sessionId countryCode userId)))))
 
 (define (wimp-login-fail!)
   (abort
@@ -65,7 +66,7 @@
 ;; construct a wimp url, using the current *wimp-session-params*
 (define (wimp-url name #!optional params)
   (update-uri (wimp-base-url name)
-              query: (append (or *wimp-session-params*
+              query: (append (or (current-session-params)
                                  (wimp-login-fail!))
                              (or params '()))))
 

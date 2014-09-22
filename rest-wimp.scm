@@ -152,7 +152,8 @@
             (alist-ref 'items)
             (vector->list))))
 
-(define ((make-wimp-search-call search process) q #!optional (limit 10) (offset 0))
+(define ((make-wimp-search-call search process) q username #!optional (limit 10) (offset 0))
+  (current-session-params (wimp-get-session username))
   (let ((result (search q `((offset . ,offset)
                             (limit  . ,limit)))))
     (make-search-result limit offset
@@ -196,14 +197,14 @@
   (wrap-wimp-login-status
    (argumentize
     (make-wimp-search-call search-proc convert)
-    query-param '(limit "10") '(offset "0"))))
+    query-param 'username '(limit "10") '(offset "0"))))
 
 (define (wimp-user-playlists/current-user _ignored_ query-params)
-  (wimp-user-playlists (wimp-current-user-id) query-params))
+  (wimp-user-playlists (alist-ref 'userId (current-session-params)) query-params))
 
 ;;==================== handlers ====================
 (define-handler /v1/catalog/wimp
-  (wrap-wimp-login-status
+  (wrap-wimp-login-status ;; TODO: why do we wrap login-status here?
    (lambda () `((search . #( ((title . "Artists") (uri . ,(return-url "/catalog/wimp/artist")))
                       ((title . "Albums")  (uri . ,(return-url "/catalog/wimp/album")))
                       ((title . "Tracks")  (uri . ,(return-url "/catalog/wimp/track")))))
@@ -234,16 +235,13 @@
          (or (and-let* ((username (alist-ref 'username (current-json)))
                         (password (alist-ref 'password (current-json))))
                (let ((result (do-wimp-login (current-json))))
-                 (wimp-store (current-json))
+                 (wimp-add-session username result)
                  result))
              ;; couldn't find login credentials in request
              (error "expected username and password keys in body " (current-json)))
-         '())
-
-     ;; return current login status
-     `((user . ,(if *wimp-session-params*
-                    (alist-ref 'username (wimp-store))
-                    #f))))))
+         ;; GET
+         `((user . ,(and-let* ((username (current-query-param 'username)))
+                      (wimp-get-session username))))))))
 
 ;; ==================== tests ====================
 
