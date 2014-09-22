@@ -62,18 +62,33 @@
   ;; need to return 1 value only (second would be HTTP status-code)
   (values (wimp-track-streamurl tid)))
 
-(define-turi-adapter tid->turi "wimp" (lambda (id) (play-command/wimp id)))
 
+(define-turi-adapter tid->turi
+  "wimp" (lambda (params)
+           (or (and-let* ((id (alist-ref 'id params))
+                          (username (alist-ref 'username params)))
+
+                 (parameterize ((current-session-params (wimp-get-session username)))
+                   (play-command/wimp id)))
+
+               (error "expecting id and username params, got " params))))
+
+
+(define current-wimp-user (make-parameter #f))
 (define (track->turi track)
-  (tid->turi (or (alist-ref 'id track)
-                 (error "no id field for track" track))))
+  (and-let* ((id (or (alist-ref 'id track)
+                     (error "no id field for track " track)))
+             (username (or (current-wimp-user)
+                           (error "expected current-wimp-user to be set"))))
+    (tid->turi `((id . ,id) (username . ,username)))))
 
 (test-group
  "turi conversion"
- (with-request
-  ("/" `((host ("host" . 1))))
-  (test "path->url"   "tr://host:1/v1/t2s?type=wimp&id=x" (tid->turi "x"))
-  (test "track->turi" "tr://host:1/v1/t2s?type=wimp&id=123" (track->turi `((id . "123"))))))
+ (parameterize ((current-wimp-user "foo"))
+  (with-request
+   ("/" `((host ("host" . 1))))
+   (test "path->url"   "tr://host:1/v1/t2s?type=wimp&id=x" (tid->turi '((id . "x"))))
+   (test "track->turi" "tr://host:1/v1/t2s?type=wimp&id=123&username=foo" (track->turi `((id . "123")))))))
 
 ;; (with-request "?type=wimp&id=1234" (/t2s))
 
@@ -90,7 +105,6 @@
 
 (define (artist->artist-image-uri artist)
   (wimp-artist-image-url (alist-ref 'id artist)))
-
 
 
 (define (track/album->artist-name item)
@@ -138,12 +152,13 @@
             (vector->list))))
 
 (define ((make-wimp-search-call search process) q username #!optional (limit 10) (offset 0))
-  (current-session-params (wimp-get-session username))
-  (let ((result (search q `((offset . ,offset)
-                            (limit  . ,limit)))))
-    (make-search-result limit offset
-                        (alist-ref 'totalNumberOfItems result)
-                        (wimp-process-result process result))))
+  (parameterize ((current-wimp-user username)
+                 (current-session-params (wimp-get-session username)))
+    (let ((result (search q `((offset . ,offset)
+                              (limit  . ,limit)))))
+      (make-search-result limit offset
+                          (alist-ref 'totalNumberOfItems result)
+                          (wimp-process-result process result)))))
 
 
 
@@ -154,6 +169,7 @@
   (define (make-wimp-login-error #!optional (extras '()))
     (values `((service . "wimp")
               (url . ,(return-url "/catalog/wimp/login"))
+              (_debug . ((session . ,(current-session-params))))
               ,@extras)
             'unauthorized))
 
