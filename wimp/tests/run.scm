@@ -32,9 +32,9 @@
     (test "http://a.com/albums/1234/tracks?ape=yes&custom=true"
           (URL (wimp-album-tracks 1234 `((custom . true))))))))
 
-(test "login returns sessionId & countryCode"
-      2
-      (length (wimp-login! "97670550" "herrowimp")))
+(test "login returns sessionId, userId & countryCode"
+      3
+      (length (wimp-login "97670550" "herrowimp")))
 
 (test "Artist 606 is MJ"
       "Michael Jackson"

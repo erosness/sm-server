@@ -44,7 +44,7 @@
 ;; for tokens and docs, see:
 ;; http://stage.developer.wimpmusic.com/apps
 ;; https://docs.google.com/a/adellica.com/document/d/1TwYNG-bcwwwtDl1ni5TZvYIvPsh59L_GdqpNg1-aWnk
-(define (wimp-login! username password)
+(define (wimp-login username password)
   (let ((params `((username . ,username)
                   (password . ,password)
                   (clientName . "iOS_WiMP-2.5.1.no")
@@ -125,4 +125,4 @@
   (conc "http://images.osl.wimpmusic.com/im/im?w=" w "&h=" h "&artistid=" aid))
 
 
-;; (wimp-login! "97670550" "herrowimp")
+;; (wimp-login "97670550" "herrowimp")

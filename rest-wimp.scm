@@ -15,7 +15,7 @@
                  (username (alist-ref 'username store))
                  (password (alist-ref 'password store)))
         (print "please wait while logging in to wimp...")
-        (wimp-login! username password))
+        (wimp-login username password))
       (print "wimp - no login credentials found")))
 
 
