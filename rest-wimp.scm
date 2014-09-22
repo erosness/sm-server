@@ -24,21 +24,12 @@
 (define wimp-sessions-mutex (make-mutex))
 
 (define (wimp-add-session username session)
-  (define (remove key)
-    (let loop ((s wimp-sessions)
-               (r '()))
-      (if (null? s)
-          (reverse r)
-          (if (equal? (caar s) key)
-              (loop (cdr s) r)
-              (loop (cdr s) (cons (car s) r))))))
-
   ((with-mutex-lock
     wimp-sessions-mutex
     (lambda ()
       (set! wimp-sessions
-            (cons (cons username session)
-                  (remove username)))))))
+            (alist-update username session
+                          wimp-sessions equal?))))))
 
 (define (wimp-get-session username)
   (alist-ref username wimp-sessions equal?))
