@@ -190,7 +190,9 @@
                 (player-pause)
                 (spotify-notification event))))
           (loop/interval 1) ;; max interval at 1s
-          (loop/exceptions (lambda (e) (pp `(,(current-thread),(condition->list e)))
+          (loop/exceptions (lambda (e)
+                             (pp `(,(current-thread),(condition->list e)))
+                             (thread-sleep! 10)
                               #t #|<-- keep going|#))
           (loop)
           ((flip make-thread) "spotify-monitor")))))
