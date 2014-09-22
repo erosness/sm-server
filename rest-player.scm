@@ -1,4 +1,6 @@
-(module rest-player ()
+(module rest-player (player-seek-thread
+                     spotify-monitor-thread
+                     *pq*)
 
 (import chicken scheme data-structures)
 
