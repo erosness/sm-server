@@ -8,7 +8,8 @@
 
 (import rest)
 
-
+;; TEMP!!
+(use spiffy)
 
 
 ;; provide an API for audio hosts / providers to plug into.
@@ -17,26 +18,48 @@
   ;; add host to audio hosts
   (set! *audio-hosts* (alist-update host handler *audio-hosts* equal?)))
 
-(define (turi-handler type id)
+(define (turi-handler type params)
   (cond ((assoc type *audio-hosts*) =>
-         (lambda (pair) ((cdr pair) id)))
+         (lambda (pair) ((cdr pair) params)))
         (else (error "no turi adapter for " type))))
 
-(define-handler /v1/t2s (argumentize (lambda (t i) (turi-handler t i)) 'type 'id))
+(define-handler /v1/t2s (wrap-params
+                         (lambda (params)
+                           (or (and-let* ((t (alist-ref 'type params))
+                                          (i (alist-ref 'id params)))
+                                 ;; TODO: refactor all turi-handlers
+                                 ;; to support new api
+                                 (if (> (length params) 2)
+                                     (turi-handler t params)
+                                     (turi-handler t i)))
+                               ;; Error
+                               (error (conc "parameter type and/or id missing in "
+                                            (uri->string (request-uri (current-request)))))))))
+
+;; TODO: implement
+(define alist? list?)
 
 (define (make-turi-creator type)
-  (lambda (id)
-    (assert (or (string? id) (number? id)))
-    (let ((id (conc id)))
-      ;; produce & separators, not ;
-      (parameterize ((form-urlencoded-separator "&"))
-        (uri->string (update-uri (current-host)
-                                 scheme: 'tr
-                                 path: `(/ "v1" "t2s")
-                                 query: `((type . ,type)
-                                          (id . ,id))
-                                 ;; bug workaround (uri-common):
-                                 port: (uri-port (current-host))))))))
+  (lambda (params)
+
+    (assert (or (alist? params)
+                (string? params)
+                (number? params)))
+
+    ;; backwards compatability
+    (let ((params (if (or (string? params)
+                          (number? params))
+                      `((id . ,(conc params)))
+                      params)))
+     ;; produce & separators, not &;
+     (parameterize ((form-urlencoded-separator "&"))
+       (uri->string (update-uri (current-host)
+                                scheme: 'tr
+                                path: `(/ "v1" "t2s")
+                                query: `((type . ,type)
+                                         ,@params)
+                                ;; bug workaround (uri-common):
+                                port: (uri-port (current-host))))))))
 
 (test-group
  "uri creator"
@@ -45,7 +68,9 @@
   (test "tr://host:80/v1/t2s?type=debug&id=123"
         ((make-turi-creator "debug") "123"))
   (test "tr://host:80/v1/t2s?type=debug&id=abc"
-        ((make-turi-creator "debug") "abc"))))
+        ((make-turi-creator "debug") "abc"))
+  (test "tr://host:80/v1/t2s?type=debug&foo=bar&monkey=krish"
+        ((make-turi-creator "debug") '((foo . "bar") (monkey . "krish"))))))
 
 
 (define (register-audio-host! name handler)
@@ -56,6 +81,4 @@
   (syntax-rules ()
     ((_ variable name id->suri)
      (begin (define variable (register-audio-host! name id->suri))))))
-
-
 )
