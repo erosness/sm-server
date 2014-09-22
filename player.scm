@@ -25,7 +25,7 @@
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client matchable
-     srfi-1
+     srfi-1 posix
      extras ;; <-- pp
      clojurian-syntax medea)
 
@@ -127,19 +127,25 @@
   (let ((mx (make-mutex)))
     (with-mutex-lock mx (make-play-worker))))
 
+(define (prepause-spotify)
+  (with-input-from-pipe "spotifyctl 7879 pause" void)
+  (thread-sleep! 0.1))
+
 ;; Control operations
 (define (player-pause)      (play-worker `(pause)))
-(define (player-unpause)    (play-worker `(unpause)))
+(define (player-unpause)    (prepause-spotify) (play-worker `(unpause)))
 (define (player-paused?)    (play-worker `(paused?)))
 (define (player-pos)        (play-worker `(pos)))
 (define (player-duration)   (play-worker `(duration)))
-(define (player-seek seek)  (play-worker `(seek ,seek)))
+(define (player-seek seek)  (prepause-spotify) (play-worker `(seek ,seek)))
 (define (player-quit)       (play-worker `(quit)))
 ;; cplay runningn and not paused:
 (define (playing?)   (and (not (eq? #f (play-worker `(pos))))
                           (not (player-paused?))))
 
-(define (play! cmd on-exit) (play-worker `(play ,cmd ,on-exit)))
+(define (play! cmd on-exit)
+  (prepause-spotify)
+  (play-worker `(play ,cmd ,on-exit)))
 
 (define (play-command/tr turi)
   (let ((response (with-input-from-request* (update-uri turi
