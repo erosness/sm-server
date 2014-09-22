@@ -25,13 +25,8 @@
 
 (define-handler /v1/t2s (wrap-params
                          (lambda (params)
-                           (or (and-let* ((t (alist-ref 'type params))
-                                          (i (alist-ref 'id params)))
-                                 ;; TODO: refactor all turi-handlers
-                                 ;; to support new api
-                                 (if (> (length params) 2)
-                                     (turi-handler t params)
-                                     (turi-handler t i)))
+                           (or (and-let* ((t (alist-ref 'type params)))
+                                 (turi-handler t params))
                                ;; Error
                                (error (conc "parameter type and/or id missing in "
                                             (uri->string (request-uri (current-request)))))))))
@@ -41,34 +36,26 @@
 
 (define (make-turi-creator type)
   (lambda (params)
+    (assert (alist? params) "Not an alist" params)
 
-    (assert (or (alist? params)
-                (string? params)
-                (number? params)))
-
-    ;; backwards compatability
-    (let ((params (if (or (string? params)
-                          (number? params))
-                      `((id . ,(conc params)))
-                      params)))
-     ;; produce & separators, not &;
-     (parameterize ((form-urlencoded-separator "&"))
-       (uri->string (update-uri (current-host)
-                                scheme: 'tr
-                                path: `(/ "v1" "t2s")
-                                query: `((type . ,type)
-                                         ,@params)
-                                ;; bug workaround (uri-common):
-                                port: (uri-port (current-host))))))))
+    ;; produce & separators, not &;
+    (parameterize ((form-urlencoded-separator "&"))
+      (uri->string (update-uri (current-host)
+                               scheme: 'tr
+                               path: `(/ "v1" "t2s")
+                               query: `((type . ,type)
+                                        ,@params)
+                               ;; bug workaround (uri-common):
+                               port: (uri-port (current-host)))))))
 
 (test-group
  "uri creator"
  (with-request
   ("/" `((host ("host" . 80))))
   (test "tr://host:80/v1/t2s?type=debug&id=123"
-        ((make-turi-creator "debug") "123"))
+        ((make-turi-creator "debug") '((id . 123))))
   (test "tr://host:80/v1/t2s?type=debug&id=abc"
-        ((make-turi-creator "debug") "abc"))
+        ((make-turi-creator "debug") '((id . "abc"))))
   (test "tr://host:80/v1/t2s?type=debug&foo=bar&monkey=krish"
         ((make-turi-creator "debug") '((foo . "bar") (monkey . "krish"))))))
 

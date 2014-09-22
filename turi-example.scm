@@ -1,13 +1,16 @@
 ;;; the most minimalistic search provider and turi converter I could write
 
 (import turi rest)
-(define-turi-adapter random-id->turi "random" (lambda (id) `((test . ,id))))
+(define-turi-adapter random-id->turi "random"
+  (lambda (params)
+    (print "Hello from turi adatpter!")
+    (pp params)))
 ;; and you can use random-id->turi to generate these t2s-urls. try it:
-;; (random-id->turi 4) ;; <-- should give you a tr:// url.
+;; (random-id->turi '((id . 4))) ;; <-- should give you a tr:// url.
 
 ;; replace that tr:// url with http:// and give it a curl:
 ;;
-;; curl "http://127.0.0.1/t2s?type=random&id=4"
+;; curl "http://127.0.0.1:5055/t2s?type=random&id=4"
 ;;
 ;; this will invoke the lambda above (with id as its argument).
 

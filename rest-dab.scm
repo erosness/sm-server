@@ -14,8 +14,9 @@
   (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
 
 (define-turi-adapter channel->turi "dab"
-  (lambda (chidxstr)
-    (let ((chidx (string->number chidxstr)))
+  (lambda (params)
+    (let ((chidxstr (alist-ref 'id params))
+          (chidx (string->number chidxstr)))
       (pp `(rest-dab station ,chidx))
       (match (dab-command (dab.sl.station chidx))
         ('(item-set-response FS_OK)
@@ -28,9 +29,10 @@
    (lambda ()
      (map (lambda (idx.name)
             (let ((channel (cdr idx.name))
-                  (index (car idx.name)))
+                  (index (car idx.name))
+                  (turi (channel->turi `((id . index)))))
               `((title . ,channel)
-                (turi . ,(channel->turi index)))))
+                (turi . ,turi))))
           (dab-channels)))))
 
 ;; start querying for stations. dab-channels is filled from dab-read-thread.

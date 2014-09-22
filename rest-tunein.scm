@@ -10,7 +10,11 @@
          (url    (alist-ref 'turi cjson)))
     `((url . ,url))))
 
-(define-turi-adapter tunein-uri->turi "tunein" tunein-turi->suri)
+(define-turi-adapter tunein-uri->turi "tunein"
+  (lambda (params)
+    (print "tunein adapter called!! " params)
+    (and-let* ((turi (alist-ref 'id params)))
+     (tunein-turi->suri turi))))
 
 (define-handler /v1/catalog/tunein
   (lambda () `((search . #( ((title . "Stations playing Artist") (uri . ,(return-url "/catalog/tunein/search-artist")))

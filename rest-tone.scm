@@ -14,7 +14,7 @@
 ;; (tone->turi 440) ==> "tr://localhost:5060/t2s?type=tone&id=440"
 
 (with-request ("" `((host ("foo" . 10))))
-              (tone->turi 100))
+              (tone->turi '((id . 100))))
 
 (define (tones)
   (map (lambda (hz)
