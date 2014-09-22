@@ -189,8 +189,9 @@
                             "spotifyctl 7879 event"
                             (o read make-nonblocking-input-port))))
                 (pp `(info ,(current-thread) event ,event))
-                (player-pause)
-                (spotify-notification event))))
+                (when (playing&active? event)
+                  (player-pause)
+                  (spotify-notification event)))))
           (loop/interval 1) ;; max interval at 1s
           (loop/exceptions (lambda (e)
                              (pp `(,(current-thread),(condition->list e)))
