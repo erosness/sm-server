@@ -7,8 +7,7 @@
 
 (import turi
         rest ;; <-- return-url
-        concurrent-utils
-        store)
+        concurrent-utils)
 
 (define (do-wimp-login store)
   (or (and-let* (((list? store))
@@ -48,11 +47,6 @@
    (test
     "old was removed"
     1 (length wimp-sessions))))
-
-(define wimp-store (make-store 'wimp '()))
-(condition-case
-    (do-wimp-login (wimp-store))
-  ((exn) (print "wimp - login failed")))
 
 ;; ==================== audio host ====================
 ;; (e.g convert tr://10.0.0.22/ah/wimp/tid/1234
@@ -160,8 +154,6 @@
   (define (make-wimp-login-error #!optional (extras '()))
     (values `((service . "wimp")
               (url . ,(return-url "/catalog/wimp/login"))
-              (_debug . ((wimp-store
-                          . ((username . ,(alist-ref 'username (wimp-store)))))))
               ,@extras)
             'unauthorized))
 
