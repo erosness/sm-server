@@ -189,8 +189,8 @@
 (define-handler /v1/catalog/wimp
   (wrap-wimp-login-status ;; TODO: why do we wrap login-status here?
    (lambda () `((search . #( ((title . "Artists") (uri . ,(return-url "/catalog/wimp/artist")))
-                      ((title . "Albums")  (uri . ,(return-url "/catalog/wimp/album")))
-                      ((title . "Tracks")  (uri . ,(return-url "/catalog/wimp/track")))))
+                        ((title . "Albums")  (uri . ,(return-url "/catalog/wimp/album")))
+                        ((title . "Tracks")  (uri . ,(return-url "/catalog/wimp/track")))))
            (preload . #( ((title . "Playlists") (uri . ,(return-url "/catalog/wimp/playlists")))))))))
 
 (define-handler /v1/catalog/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
