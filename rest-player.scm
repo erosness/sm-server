@@ -6,7 +6,7 @@
         rest ;; <-- (rest-server-port)
         playqueue)
 (use test restlib clojurian-syntax ports
-     srfi-18 extras
+     srfi-18 extras posix
      medea)
 
 (import notify incubator)
@@ -142,5 +142,58 @@
 
 ;; (thread-terminate! player-thread)
 ;; (thread-state player-thread)
+
+
+
+
+;; don't block while reading anything from port p. port p must have an
+;; associated filedescriptor.
+(define (make-nonblocking-input-port p)
+  (make-input-port (lambda ()
+                     (thread-wait-for-i/o! (port->fileno p))
+                     (read-char p))
+                   (lambda () (char-ready? p))
+                   (lambda () (close-input-port p))))
+
+
+
+(define (playing&active? event)
+  (and (alist-ref 'playing? event)
+       (alist-ref 'active? event)))
+
+
+;; send a pretend-current notification to our apps. should keep
+;; player-pane in sync with what Spotify is doing.
+(define (spotify-notification event)
+  (pq-current-set! *pq* `((title . ,(conc "SPOTIFY: "(alist-ref 'track event)))
+                          (subtitle . ,(alist-ref 'artist event))
+                          (image . ,(alist-ref 'image event))
+                          (provider . "spotify")
+                          (pos . 0)
+                          (duration . ,(* 0.001 (alist-ref 'duration_ms event)))
+                          (paused . ,(not (playing&active? event))))))
+
+
+;; watch if spotify is playing. if it is, we pause our own cplay and
+;; we "sneak" spotify album-cover art and player state in there using
+;; spotify-notification.
+(begin
+  (handle-exceptions e (void) (thread-terminate! spotify-monitor-thread))
+  (define spotify-monitor-thread
+    (thread-start!
+     (->> (let ()
+            (lambda ()
+              (let ((event (call-with-input-pipe
+                            "spotifyctl 7879 event"
+                            (o read make-nonblocking-input-port))))
+                (pp `(info ,(current-thread) event ,event))
+                (player-pause)
+                (spotify-notification event))))
+          (loop/interval 1) ;; max interval at 1s
+          (loop/exceptions (lambda (e) (pp `(,(current-thread),(condition->list e)))
+                              #t #|<-- keep going|#))
+          (loop)
+          ((flip make-thread) "spotify-monitor")))))
+
 
 )
