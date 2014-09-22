@@ -151,6 +151,26 @@
        (uri-query)
        (alist-ref key)))
 
+(define (wrap-params handler)
+  (lambda ()
+    (handler (-> (current-request)
+               (request-uri)
+               (uri-query)))))
+
+(test-group
+ "wrap-params"
+ (parameterize ((current-request (make-request uri: (uri-reference "?foo=bar&baz=quux"))))
+   (test
+    "some query parameters"
+    '((foo . "bar")
+      (baz . "quux"))
+    ((wrap-params identity))))
+
+ (parameterize ((current-request (make-request uri: (uri-reference ""))))
+   (test
+    "no query parameters"
+    '() ((wrap-params identity)))))
+
 (define (argumentize handler . query-params)
   (lambda ()
     (apply handler
