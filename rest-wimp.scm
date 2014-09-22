@@ -36,7 +36,7 @@
 
 (fluid-let ((wimp-sessions '()))
   (test-group
-   "wimp-sessons"
+   "wimp-sessions"
    (wimp-add-session "foo" "bar")
    (test
     "set/get"
