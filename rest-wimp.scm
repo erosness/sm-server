@@ -280,10 +280,8 @@
              ((conjoin identity))))))
 
 ;; for debugging purposes
-(define (clear-wimp-session!)
-  (set! *wimp-session-params*
-        `((sessionId . "00000000-0000-0000-0000-000000000000")
-          (countryCode . "NO")))
-  (print "wimp session cleared!"))
+(define (clear-wimp-sessions!)
+  (set! wimp-sessions '())
+  (print "wimp sessions cleared!"))
 
 )
