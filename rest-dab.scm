@@ -1,4 +1,4 @@
-(use restlib dab)
+(use restlib dab matchable)
 (use dab-i2c) ;; or (import dab-i2c turi)
 
 (import turi)
@@ -17,9 +17,11 @@
   (lambda (chidxstr)
     (let ((chidx (string->number chidxstr)))
       (pp `(rest-dab station ,chidx))
-      (dab-command (dab.sl.station chidx))
-      ;; TODO: find IP so zones can reach DAB
-      `((url . "http://127.0.0.1:8090/dab/hi")))))
+      (match (dab-command (dab.sl.station chidx))
+        ('(item-set-response FS_OK)
+         ;; TODO: find IP so zones can reach DAB
+         `((url . "http://127.0.0.1:8090/dab/hi")))
+        (anything (error (conc "cannot set channel " chidxstr) anything))))))
 
 (define-handler /v1/catalog/dab/stations
   (pagize
