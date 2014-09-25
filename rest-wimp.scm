@@ -1,4 +1,4 @@
-(module rest-wimp (clear-wimp-session!)
+(module rest-wimp (clear-wimp-sessions!)
 
 (import chicken scheme data-structures)
 (use wimp uri-common test clojurian-syntax restlib
