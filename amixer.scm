@@ -5,7 +5,7 @@
 (module amixer *
 
 (import chicken scheme extras)
-(use posix test data-structures irregex biquad srfi-1 srfi-13)
+(use posix test data-structures irregex biquad srfi-1 srfi-13 srfi-18)
 
 ;; parse the output of amixer cget and cget commands.
 (define (amixer-parse/values str)
