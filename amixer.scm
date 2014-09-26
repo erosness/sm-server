@@ -69,7 +69,13 @@
 
       (pp `(debug shell ,cmdstring))
 
-      (parser (with-input-from-pipe cmdstring read-string)))))
+      (parser
+       (call-with-input-pipe cmdstring
+                             (lambda (p)
+                               ;; wait for i/o in case amixer is slow
+                               ;; to respond.
+                               (thread-wait-for-i/o! (port->fileno p))
+                               (read-string 2048 p)))))))
 
 (define amixer-volume/cube
   (make-amixer-getter/setter
