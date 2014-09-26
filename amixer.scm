@@ -20,6 +20,26 @@
                    ",\n"))))
           (else (error "could not parse" str)))))
 
+;; parse simple-control get output. it's different from values. values
+;; seems to be general, where sget gives you percentages and
+;; left/right explicitly. values
+(define (amixer-parse/sget str)
+  (cond ((irregex-search '(: ":"
+                             (* space) (or "" "Capture" "Playback")
+                             (* space) (+ num)
+                             (* space) "[" (=> L% (+ num)) "%]"  ;; percentage
+                             (* space) (or "" "Capture" "Playback") ;; todo remove capture
+                             (* space) (=> L-mute (or "[on]" "[off]"))
+                             ;;"Front Right: Playback " (* space) (+ num) (* space)
+                             ;;"[" (=> %r (+ num)) "%]"
+                             )
+                         str) =>
+                         (lambda (m)
+                           (list (string->number (irregex-match-substring m 'L%)))))
+        (else ;; pp str too because error truncates it.
+         (pp `(error amixer-parse/sget ,str))
+         (error "could not parse amixer output" str) )))
+
 
 
 ;; helper for constructing amixer getter and setter command-line
@@ -39,7 +59,7 @@
 ;; construct a proc which can get and set using the
 ;; command-line-strings given by cmd-proc. everything is parsed with
 ;; amixer-parse/values
-(define (make-amixer-getter/setter cmd-proc)
+(define (make-amixer-getter/setter cmd-proc parser)
   (lambda (#!optional vals)
     (assert (or (eq? #f vals) (and (list? vals))))
 
@@ -49,12 +69,12 @@
 
       (pp `(debug shell ,cmdstring))
 
-      (amixer-parse/values
-       (with-input-from-pipe cmdstring read-string)))))
+      (parser (with-input-from-pipe cmdstring read-string)))))
 
 (define amixer-volume/cube
   (make-amixer-getter/setter
-   (cmd/getter-setter "alsa_amixer -c 1" "cget" "cset" "name=\"Playback Volume (plain)\"")))
+   (cmd/getter-setter "alsa_amixer -c 1" "sget" "sset" "Master")
+   amixer-parse/sget))
 
 
 ;; fp => (fp fp fp fp fp)
@@ -93,7 +113,8 @@
 
   (define amixer-setter
     (make-amixer-getter/setter
-     (cmd/getter-setter "alsa_amixer -c 1" "cget" "cset" (conc "name=\"EQ Stage " band-index "\""))))
+     (cmd/getter-setter "alsa_amixer -c 1" "cget" "cset" (conc "name=\"EQ Stage " band-index "\""))
+     amixer-parse/values))
 
   (define gain->coefficients (make-biquad-converter (eq-band-frequency band-index)))
 

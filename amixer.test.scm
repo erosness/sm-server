@@ -4,31 +4,6 @@
 ;;; this can make amixer work on your laptop. using simple controls
 ;;; instead of cset/cget which is more abstract and nicer.
 
-;; parse simple-control get output. it's different from values. values
-;; seems to be general, where sget gives you percentages and
-;; left/right explicitly. values
-(define (amixer-parse/sget str)
-  (cond ((irregex-search '(: "Front Left: Playback" (* space) (+ num) ;; internal volume
-                             (* space)
-                             "[" (=> L% (+ num)) "%]" (* space)
-                             (=> L-mute (or "[on]" "[off]"))
-                             ;;"Front Right: Playback " (* space) (+ num) (* space)
-                             ;;"[" (=> %r (+ num)) "%]"
-                             )
-                         str) =>
-                         (lambda (m) (string->number (irregex-match-substring m 'L%))))
-        (else (error "could not parse amixer output" str))))
-
-
-(define (amixer-volume/simple #!optional (value #f))
-
-  (if (and value (not (number? value))) (error "invalid volume " value))
-
-  (let ((output (if value
-                    (with-input-from-pipe (conc "amixer sset Master Playback " value "%") read-string)
-                    (with-input-from-pipe "amixer sget Master Playback" read-string))))
-
-    (amixer-parse/sget output)))
 
 (test-group
  "amixer-parser/sget"
@@ -42,6 +17,18 @@
   Mono:
   Front Left: Playback 13108 [20%] [on]
   Front Right: Playback 13108 [20%] [on]
+"))
+ ;; actual output
+ (test
+  "simple adb shell alsa_amixer"
+  25
+  (amixer-parse/sget
+   "Simple mixer control 'Master',0
+  Capabilities: volume volume-joined cswitch cswitch-joined penum
+  Playback channels: Mono
+  Capture channels: Mono
+  Limits: 0 - 100
+  Mono: 21 [25%] Capture [off]
 ")))
 
 
