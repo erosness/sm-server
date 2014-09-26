@@ -9,7 +9,7 @@
  "amixer-parser/sget"
  (test
   "left channel"
-  20
+  '(20)
   (amixer-parse/sget "Simple mixer control 'Master',0
   Capabilities: pvolume pswitch pswitch-joined
   Playback channels: Front Left - Front Right
@@ -21,7 +21,7 @@
  ;; actual output
  (test
   "simple adb shell alsa_amixer"
-  25
+  '(25)
   (amixer-parse/sget
    "Simple mixer control 'Master',0
   Capabilities: volume volume-joined cswitch cswitch-joined penum
