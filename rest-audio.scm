@@ -47,7 +47,6 @@
   ;; last if wrapped in list so we can distinguish unset values and #f
   ;; from getter.
   (define last #f)
-  (define (update x) (set! last (list x)))
   (define (changed? y) (not (equal? (list y) last)))
   (lambda (#!optional (nval (getter)))
     (if (changed? nval)
@@ -61,7 +60,7 @@
 ;; will set that value using amixer, cache it for later comparison,
 ;; and send notify messages to everybody.
 (define amixer-volume/notify
-  (with-notification "/v1/player/volume" (lambda (#!optional x) (amixer-volume x))
+  (with-notification "/v1/player/volume" (lambda () (amixer-volume))
                      (lambda (volume)
                        `((value . ,(amixer-volume volume))))))
 
