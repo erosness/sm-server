@@ -72,11 +72,15 @@
     (lambda ()
       (define player-store (make-store txt-record))
       (if (current-json)
-          (begin
-            (player-store (current-json))
+          ;; Should not be able to change type
+          (let ((new-record (alist-delete 'type (current-json))))
+            (player-store new-record)
             (dns-sd-unregister!)
             (set! dns-sd-unregister!
                   (dns-sd-register nickname port service-type/cube-pq txt-record type))))
-      (or (player-store) '())))
+      (or (cons `(type . ,type)
+                (player-store)) '())))
 
   dns-sd-unregister!)
+
+
