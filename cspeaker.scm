@@ -76,7 +76,7 @@
             (player-store (current-json))
             (dns-sd-unregister!)
             (set! dns-sd-unregister!
-                  (dns-sd-register nickname port service-type/cube-pq txt-record))))
+                  (dns-sd-register nickname port service-type/cube-pq txt-record type))))
       (or (player-store) '())))
 
   dns-sd-unregister!)
