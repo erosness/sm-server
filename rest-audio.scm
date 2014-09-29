@@ -43,31 +43,42 @@
 ;; the returned procedure can be called regularly without arguments to
 ;; keep send notifications based on changed, polling for changes on
 ;; whatever getter returns.
-(define (with-notification path getter setter)
+(define (with-notification path getter setter value->notification)
   ;; last if wrapped in list so we can distinguish unset values and #f
   ;; from getter.
   (define last #f)
   (define (changed? y) (not (equal? (list y) last)))
-  (lambda (#!optional (nval (getter)))
-    (if (changed? nval)
-        (begin
-          (send-notification path (setter nval))
-          (set! last (list nval))))
-    nval))
+  (define (change! y) (set! last (list y)))
+
+  ;; if new-value ≠ old-value, broadcast change and cache new-value
+  (define (notify!? new-value)
+    (cond ((changed? new-value)
+           (send-notification path (value->notification new-value))
+           (change! new-value))))
+
+  (lambda (#!optional nval)
+    (value->notification
+     (cond (nval (notify!? (setter nval)) nval) ;; change by arg
+           (else (let ((n (getter)))            ;; change externally
+                   (notify!? n)
+                   n))))))
 
 ;; calling /notify versions without arguments will query amixer for
 ;; current volume and notify if changed. calling it with argument,
 ;; will set that value using amixer, cache it for later comparison,
 ;; and send notify messages to everybody.
 (define amixer-volume/notify
-  (with-notification "/v1/player/volume" (lambda () (amixer-volume))
-                     (lambda (volume)
-                       `((value . ,(amixer-volume volume))))))
+  (with-notification "/v1/player/volume"
+                     (lambda () (amixer-volume))
+                     (lambda (v) (amixer-volume v))
+                     (lambda (v) `((value . ,v)))))
+
 
 (define amixer-eq/notify
-  (with-notification "/v1/player/eq" amixer-eq
-                     (lambda (eqlst)
-                       `((value . ,(list->vector (amixer-eq eqlst)))))))
+  (with-notification "/v1/player/eq"
+                     (lambda () (amixer-eq))
+                     (lambda (eq) (amixer-eq eq))
+                     (lambda (eq) `((value . ,(list->vector eq))))))
 
 ;; HACK: use mock volume and eq on macosx
 (cond-expand
