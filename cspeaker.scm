@@ -56,6 +56,9 @@
               (current-output-port)))
 
 
+(define (random-suffix)
+  (string-join (map (lambda _ (->string (random 10))) (iota 4)) ""))
+
 ;; Annonce a cube-pq service with a txt record holding the service's
 ;; friendly name and icon. Also register a route for changing the txt
 ;; record. Upon change the service is stopped and restarted with the
@@ -65,22 +68,29 @@
 
   (import rest)
   (define txt-record (string->symbol (conc "dns-" nickname "-" port)))
-  (define dns-sd-unregister! (dns-sd-register nickname port service-type/cube-pq txt-record type))
 
-  ;; TODO: don't hardcode /v1/player
-  (define-handler /v1/player
-    (lambda ()
-      (define player-store (make-store txt-record))
-      (if (current-json)
-          ;; Should not be able to change type
-          (let ((new-record (alist-delete 'type (current-json))))
-            (player-store new-record)
-            (dns-sd-unregister!)
-            (set! dns-sd-unregister!
-                  (dns-sd-register nickname port service-type/cube-pq txt-record type))))
-      (or (cons `(type . ,type)
-                (player-store)) '())))
+  (define player-store (make-store txt-record))
+  (if (not (player-store))
+   (player-store `((name . ,nickname))))
 
-  dns-sd-unregister!)
+  ;; Publish with a 4 digit random suffix, used by clients to identify
+  ;; this service, regardless of name and ip
+  (let ((publish-name (conc nickname "-" (random-suffix))))
+    (define dns-sd-unregister! (dns-sd-register publish-name port service-type/cube-pq txt-record type))
+
+    ;; TODO: don't hardcode /v1/player
+    (define-handler /v1/player
+      (lambda ()
+        (if (current-json)
+            ;; Should not be able to change type
+            (let ((new-record (alist-delete 'type (current-json))))
+              (player-store new-record)
+              (dns-sd-unregister!)
+              (set! dns-sd-unregister!
+                    (dns-sd-register publish-name port service-type/cube-pq txt-record type))))
+        (or (cons `(type . ,type)
+                  (player-store)) '())))
+
+    dns-sd-unregister!))
 
 
