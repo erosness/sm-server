@@ -87,10 +87,9 @@
  (else
   (define-handler /v1/player/volume
     (lambda ()
-      (let ((vol (if (current-json)
+      (if (current-json)
                      (amixer-volume/notify (alist-ref 'value (current-json)))
-                     (amixer-volume/notify))))
-        `((value . ,vol)))))))
+          (amixer-volume/notify))))))
 
 
 (cond-expand
@@ -100,10 +99,10 @@
  (else
   (define-handler /v1/player/eq
     (lambda ()
-      (let ((eq (if (current-json)
+      (if (current-json)
                     (amixer-eq/notify (vector->list (alist-ref 'value (current-json))))
-                    (amixer-eq/notify))))
-        `((value . ,(list->vector eq))))))))
+          (amixer-eq/notify))))))
+
 
 ;; volume watchdog thread. if the volume is modified externally
 ;; (hardware volume button, for example), we pick it up in cube-server
