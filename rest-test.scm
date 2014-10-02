@@ -123,6 +123,7 @@
   (test "pagination ( *=* * )" (list-ref items-1 2) (list-ref items+0 1))
   (test "pagination ( * *=* )" (list-ref items+0 1) (list-ref items+1 0)))
 
+;; test the test!
 (validate-pagination* '( ((a . 1)) ((b . 2)) ((c . 3)) )
                       '( ((b . 2)) ((c . 3)) ((d . 4)) )
                       '( ((c . 3)) ((d . 4)) ((e . 5)) ))
