@@ -10,7 +10,7 @@
 ;;; TODO: don't assume player/catalog is the same (split tests?)
 
 (use pefat)
-(use intarweb uri-common test http-client medea)
+(use intarweb uri-common test http-client medea matchable)
 
 ;; alist helpers
 (include "incubator.scm")
@@ -21,6 +21,13 @@
 
 ;; setting some less surprising defaults
 (form-urlencoded-separator "&;")
+
+
+(match (command-line-arguments)
+  ((remote)
+   (let ((uri (uri-reference remote)))
+     (current-player (inet-address (uri-host uri) (uri-port uri)))))
+  (else (error "usage: <http://<host>:<port>> # maestro's address")))
 
 (define (query path #!optional post)
   (let ((uri (current-base-url path)))
