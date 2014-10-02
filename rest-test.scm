@@ -136,8 +136,10 @@
 
 (define tabs
   (append
-   (validate-tabs (query "/catalog/wimp"))
-   (validate-tabs (query "/catalog/dlna"))))
+   ;;(validate-tabs (query "/catalog/wimp"))
+   (validate-tabs (query "/catalog/tunein"))
+   (validate-tabs (query "/catalog/dlna"))
+   ))
 
 
 (test-begin "media browser apis")
