@@ -68,9 +68,9 @@
 (test-group
  "simple volume"
 
- (test "volume setter" `((value . 55)) (query "/player/volume" `((value . 55))))
- (test "volume setter" `((value . 33)) (query "/player/volume" `((value . 33))))
- (test "volume getter" `((value . 33)) (query "/player/volume")))
+ (test "volume setter" `((value . 10)) (query "/player/volume" `((value . 10))))
+ (test "volume setter" `((value . 13)) (query "/player/volume" `((value . 13))))
+ (test "volume getter" `((value . 13)) (query "/player/volume")))
 
 (test-end "player")
 
