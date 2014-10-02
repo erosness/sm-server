@@ -83,7 +83,8 @@
            (test #t (string-prefix? "/catalog/" uri))
            (test #t (string? title))
            (cons uri title)))
-       (vector->list (alist-ref 'tabs tabs))))
+       (vector->list  (or (alist-ref 'search tabs)
+                          (alist-ref 'preload tabs)))))
 
 
 ;; quickly test that the "recursive" browsing of media-browsing urls
