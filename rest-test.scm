@@ -145,7 +145,9 @@
 (test-begin "media browser apis")
 (for-each
  (lambda (tab)
-   (let ((url (conc (car tab) "?q=ab")))
+   ;; this part is tricky. we need a search query that returns 3 or
+   ;; more matches for all audio providers.
+   (let ((url (conc (car tab) "?q=love")))
      (for-each validate-mb (items (query url)))
      (validate-pagination url)))
  tabs)
