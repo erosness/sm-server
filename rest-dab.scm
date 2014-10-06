@@ -60,15 +60,3 @@
     (dab-reset)
     (dab-command (audio.buzzer.state 'on))
     (dab-command (audio.buzzer.frequency 440))))
-
-
-     (map (lambda (idx.name)
-            (let* ((channel (cdr idx.name))
-                   (index (car idx.name))
-                   (turi (channel->turi `((id . ,index)))))
-              `((title . ,channel)
-                (turi . ,turi))))
-          (dab-channels))
-
-(car (car (dab-channels)))
-ps
