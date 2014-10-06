@@ -56,9 +56,11 @@
     (file-close in-in)
     (file-close out-out)
 
-    (values (open-input-file*/nonblock  out-in)
-            (open-output-file*/nobuffer in-out)
-            pid)))
+    (let ((pip (open-input-file*/nonblock  out-in))
+          (pop (open-output-file*/nobuffer in-out)))
+      (set-port-name! pip (conc "spawn* " cmd))
+      (set-port-name! pop (conc "spawn* " cmd))
+      (values pip pop pid))))
 
 
 ;; Spawn a subprocess. Use its line-based cli on stdin/stdout as
