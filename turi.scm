@@ -36,7 +36,8 @@
 
 (define (make-turi-creator type)
   (lambda (params)
-    (assert (alist? params) "Not an alist" params)
+    (print "creating " type " from params: " params)
+    (assert (alist? params) "make-turi-creator: Not an alist" params)
 
     ;; produce & separators, not &;
     (parameterize ((form-urlencoded-separator "&"))
