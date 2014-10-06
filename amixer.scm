@@ -183,22 +183,28 @@
 (begin
   (handle-exceptions e (void) (amixer-volume #:quit))
   (define amixer-volume
-    (make-cmixer-interface
-     ;; read line-by-line from port p and convert to numberical value
-     (lambda (p)
-       (let* ((line (read-line p 1024))
-              (volume (string->number (string-trim line))))
-         (cond ((eof-object? line) line)
-               (else
-                (send-notification "/v1/player/volume" `((value . ,volume)))
-                volume))))
+    (let ()
 
-     ;; write number x to p with appending newline
-     (lambda (x p)
-       (write `("setting volume to" ,x))
-       (display x p)
-       (display #\newline p)
-       x))))
+      (define (notify volume)
+        (send-notification "/v1/player/volume" `((value . ,volume))))
+
+      (make-cmixer-interface
+       ;; read line-by-line from port p and convert to numberical value
+       (lambda (p)
+         (let* ((line (read-line p 1024))
+                (volume (string->number (string-trim line))))
+           (cond ((eof-object? line) line)
+                 (else
+                  (notify volume)
+                  volume))))
+
+       ;; write number x to p with appending newline
+       (lambda (x p)
+         (write `("setting volume to" ,x))
+         (notify x)
+         (display x p)
+         (display #\newline p)
+         x)))))
 
 ;; (amixer-volume)
 ;; (amixer-volume 55)
