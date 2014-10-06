@@ -15,7 +15,7 @@
 (use posix extras ports srfi-13 srfi-18 posix srfi-1 clojurian-syntax)
 
 ;; don't exit on signal/pipe!
-;; see http://krokisplace.blogspot.no/2010/02/suppressing-sigpipe-in-library.htlm
+;; see http://krokisplace.blogspot.no/2010/02/suppressing-sigpipe-in-library.html
 (set! (signal-handler signal/pipe) #f)
 
 ;; like open-input-file* but doesn't block other threads. obs: this
