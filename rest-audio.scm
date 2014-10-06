@@ -63,15 +63,6 @@
                    (notify!? n)
                    n))))))
 
-;; calling /notify versions without arguments will query amixer for
-;; current volume and notify if changed. calling it with argument,
-;; will set that value using amixer, cache it for later comparison,
-;; and send notify messages to everybody.
-(define amixer-volume/notify
-  (with-notification "/v1/player/volume"
-                     (lambda () (amixer-volume))
-                     (lambda (v) (amixer-volume v))
-                     (lambda (v) `((value . ,v)))))
 
 
 (define amixer-eq/notify
@@ -87,9 +78,8 @@
  (else
   (define-handler /v1/player/volume
     (lambda ()
-      (if (current-json)
-                     (amixer-volume/notify (alist-ref 'value (current-json)))
-          (amixer-volume/notify))))))
+      (if (current-json) (amixer-volume (alist-ref 'value (current-json))))
+      `((value . ,(amixer-volume)))))))
 
 
 (cond-expand
@@ -115,7 +105,6 @@
     (define amixer-poll-thread
       (thread-start!
        (->> (lambda ()
-              (amixer-volume/notify)
               (amixer-eq/notify))
             (loop/interval 1)
             (loop/exceptions (lambda (e) (pp `(error amixer-poll-thread ,(condition->list e))) #t))

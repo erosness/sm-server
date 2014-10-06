@@ -5,7 +5,10 @@
 (module amixer *
 
 (import chicken scheme extras)
-(use posix test data-structures irregex biquad srfi-1 srfi-13 srfi-18)
+(use posix test data-structures irregex biquad srfi-1 srfi-13 srfi-18
+     matchable looper clojurian-syntax)
+
+(import process-cli notify)
 
 ;; parse the output of amixer cget and cget commands.
 (define (amixer-parse/values str)
@@ -77,11 +80,6 @@
                                (thread-wait-for-i/o! (port->fileno p))
                                (read-string 2048 p)))))))
 
-(define amixer-volume/cube
-  (make-amixer-getter/setter
-   (cmd/getter-setter "alsa_amixer -c 1" "sget" "sset" "Master")
-   amixer-parse/sget))
-
 
 ;; fp => (fp fp fp fp fp)
 (define (make-biquad-converter band #!optional (rate 48000) (slope 0.7))
@@ -143,21 +141,69 @@
            amixer-eqs
            (or gains '(#f #f #f #f #f))))))
 
-;; on-device REPL?
+;; returns a procedure which:
 ;;
-;; (test '(1 2 3 4 5) (amixer-eq/cube '(1 2 3 4 5)))
-;; (test '(1 2 3 4 5) (amixer-eq/cube))
-;; (amixer-volume/cube)
+;; with no arguments, returns the last read value
+;; with 1 argument, writes using writer
+;;
+;; should currently be thread-safe as file-write on port pop is
+;; atomic, but this could be cleaned up.
+(define (make-cmixer-interface reader #!optional
+                               (writer display)
+                               (cmds '("cmixer" "Master Playback Volume")))
 
-;; amixer APIs work on lists (multiple values, like for EQ or
-;; left-speaker volume, right-speaker volume). this creates a wrapper
-;; for single-valued controls.
-(define (amixer-wrap-singular proc)
-  (lambda (#!optional val) (if val
-                          (car (proc (list val)))
-                          (car (proc)))))
+  (define last-read #f)
 
-(define amixer-volume (amixer-wrap-singular amixer-volume/cube))
+  (receive (pip pop pid)
+      (spawn* (car cmds) (cdr cmds))
+
+    (define (cleanup!)
+      ;; obs: errors if process already exited
+      (process-wait pid))
+
+    (define reader-thunk
+      (->> (lambda ()
+             (set! last-read (reader pip))
+             (pp `(info amixer ,(current-thread) read ,last-read))
+             (if (eof-object? last-read) #f #t))
+           (loop/exceptions (lambda (e) (pp `(error cmixer-thread ,(condition->list e))) #f))
+           (loop)
+           ((lambda (h)
+              (lambda ()
+                (h)
+                (cleanup!))))))
+
+    (thread-start! (make-thread reader-thunk "cmixer-reader"))
+
+    (match-lambda*
+     (( '#:quit) (process-signal pid))
+     (( x ) (set! last-read (writer x pop))) ;; <-- TODO: this is not good
+     (( ) last-read))))
+
+(begin
+  (handle-exceptions e (void) (amixer-volume #:quit))
+  (define amixer-volume
+    (make-cmixer-interface
+     ;; read line-by-line from port p and convert to numberical value
+     (lambda (p)
+       (let* ((line (read-line p 1024))
+              (volume (string->number (string-trim line))))
+         (cond ((eof-object? line) line)
+               (else
+                (send-notification "/v1/player/volume" `((value . ,volume)))
+                volume))))
+
+     ;; write number x to p with appending newline
+     (lambda (x p)
+       (write `("setting volume to" ,x))
+       (display x p)
+       (display #\newline p)
+       x))))
+
+;; (amixer-volume)
+;; (amixer-volume 55)
+
+
 (define amixer-eq amixer-eq/cube)
 
 (include "amixer.test.scm")
