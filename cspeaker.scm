@@ -75,7 +75,7 @@
 
   ;; Publish with a 4 digit random suffix, used by clients to identify
   ;; this service, regardless of name and ip
-  (let ((publish-name (conc nickname "-" (random-suffix))))
+  (let ((publish-name (conc nickname "-" port)))
     (define dns-sd-unregister! (dns-sd-register publish-name port service-type/cube-pq txt-record type))
 
     ;; TODO: don't hardcode /v1/player
