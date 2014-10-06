@@ -34,7 +34,7 @@
            (alist-update 'uri (rewrite-uri uri) cjson)))
         ((alist-ref 'turi cjson) =>
          (lambda (turi)
-           (alist-update 'turi (tunein-uri->turi turi)
+           (alist-update 'turi (tunein-uri->turi `((id . ,turi)))
                          cjson)))
         (else (error "no uri nor turi" cjson))))
 
