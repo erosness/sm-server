@@ -15,8 +15,8 @@
 
 (define-turi-adapter channel->turi "dab"
   (lambda (params)
-    (let ((chidxstr (alist-ref 'id params))
-          (chidx (string->number chidxstr)))
+    (let* ((chidxstr (alist-ref 'id params))
+           (chidx (string->number chidxstr)))
       (pp `(rest-dab station ,chidx))
       (match (dab-command (dab.sl.station chidx))
         ('(item-set-response FS_OK)
@@ -28,9 +28,9 @@
   (pagize
    (lambda ()
      (map (lambda (idx.name)
-            (let ((channel (cdr idx.name))
-                  (index (car idx.name))
-                  (turi (channel->turi `((id . index)))))
+            (let* ((channel (cdr idx.name))
+                   (index (car idx.name))
+                   (turi (channel->turi `((id . ,index)))))
               `((title . ,channel)
                 (turi . ,turi))))
           (dab-channels)))))
@@ -60,3 +60,15 @@
     (dab-reset)
     (dab-command (audio.buzzer.state 'on))
     (dab-command (audio.buzzer.frequency 440))))
+
+
+     (map (lambda (idx.name)
+            (let* ((channel (cdr idx.name))
+                   (index (car idx.name))
+                   (turi (channel->turi `((id . ,index)))))
+              `((title . ,channel)
+                (turi . ,turi))))
+          (dab-channels))
+
+(car (car (dab-channels)))
+ps
