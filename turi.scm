@@ -36,7 +36,6 @@
 
 (define (make-turi-creator type)
   (lambda (params)
-    (print "creating " type " from params: " params)
     (assert (alist? params) "make-turi-creator: Not an alist" params)
 
     ;; produce & separators, not &;
