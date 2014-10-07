@@ -14,3 +14,4 @@
 (install-extension 'cube-server ;; <-- what?
                    (glob "*.import.scm"))
 
+(install-script 'cube-server "cube-server.sh")
