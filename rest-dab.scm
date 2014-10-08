@@ -41,7 +41,9 @@
   ;; (thread-state dab-channels-thread)
   (define dab-channels-thread
     (thread-start!
-     (->> (lambda () (dab-refresh-channels!))
+     (->> (lambda ()
+            (dab-refresh-channels!)
+            #f) ;; <-- exit thread on successful completion
           (loop/exceptions (lambda (e) (pp `(error DAB channels ,(condition->list e) )) #t))
           (loop/interval 10)
           (loop)))))
