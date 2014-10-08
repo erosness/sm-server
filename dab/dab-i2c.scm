@@ -3,7 +3,7 @@
 
 (use dab srfi-18 bitstring dab i2c posix srfi-13
      srfi-14 ;; char-set
-     matchable
+     matchable test
      )
 
 (define current-dab-fd
@@ -102,13 +102,20 @@
 ;; TODO: apply this in all nt:e8 structures instead
 (define (parse-dab.scan.state data)
   (match data
-    (('item-get-response (FS_OK . string))
-     (case (char->integer (string-ref string 0))
-       ((0) 'idle)
-       ((1) 'scan)
-       (else (error "invalid dab.scan.state return code " data))))
+    ('(item-get-response (FS_OK . "\x00")) 'idle)
+    ('(item-get-response (FS_OK . "\x01")) 'scan)
+    ('(item-get-response (FS_NODE_BLOCKED . "")) 'off)
     (else (error "invalid dab.scan.state data" data))))
 
+(test-group
+ "parse-dab.scan.state"
+ (test 'idle (parse-dab.scan.state '(item-get-response (FS_OK . "\x00"))))
+ (test 'scan (parse-dab.scan.state '(item-get-response (FS_OK . "\x01"))))
+ (test 'off (parse-dab.scan.state '(item-get-response (FS_NODE_BLOCKED . ""))))
+
+ (test-error (parse-dab.scan.state '(item-get-response (FS_INVALID . "\x00"))))
+ (test-error (parse-dab.scan.state '(item (FS_OK . "\x00"))))
+ )
 
 ;; TODO: apply this to all $list-get instead
 (define (parse-dab.sl.uService data)
