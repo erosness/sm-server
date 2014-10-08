@@ -3,7 +3,7 @@
 
 (use dab srfi-18 bitstring dab i2c posix srfi-13
      srfi-14 ;; char-set
-     matchable test
+     matchable test looper
      )
 
 (define current-dab-fd
@@ -19,12 +19,22 @@
     (pp `(DAB send-packet ,(current-thread) ,(bitstring->blob bs)))
     (file-write (current-dab-fd) (bitstring->string zbs))))
 
-(define (dab-read-packet)
+;; this is magic. if you cann file-read on DAB's i2c fd too frequent,
+;; or you'll get "file-read: I/O error" and the DAB semi-resets
+;; somehow (dab.state turns off). poll/file-select doesn't help. we
+;; limit the frequency at which you can read from the DAB module here
+;; instead. the magical frequency seems to be 12 reads per second,
+;; determined by testing. I don't like the I2C fs-interace.
+(define dab-read-packet
+  (loop/interval
+   0.08
+   (lambda ()
   (let* ((p (car (file-read (current-dab-fd) 512)))
          (len (bitmatch p ( ((l 16) (rest bitstring)) l))))
     (pp `(DAB read-packet ,(current-thread) ,len))
     ;; remove i2c packet length header:
-    (substring p 2 (+ 2 len))))
+       (substring p 2 (+ 2 len))))))
+
 
 ;; parameters are thread-local. (current-frame)
 (define current-frame (make-parameter 1))
