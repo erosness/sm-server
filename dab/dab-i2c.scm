@@ -29,10 +29,10 @@
   (loop/interval
    0.08
    (lambda ()
-  (let* ((p (car (file-read (current-dab-fd) 512)))
-         (len (bitmatch p ( ((l 16) (rest bitstring)) l))))
-    (pp `(DAB read-packet ,(current-thread) ,len))
-    ;; remove i2c packet length header:
+     (let* ((p (car (file-read (current-dab-fd) 512)))
+            (len (bitmatch p ( ((l 16) (rest bitstring)) l))))
+       (pp `(DAB read-packet ,(current-thread) ,len))
+       ;; remove i2c packet length header:
        (substring p 2 (+ 2 len))))))
 
 
