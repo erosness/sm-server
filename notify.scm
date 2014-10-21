@@ -8,7 +8,7 @@
 (module notify (send-notification make-notify-handler)
 
 (import chicken scheme ports data-structures)
-(use socket intarweb spiffy medea srfi-1 srfi-18 restlib)
+(use socket posix intarweb spiffy medea srfi-1 srfi-18 restlib)
 
 
 ;; create a message that represents `path` changing into `body`. port
@@ -39,41 +39,40 @@
                                          (lambda (new) (set! *notify-connections* new))))
                            (port (server-port)))
   (let ((msg (change-message path body port)))
-
-    ;; run through all current notify TCP connections
-    ;; TODO: make this thread-safe
-    (set! (connections)
-          (filter
-           (lambda (port)
-
-             (condition-case
-              (begin
-                (display msg port)
-                (display #\newline port)
-                (flush-output port)
-                #t) ;; <-- filter in
-              (e (exn i/o net)
-                 (print "removing notify connection " port)
-                 #f) ;; <-- filter out
-              ))
-
-           (connections)))))
+    (for-each
+     (lambda (port)
+       (condition-case
+           (begin
+             (display msg port)
+             (display #\newline port)
+             (flush-output port))
+         (e (exn i/o net)
+            (print "invalid notify connection " port))))
+     (connections))))
 
 (define (make-notify-handler #!optional
                              (connections
                               (getter-with-setter (lambda () *notify-connections*)
                                                   (lambda (new) (set! *notify-connections* new)))))
+  (print "********* make-notify-handler")
   (define (notify-handler)
     (let ((port (response-port (current-response))))
       ;; add out-port to our pool
       ;; TODO: make this thread-safe
       (set! (connections) (cons port (connections)))
 
-      (let loop ()
-        (thread-sleep! 5)
-        ;; if connection has been deleted, let's exit our thread
-        (if (find (lambda (x) (eq? x port)) (connections))
-            (loop)))
+      ;; HACK: Block the thread here until we can read from it,
+      ;; since the client should never write anything through the
+      ;; socket we assume that when data becomes available it's the
+      ;; #eof character. Once that has been received we remove this
+      ;; port from the active connections.
+      (thread-wait-for-i/o! (port->fileno port) #:input)
+      (print  port " has been closed, removing connection")
+
+
+      ;; TODO: thread-safe before commit!!
+      (set! (connections)
+            (filter (lambda (p) (not (equal? p port))) (connections)))
 
       ;; this is dirty. we actually want to exit this thread
       ;; immediately, but that will clean up TCP connections and send a
