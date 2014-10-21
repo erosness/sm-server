@@ -103,6 +103,17 @@
   (dab-reset)
   (dab-command (dab.state 'on)))
 
+(define (fm-turn-on)
+  (dab-reset)
+  (dab-command (fm.state 'on)))
+
+(define (parse-dab/fm.state data)
+  (match data
+    (('item-get-response ('FS_OK . "\x00")) #f)
+    (('item-get-response ('FS_OK . "\x01")) 'on)))
+
+(define (dab-on?) (parse-dab/fm.state (dab-command (dab.state))))
+(define (fm-on?) (parse-dab/fm.state (dab-command (fm.state))))
 
 ;; ====================
 ;; TODO: the following should be part of some dab module and i/o
@@ -183,5 +194,43 @@
 
 (define (dab-channels) *dab-channels*)
 
+
+;; ------- FM
+(define (parse-fm.frequency data)
+  (match data
+    (('item-get-response (FS_OK . string))
+     (bitmatch string (((x 32)) x)))))
+
+(define (parse-fm.signalStrength data)
+  (* -1
+   (match data
+     (('item-get-response (FS_OK . string))
+      (bitmatch string (((x 8)) x))))))
+
+(define (parse-fm.rds.radioText data)
+  (match data
+    (('item-get-response (FS_OK . channel))
+     (and-let* ((trimmed (string-trim-both channel (char-set #\space #\newline #\nul)))
+                (dblspace-idx (substring-index "  " trimmed)))
+       ;; Return the substring up to the first double space
+       (substring trimmed 0 dblspace-idx)))))
+
+
+;; API
+(define (fm-frequency . hz)
+  (if (and (not (null? hz))
+           (number? (car hz)))
+      (dab-command (fm.frequency (car hz))))
+
+  (parse-fm.frequency
+   (dab-command (fm.frequency))))
+
+(define (fm-signal-strength)
+  (parse-fm.signalStrength
+   (dab-command (fm.signalStrength))))
+
+(define (fm-radio-text)
+  (parse-fm.rds.radioText
+   (dab-command (fm.rds.radioText))))
 
 )
