@@ -35,3 +35,41 @@
 
 (dab-command (fm.searchLevel))
 
+
+
+
+;;; FM example
+;; Start dab station from app
+
+(use dab dab-i2c matchable bitstring)
+;; eval stuff from dab-i2c.scm
+(fm-turn-on)
+
+;; Not sure if this makes a difference
+(dab-command (fm.forceToMono 'on))
+
+;; You should get around -62 db
+(fm-signal-strength)
+
+;; 0 is 'all, 1 is 'strong
+(dab-command (fm.searchLevel))
+
+;; Usully have to set it to all to find anything while searching
+(dab-command (fm.searchLevel 'strong))
+
+;; Should get you something eventually
+(dab-command (fm.search 'up))
+(dab-command (fm.search))
+
+;; current frequency
+(fm-frequency)
+(fm-frequency 94850)
+;; Station name or #f
+(fm-radio-text)
+
+;; Known to work
+(fm-frequency 99000) ;; NRK P3
+(fm-frequency 94800) ;; NRK P2 KULTURKANALEN
+
+
+
