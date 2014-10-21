@@ -115,6 +115,10 @@
 (define dab.scan.state    (nt:e8  "\x02\x0a\x01\x00" idle scan))
 (define dab.udls          (nt:c8 "\x02\x11\x00\x00"))
 (define dab.tuneStatus    (nt:e8 "\x02\x06\x00\x00" idle tuned selected))
+
+;; dab plus
+(define dab.dlplus.available (nt:e8 "\x02\x12\x04\x00" stopped running))
+
 ;; fm
 (define fm.state           (nt:e8  "\x03\x01\x00\x00" off on))
 (define fm.search          (nt:e8  "\x03\x04\x00\x00" idle up down))
@@ -122,6 +126,7 @@
 (define fm.frequency       (nt:u32 "\x03\x03\x00\x00"))
 (define fm.tuneStatus      (nt:b8  "\x03\x08\x00\x00"))
 (define fm.searchLevel     (nt:e8 "\x03\x05\x00\x00" all strong))
+(define fm.forceToMono     (nt:e8 "\x03\x07\x00\x00" off on))
 
 (define fm.rds.active      (nt:e8  "\x03\x09\x01\x00" idle decoding))
 (define fm.rds.ps          (nt:c8  "\x03\x09\x02\x00"))
