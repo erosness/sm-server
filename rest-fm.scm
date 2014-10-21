@@ -83,17 +83,23 @@
 ;; do a `curl localhost:5060/v1/catalog/notify` and check with
 ;; (send-notification "foobar" `() *catalog-notify-connections*)
 
-(define (call-when-modified data-thunk thunk)
+
+(define (call-when-modified data-thunk thunk #!optional (pred (constantly #t)))
   (define last #f)
   (define (set-last! x) (set! last x))
   (lambda ()
-    ;; wrap in list so we can tell the difference between never ran
-    ;; and data-thunk returning #f.
-    (let ((check (list (data-thunk))))
-      (if (and last (equal? check last))
-          #t ;; unmodified, keep looping
-          (begin (set-last! check)
-                 (thunk))))))
+    ;; in case operation is expensive/noisy a predicate can be
+    ;; guard the check with a predicate
+    (if (pred)
+        ;; wrap in list so we can tell the difference between never ran
+        ;; and data-thunk returning #f.
+        (let ((check (list (data-thunk))))
+          (if (and last (equal? check last))
+              #t ;; unmodified, keep looping
+              (begin (set-last! check)
+                     (thunk))))
+        ;; keep going if pred is false
+        #t)))
 
 
 (test
