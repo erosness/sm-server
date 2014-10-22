@@ -15,6 +15,8 @@
  ((not arm)
   (include "rest-dummy-dab.scm"))
  (else
-  (include "rest-dab.scm")))
+  (include "rest-dab.scm")
+  (include "rest-fm.scm")
+  ))
 
-;; (include "rest-fm.scm")
+
