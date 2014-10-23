@@ -14,7 +14,7 @@
 (cond-expand
  ((not arm)
   (include "rest-dummy-dab.scm")
-  (include "rest-fm-dummy.scm")
+  (include "rest-dummy-fm.scm")
   )
  (else
   (include "rest-dab.scm")
