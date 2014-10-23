@@ -1,72 +1,139 @@
-(use test restlib clojurian-syntax)
-(import rest notify)
+(use test restlib clojurian-syntax looper matchable gochan)
+(import rest notify turi)
 
-(define (fm-send-audio! khz #!optional (duration 0.5))
-  ;; send a sound snippet to cplay
-  (with-output-to-pipe
-   (conc "ffmpeg -loglevel quiet -f lavfi "
-         " -i \"aevalsrc=sin(" khz "*2*PI*t):d=" duration "\" "
-         " -f s8 udp://localhost:3000?listen")
-   void))
+(define *catalog-notify-connections* '())
 
-;; (fm-send-audio! 1000)
-;; (fm-send-audio! 440 7)
+(define-handler /v1/catalog/fm/notify
+  (make-notify-handler (getter-with-setter
+                        (lambda () *catalog-notify-connections*)
+                        (lambda (new) (set! *catalog-notify-connections* new)))))
 
-(define *freq* 44000)
+(define (turi-command params)
+  (or (and-let* ((hz (alist-ref 'hz params))
+                 (val (string->number hz)))
+        ;; (ensure-fm-on)
+        (fm-frequency val)
+        ;; TODO: find IP so zones can reach DAB
+        `((url . "http://127.0.0.1:8090/dab/hi")))
+      (error "invalid fm params. expected hz key with number value")))
 
-;; create a thread that keeps pumping audio data to
-;; udp://localhost:3000. if a player isn't listening there, it'll be
-;; ignored. it sounds horrible but it allows testing if your *freq* is
-;; being manipulated properly, and mimics the upcoming HW's model
-;; relatively well.
-(begin
-  (handle-exceptions e (void) (thread-terminate! sa-thread))
-  (define sa-thread
-    (thread-start!
-     (lambda ()
-       (let loop ()
-         (fm-send-audio! *freq* 0.1)
-         (thread-sleep! 0.2)
-         (loop))))))
+(define-turi-adapter fmfreq->turi "fm" turi-command)
+
+(define (gaussian-rand x)
+  (let ((rands (map random (list x x x))))
+    (/ (reduce + 0 rands) 3)))
+
+(define-syntax define-delayed
+  (syntax-rules ()
+    ((_ name body ...)
+     (begin
+       (define name
+         (thread-sleep! (/ (gaussian-rand 100) 100))
+         body ...)))))
+
+(define mock-freq 89000)
+(define (fm-frequency . hz)
+  (if (null? hz)
+      mock-freq
+      (begin
+        (set! mock-freq (car hz))
+        mock-freq)))
+
+(define (fm-radio-text)
+  (match mock-freq
+    (99000 "NRK P3")
+    (92000 "Foobar")
+    (95600 "HOHOHOHO!")
+    (89100 "Test channel 2")
+    (else "")))
+
+(define (clamp-range min max)
+  (lambda (x)
+    (cond
+     ((<= min x max) x)
+     ((< x min) (- max (modulo min x)))
+     (else (+ min (modulo x max))))))
+
+(define fm-range (clamp-range 87500 101000))
+(define fm-signal-strength -89)
+(define tune-status "decoding")
+
+(define (fm-get-state)
+  (let* ((freq (fm-frequency))
+         (turi-alist `((hz . ,freq))))
+   `((title . ,freq)
+     (tuneStatus . ,tune-status)
+     (subtitle . ,(fm-radio-text))
+     (turi . ,(fmfreq->turi turi-alist))
+     (signalStrength . ,fm-signal-strength))))
+
+;; delay sending 
+(define-delayed (fm-get-state-delayed) (fm-get-state))
 
 
-;; ==================== explicit frequency ====================
+(define c (make-gochan))
+(define chan-thread
+  (thread-start!
+   (make-thread
+    (lambda ()
+      (let loop ()
+        (and-let* ((msg (gochan-receive c)))
+          (send-notification "/v1/catalog/fm/seek"
+                             msg
+                             (getter-with-setter (lambda () *catalog-notify-connections*)
+                                                 (lambda (new) (set! *catalog-notify-connections* new))))
+          (loop))
+        (print "exiting " (current-thread)))))))
 
-(define-turi-adapter fmfreq->turi "fm"
-  (lambda (params)
-    (let ((khz (alist-ref 'id params)))
-     `((url . "udp://localhost:3000")
-       (format . "s8") ;; <-- see "-f s8"
-       ;; if live is #t and the turi is the same as what cplay is
-       ;; currently , we don't need to re-initialize cplay because it'd
-       ;; be playing the very same sound. if live is #f, cplay still
-       ;; needs to be re-initialized because we might want to play from
-       ;; the start.
-       (live . #t)))))
+;; (thread-state chan-thread)
+;; (thread-terminate! chan-thread)
 
-(define-handler /v1/catalog/fm/browse
-  (lambda () `((turi . ,(fmfreq->turi '((id . "ignored")))))))
+
+;; fake search
+(define (search direction)
+  (thread-start!
+   (make-thread
+    (lambda ()
+      (let ((op (if (eq? direction 'up) + -)))
+        (set! tune-status "idle")
+        (set! mock-freq (fm-range (op mock-freq 100) ))
+        (let loop ()
+          (if (not (equal? (fm-radio-text) ""))
+              (set! tune-status "decoding")
+              (begin
+                (set! mock-freq (fm-range (op mock-freq 100) ))
+                (gochan-send c (fm-get-state-delayed))
+                (loop)))))))))
 
 (define-handler /v1/catalog/fm/seek
-  (argumentize (lambda (khz)
+  (argumentize (lambda (hz)
                  (cond
-                  ((eq? #t khz) `((khz . ,*freq*))) ;; <-- simple getter
+                  ((eq? hz #t)
+                   (fm-get-state-delayed))
 
-                  ;; seek up/down
-                  ((or (equal? khz "up") (equal? khz "down"))
-                   (thread-start! (make-thread
-                                   (->> (lambda ()
-                                          (thread-sleep! 0.5)
-                                          (set! *freq* (+ (if (equal? "up" khz) +1 -1) *freq*)))
-                                        (loop/timeout 5)
-                                        (loop))))
-                   `((status . "success")))
+                  ((equal? "up" hz)
+                   (search 'up)
+                   `((status . "ok")))
 
-                  ;; seek to specific frequency
-                  ((string->number khz) =>
-                   (lambda (khz)
-                     (set! *freq* khz)
-                     `((status . "success"))))
+                  ((equal? "down" hz)
+                   (search 'down)
+                   `((status . "ok")))
 
-                  (else (error "khz must be (number? | up | down)" khz))))
-               '(khz #t)))
+                  ((equal? "step-up" hz)
+                   (let ((freq (fm-frequency)))
+                     (fm-frequency (+ freq fm-step-size))
+                     (gochan-send c (fm-get-state-delayed))
+                     `((status . "ok"))))
+
+                  ((equal? "step-down" hz)
+                   (let ((freq (fm-frequency)))
+                     (fm-frequency (- freq fm-step-size))
+                     (gochan-send c (fm-get-state-delayed))
+                     `((status . "ok"))))
+
+                  ((string->number hz) =>
+                   (lambda (hz)
+                     (fm-frequency hz)
+                     (gochan-send c (fm-get-state-delayed))
+                     `((status . "ok"))))))
+               '(hz #t)))
