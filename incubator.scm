@@ -85,10 +85,10 @@
 )
 
 ;; Measure time based on wallclock time
-(define (wallclock-time proc)
+(define (wallclock-time thunk)
   (define clock current-milliseconds)
   (let ((before (clock))
-        (res (proc))
+        (res (thunk))
         (after  (clock)))
     (print "Time: " (- after before))
     res))
