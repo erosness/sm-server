@@ -15,36 +15,6 @@
 ;;                                  (lambda (new) (set! *catalog-notify-connections* new))))
 
 
-(define (call-when-modified data-thunk thunk #!optional (pred (constantly #t)))
-  (define last #f)
-  (define (set-last! x) (set! last x))
-  (lambda ()
-    ;; in case operation is expensive/noisy a predicate can be
-    ;; guard the check with a predicate
-    (if (pred)
-        ;; wrap in list so we can tell the difference between never ran
-        ;; and data-thunk returning #f.
-        (let ((check (list (data-thunk))))
-          (if (and last (equal? check last))
-              #t ;; unmodified, keep looping
-              (begin (set-last! check)
-                     (thunk))))
-        ;; keep going if pred is false
-        #t)))
-
-
-(test
- "call-when-modified (rest-fm)"
- "xx"
- (with-input-from-string "aaaaaaaa"
-   ;; should be run twice: once the first time, then once again on
-   ;; eof.
-   (lambda () (->> (call-when-modified read-char (lambda () (display "x")))
-              (loop/count 1000)
-              (loop)
-              (with-output-to-string)))))
-
-
 (define (turi-command params)
   (or (and-let* ((hz (alist-ref 'hz params))
                  (val (string->number hz)))
