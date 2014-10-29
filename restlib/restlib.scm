@@ -35,9 +35,13 @@
                                  (request-headers (current-request))) 0)
                (request-port (current-request))))
 
+(define send-json/tail (make-parameter #\newline))
 (define (send-json x #!optional (status 'ok))
   (send-response headers: `((content-type "application/json"))
-                 body: (with-output-to-string (lambda () (write-json x)))
+                 body: (with-output-to-string
+                         (lambda ()
+                           (write-json x)
+                           (display (send-json/tail))))
                  status: status))
 
 ;; send HTTP "100 Continue" (iff client-headers Expect: 100-continue)
