@@ -3,7 +3,7 @@
 
 (define *catalog-notify-connections* '())
 
-(define-handler /v1/catalog/fm/notify
+(define-handler /v1/catalog/notify
   (make-notify-handler (getter-with-setter
                         (lambda () *catalog-notify-connections*)
                         (lambda (new) (set! *catalog-notify-connections* new)))))
