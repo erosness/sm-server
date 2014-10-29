@@ -2,7 +2,7 @@
 
 (import chicken scheme data-structures srfi-1)
 
-(use test srfi-13)
+(use test srfi-13 srfi-18)
 
 
 (define (alist=? a b)
@@ -91,5 +91,56 @@
     (print "Time: " (- after before))
     res))
 
+
+
+;;; Atom
+;; -------------------------------------------------------
+;; like make-parameter except:
+;; - argument is a procedure instead of the new value
+;; - same value across all threads
+;; - still thread-safe
+;; - optional non-procedural argument sets it to the new value
+(define (make-atom initial)
+  (define mutex (make-mutex))
+  (define value initial)
+  (lambda a
+    (mutex-lock! mutex)
+    (if (pair? a)
+        (handle-exceptions e
+          ;; catch, unlock and throw back - better than dynamic-wind,
+          ;; apparently, because new threads don't have default
+          ;; error-handlers which means the `after` thunk of
+          ;; dynamic-wind doesn't get called.
+          (begin (mutex-unlock! mutex)
+                 (raise e))
+          (set! value (let ((proc (car a)))
+                        (if (procedure? proc)
+                            (proc value) ;; atomic update
+                            proc)))))    ;; atmoc overwrite new value
+    (let ((v value))
+      (mutex-unlock! mutex)
+      v)))
+
+(test-group
+ "make-atom"
+ (define a (make-atom 0))
+ (for-each thread-join!
+           (map (lambda (_) (thread-start! (lambda () (thread-yield!) (a add1))))
+                (iota 100)))
+ (test 100 (a))
+
+
+ ;; error recovery
+ (test-error "error in atomic update proc"
+             (a (lambda (hundred) (error "i will recover"))))
+ (a add1)
+ (test "post-error updates work" 101 (a))
+
+ ;; non-procedure updates
+ (a 200)
+ (test "set new value (no proc)" 200 (a))
+ (test "immediate return value" 300 (a 300)))
+;; -------------------------------------------------------
+;; Atom end
 
 )
