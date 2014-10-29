@@ -215,6 +215,13 @@
        ;; Return the substring up to the first double space
        (substring trimmed 0 dblspace-idx)))))
 
+(define (parse-fm.search data)
+  (match data
+    (('item-get-response ('FS_OK . "\x00")) 'idle)
+    (('item-get-response ('FS_OK . "\x01")) 'up)
+    (('item-get-response ('FS_OK . "\x02")) 'down)
+    (('item-set-response 'FS_OK) 'set-ok)
+    (else (error "[parse-fm.search] unknown response: " else))))
 
 ;; API
 (define (fm-frequency . hz)
@@ -224,6 +231,13 @@
 
   (parse-fm.frequency
    (dab-command (fm.frequency))))
+
+(define (fm-search . direction)
+  (parse-fm.search
+   (dab-command (match direction
+                  ('() (fm.search))
+                  ((or '(up) '(down)) (fm.search (car direction)) )
+                  (else (error "[fm-search] invalid argument: " else))))))
 
 (define (fm-signal-strength)
   (parse-fm.signalStrength
