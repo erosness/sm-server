@@ -82,7 +82,6 @@
        (alist-merge '((baz . 2) (foo . 1)) '((bar . 2) (foo . 99)) '((baz . 3) (foo . 1))))
  (test "alist can be false" '((foo . 1) (bar . 2))
        (alist-merge '((foo . 1)) #f '((bar . 2)))))
-)
 
 ;; Measure time based on wallclock time
 (define (wallclock-time proc)
@@ -92,3 +91,5 @@
     (print "Time: " (- after before))
     res))
 
+
+)
