@@ -57,11 +57,14 @@
 (define-turi-adapter fmfreq->turi "fm"
   turi-command)
 
+(define (fm-tunestatus)
+  (symbol->string (parse-dab.tuneStatus (dab-command (fm.tuneStatus)))))
+
 (define (fm-get-state)
   (let* ((freq (fm-frequency))
          (turi-alist `((hz . ,freq))))
    `((title . ,freq)
-     (tuneStatus . ,(symbol->string (parse-dab.tuneStatus (dab-command (fm.tuneStatus)))))
+     (tuneStatus . ,(fm-tunestatus))
      (subtitle . ,(or (fm-radio-text) ""))
      (turi . ,(fmfreq->turi turi-alist))
      (signalStrength . ,(fm-signal-strength)))))
