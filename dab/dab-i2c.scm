@@ -236,7 +236,7 @@
   (parse-fm.search
    (dab-command (match direction
                   ('() (fm.search))
-                  ((or '(up) '(down)) (fm.search (car direction)) )
+                  ((or '(up) '(down) '(idle)) (fm.search (car direction)) )
                   (else (error "[fm-search] invalid argument: " else))))))
 
 (define (fm-signal-strength)
