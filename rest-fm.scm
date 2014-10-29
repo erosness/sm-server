@@ -121,16 +121,6 @@
                    (dab-command (fm.search 'down))
                    `((status . "ok")))
 
-                  ((equal? "step-up" hz)
-                   (let ((freq (fm-frequency)))
-                     (fm-frequency (+ freq fm-step-size))
-                     `((status . "ok"))))
-
-                  ((equal? "step-down" hz)
-                   (let ((freq (fm-frequency)))
-                     (fm-frequency (- freq fm-step-size))
-                     `((status . "ok"))))
-
                   ((string->number hz) =>
                    (lambda (hz)
                      (fm-frequency hz)
