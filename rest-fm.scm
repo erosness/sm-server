@@ -1,4 +1,8 @@
-(use test restlib clojurian-syntax dab-i2c looper)
+(cond-expand
+ ((and arm) (use dab-i2c))
+ (else))
+
+(use test restlib clojurian-syntax looper)
 (import rest notify turi incubator)
 
 ;; ==================== fm (catalog) notifications ====================

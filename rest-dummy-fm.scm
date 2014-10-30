@@ -1,35 +1,7 @@
-(use test restlib clojurian-syntax looper matchable gochan)
-(import rest notify turi)
+(module dab-i2c-mock *
 
-(define *catalog-notify-connections* '())
-
-(define-handler /v1/catalog/notify
-  (make-notify-handler (getter-with-setter
-                        (lambda () *catalog-notify-connections*)
-                        (lambda (new) (set! *catalog-notify-connections* new)))))
-
-(define (turi-command params)
-  (or (and-let* ((hz (alist-ref 'hz params))
-                 (val (string->number hz)))
-        ;; (ensure-fm-on)
-        (fm-frequency val)
-        ;; TODO: find IP so zones can reach DAB
-        `((url . "http://127.0.0.1:8090/dab/hi")))
-      (error "invalid fm params. expected hz key with number value")))
-
-(define-turi-adapter fmfreq->turi "fm" turi-command)
-
-(define (gaussian-rand x)
-  (let ((rands (map random (list x x x))))
-    (/ (reduce + 0 rands) 3)))
-
-(define-syntax define-delayed
-  (syntax-rules ()
-    ((_ name body ...)
-     (begin
-       (define name
-         (thread-sleep! (/ (gaussian-rand 100) 100))
-         body ...)))))
+(import chicken scheme)
+(use matchable gochan srfi-18)
 
 (define mock-freq 89000)
 (define (fm-frequency . hz)
@@ -42,6 +14,7 @@
 (define (fm-radio-text)
   (match mock-freq
     (99000 "NRK P3")
+    (98000 "blablabla")
     (92000 "Foobar")
     (95600 "HOHOHOHO!")
     (89100 "Test channel 2")
@@ -55,85 +28,40 @@
      (else (+ min (modulo x max))))))
 
 (define fm-range (clamp-range 87500 101000))
-(define fm-signal-strength -89)
-(define tune-status "decoding")
+(define (fm-signal-strength) -89)
 
-(define (fm-get-state)
-  (let* ((freq (fm-frequency))
-         (turi-alist `((hz . ,freq))))
-   `((title . ,freq)
-     (tuneStatus . ,tune-status)
-     (subtitle . ,(fm-radio-text))
-     (turi . ,(fmfreq->turi turi-alist))
-     (signalStrength . ,fm-signal-strength))))
+(define mock-tunestatus 'decoding)
+(define (fm-tunestatus) mock-tunestatus)
 
-;; delay sending 
-(define-delayed (fm-get-state-delayed) (fm-get-state))
 
+(define current-search 'idle)
+(define (fm-search direction)
+  (set! current-search direction)
+  (set! mock-tunestatus (if (eq? direction 'idle) 'decoding 'idle)))
+
+(define (hardware-tick)
+  (if (not (eq? current-search 'idle))
+      (let ((op (if (eq? current-search 'up) + -)))
+        (set! mock-freq (fm-range (op mock-freq 100)))
+        (if (not (equal? (fm-radio-text) ""))
+            (begin
+              (print "found station, stopping search")
+              (fm-search 'idle))))))
+
+(define (hardware chan)
+  (lambda ()
+    (let loop ()
+      (let ((msg (gochan-receive* chan 0.2)))
+        (match msg
+          (#f (print "all channels closed") )
+          (else (hardware-tick)))
+        (if msg (loop))))))
 
 (define c (make-gochan))
-(define chan-thread
-  (thread-start!
-   (make-thread
-    (lambda ()
-      (let loop ()
-        (and-let* ((msg (gochan-receive c)))
-          (send-notification "/v1/catalog/fm/seek"
-                             msg
-                             (getter-with-setter (lambda () *catalog-notify-connections*)
-                                                 (lambda (new) (set! *catalog-notify-connections* new))))
-          (loop))
-        (print "exiting " (current-thread)))))))
+(define fm-hardware (hardware c))
+(define hw-thread (thread-start! (make-thread fm-hardware)))
 
-;; (thread-state chan-thread)
-;; (thread-terminate! chan-thread)
+(define (fm-on?) #t))
+(import dab-i2c-mock)
 
-
-;; fake search
-(define (search direction)
-  (thread-start!
-   (make-thread
-    (lambda ()
-      (let ((op (if (eq? direction 'up) + -)))
-        (set! tune-status "idle")
-        (set! mock-freq (fm-range (op mock-freq 100) ))
-        (let loop ()
-          (if (not (equal? (fm-radio-text) ""))
-              (set! tune-status "decoding")
-              (begin
-                (set! mock-freq (fm-range (op mock-freq 100) ))
-                (gochan-send c (fm-get-state-delayed))
-                (loop)))))))))
-
-(define-handler /v1/catalog/fm/seek
-  (argumentize (lambda (hz)
-                 (cond
-                  ((eq? hz #t)
-                   (fm-get-state-delayed))
-
-                  ((equal? "up" hz)
-                   (search 'up)
-                   `((status . "ok")))
-
-                  ((equal? "down" hz)
-                   (search 'down)
-                   `((status . "ok")))
-
-                  ((equal? "step-up" hz)
-                   (let ((freq (fm-frequency)))
-                     (fm-frequency (+ freq fm-step-size))
-                     (gochan-send c (fm-get-state-delayed))
-                     `((status . "ok"))))
-
-                  ((equal? "step-down" hz)
-                   (let ((freq (fm-frequency)))
-                     (fm-frequency (- freq fm-step-size))
-                     (gochan-send c (fm-get-state-delayed))
-                     `((status . "ok"))))
-
-                  ((string->number hz) =>
-                   (lambda (hz)
-                     (fm-frequency hz)
-                     (gochan-send c (fm-get-state-delayed))
-                     `((status . "ok"))))))
-               '(hz #t)))
+(include "rest-fm.scm")
