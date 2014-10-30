@@ -34,11 +34,12 @@
 (define (fm-get-state)
   (let* ((freq (fm-frequency))
          (turi-alist `((hz . ,freq))))
-   `((title . ,freq)
-     (tuneStatus . ,(symbol->string (fm-tunestatus)))
-     (subtitle . ,(or (fm-radio-text) ""))
-     (turi . ,(fmfreq->turi turi-alist))
-     (signalStrength . ,(fm-signal-strength)))))
+    `((title . ,freq)
+      (frequency . ,freq)
+      (tuneStatus . ,(symbol->string (fm-tunestatus)))
+      (subtitle . ,(or (fm-radio-text) ""))
+      (turi . ,(fmfreq->turi turi-alist))
+      (signalStrength . ,(fm-signal-strength)))))
 
 
 (define (fm-searching?)
