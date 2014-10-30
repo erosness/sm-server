@@ -2,7 +2,8 @@
 (use dlna restlib spiffy srfi-18
      srfi-13 ;; string-hash
      uri-common ;; uri-encode/decode
-     looper)
+     looper
+     clojurian-syntax)
 
 (define *devices* (lambda () '()))
 
@@ -11,23 +12,25 @@
 ;; server-up/server-down messages. this way, we'll only find new
 ;; servers every 60 seconds and puts extra pressure on the network.
 (begin
+  ;; (thread-state *dlna-search-thread*)
   (handle-exceptions e #f (thread-terminate! *dlna-search-thread*))
   (define *dlna-search-thread*
     (thread-start!
-     (make-thread
-      (loop (lambda ()
-              ;; let's request a search and wait for replies for 1
-              ;; minute.
-              (define temp-searcher (ssdp-search 60))
-              ;; let's not modify *devices* immediately because it'd
-              ;; temporarily say that there are 0 devices before
-              ;; anybody replies. let's wait for some replies:
-              (thread-sleep! 10)
-              ;; now make these new discoveries available outside:
-              (set! *devices* temp-searcher)
-              ;; let it slide for a while before we search again
-              (thread-sleep! 50)))
-      "*dlna-search-thread*"))))
+     (->> (lambda ()
+            ;; let's request a search and wait for replies for 1
+            ;; minute.
+            (define temp-searcher (ssdp-search 60))
+            ;; let's not modify *devices* immediately because it'd
+            ;; temporarily say that there are 0 devices before
+            ;; anybody replies. let's wait for some replies:
+            (thread-sleep! 10)
+            ;; now make these new discoveries available outside:
+            (set! *devices* temp-searcher))
+          (loop/interval 60) ;; restart search max every minute
+          (loop/exceptions (lambda (e) (pp `(,(current-thread) ,(condition->list e)))
+                              #t));; <-- keep going
+          (loop)
+          ((flip make-thread) "dlna-search-thread")))))
 
 
 (define-handler /v1/catalog/dlna

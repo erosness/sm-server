@@ -84,14 +84,13 @@
        (alist-merge '((foo . 1)) #f '((bar . 2)))))
 
 ;; Measure time based on wallclock time
-(define (wallclock-time proc)
-  (let ((before (time->seconds (current-time)))
-        (res (proc))
-        (after  (time->seconds (current-time))))
+(define (wallclock-time thunk)
+  (define clock current-milliseconds)
+  (let ((before (clock))
+        (res (thunk))
+        (after  (clock)))
     (print "Time: " (- after before))
     res))
-
-
 
 ;;; Atom
 ;; -------------------------------------------------------
