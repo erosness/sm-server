@@ -247,4 +247,8 @@
   (parse-fm.rds.radioText
    (dab-command (fm.rds.radioText))))
 
+(define (fm-tunestatus)
+  (parse-dab.tuneStatus (dab-command (fm.tuneStatus))))
+
+
 )
