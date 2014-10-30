@@ -1,5 +1,5 @@
 (use test restlib clojurian-syntax dab-i2c looper)
-(import rest notify turi)
+(import rest notify turi incubator)
 
 ;; ==================== fm (catalog) notifications ====================
 (define *catalog-notify-connections* '())
@@ -70,41 +70,54 @@
      (signalStrength . ,(fm-signal-strength)))))
 
 
-;; poll-based update mechanism. sends a notification whenever
-;; fm-get-state has changed. see loop/interval below for update
-;; frequency.
-(define fm-thread-iteration
-  (call-when-modified
-   fm-get-state
-   (lambda ()
-     (send-notification "/v1/catalog/fm/seek"
-                        ;; TODO: turi host always resolves to localhost
-                        ;; here, since we don't have a current request
-                        ;; to look at. Remove it to avoid confusion.
-                        (alist-delete 'turi (fm-get-state))
-                        (getter-with-setter (lambda () *catalog-notify-connections*)
-                                            (lambda (new) (set! *catalog-notify-connections* new)))))
-   ;; only query fm frequency if we have listeners
-   (lambda () (pair? *catalog-notify-connections*))))
+(define (fm-searching?)
+  (equal? (fm-tunestatus) "idle"))
 
-(begin
-  (handle-exceptions e (void) (thread-terminate! fm-thread))
-  (define fm-thread
-    (thread-start!
-     (make-thread
-      (->> (lambda () (fm-thread-iteration))
-           (loop/interval 0.5)
-           (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
-                                                ,(condition->list e)))
-                               #t))
-           (loop))
-      "fm-thread"))))
-;;(thread-terminate! fm-thread)
+;;; -------- Search
+(define fm-search-iteration
+  (lambda ()
+    ;; Check if we're still searching before sending the
+    ;; notifications, this way the last msg we send out will be the
+    ;; state _after_ the search stopped
+    (let ((searching? (fm-searching?))
+          (state (fm-get-state)))
+      (send-notification "/v1/catalog/fm/seek"
+                         ;; TODO: turi host always resolves to localhost
+                         ;; here, since we don't have a current request
+                         ;; to look at. Remove it to avoid confusion.
+                         (alist-delete 'turi state)
+                         (getter-with-setter (lambda () *catalog-notify-connections*)
+                                             (lambda (new) (set! *catalog-notify-connections* new))))
+      ;; Keep looping?
+      searching?)))
+
+(define (notify-fm-search-state interval)
+  (define notify-thread (make-thread
+                         (->> fm-search-iteration
+                              (loop/interval interval)
+                              (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
+                                                                   ,(condition->list e)))
+                                                  ;; halt on exceptions
+                                                  #f))
+                              (loop))
+                         "fm-notify-thread"))
+  (thread-start! notify-thread))
+
+;; Thread safety
+(define *fm-notify-thread* (make-atom #f))
+(define (fm-notify-alive?)
+  (and (thread? (*fm-notify-thread*))
+       (not (eq? (thread-state (*fm-notify-thread*))
+                 'dead))))
+
+;; Start searching
+(define (fm-search-with-notify direction)
+  (fm-search direction)
+  (if (not (fm-notify-alive?))
+      (*fm-notify-thread* (notify-fm-search-state 1))))
 
 (define (ensure-fm-on)
   (if (not (fm-on?)) (fm-turn-on)))
-
-(define fm-step-size 100)
 
 (define-handler /v1/catalog/fm/seek
   (argumentize (lambda (hz)
@@ -114,16 +127,21 @@
                    (fm-get-state))
 
                   ((equal? "up" hz)
-                   (dab-command (fm.search 'up))
+                   (fm-search-with-notify 'up)
                    `((status . "ok")))
 
                   ((equal? "down" hz)
-                   (dab-command (fm.search 'down))
+                   (fm-search-with-notify 'down)
                    `((status . "ok")))
 
                   ((string->number hz) =>
                    (lambda (hz)
+                     ;; stop any ongoing searches, this also has the
+                     ;; nice side-effect of notifying clients that the
+                     ;; frequency has changed
+                     (fm-search-with-notify 'idle)
                      (fm-frequency hz)
+
                      `((status . "ok"))))))
                '(hz #t)))
 
