@@ -18,6 +18,9 @@
 ;;                                  (lambda () *catalog-notify-connections*)
 ;;                                  (lambda (new) (set! *catalog-notify-connections* new))))
 
+(define (ensure-fm-on)
+  (if (not (fm-on?)) (fm-turn-on)))
+
 
 (define (turi-command params)
   (or (and-let* ((hz (alist-ref 'hz params))
@@ -88,9 +91,6 @@
   (fm-search direction)
   (if (not (fm-notify-alive?))
       (*fm-notify-thread* (notify-fm-search-state 1))))
-
-(define (ensure-fm-on)
-  (if (not (fm-on?)) (fm-turn-on)))
 
 (define-handler /v1/catalog/fm/seek
   (argumentize (lambda (hz)
