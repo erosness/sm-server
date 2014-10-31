@@ -35,6 +35,7 @@
   (let* ((freq (fm-frequency))
          (turi-alist `((hz . ,freq))))
     `((title . ,freq)
+      (type . "fm")
       (frequency . ,freq)
       (tuneStatus . ,(symbol->string (fm-tunestatus)))
       (subtitle . ,(or (fm-radio-text) ""))

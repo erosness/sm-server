@@ -173,6 +173,7 @@
                    ((equal? "audio" type)
                     (list `((turi . ,URL)
                             (title . ,text)
+                            (type . "tunein")
                             (subtitle . ,subtext)
                             (image . ,image))))
                    (else

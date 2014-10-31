@@ -117,6 +117,7 @@
 
 (define (track->search-result track)
   `((turi   . ,(track->turi track))
+    (type . "wimp")
     (title  . ,(alist-ref 'title track))
     (available . ,(alist-ref 'allowStreaming track))
     (duration . ,(alist-ref 'duration track))

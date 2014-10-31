@@ -59,8 +59,9 @@
 
 ;; convert disgusting sxml response into pretty blurps.
 (define (didl->talist doc)
-  (append (map container->talist (doc-containers doc))
-          (map track->talist     (doc-tracks doc))))
+  (cons '(type . "dlna")
+   (append (map container->talist (doc-containers doc))
+           (map track->talist     (doc-tracks doc)))))
 
 
 

@@ -13,11 +13,15 @@
 (define-handler /v1/catalog/dab
   (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
 
+(define (ensure-dab-on)
+  (if (not (dab-on?)) (dab-turn-on)))
+
 (define-turi-adapter channel->turi "dab"
   (lambda (params)
     (let* ((chidxstr (alist-ref 'id params))
            (chidx (string->number chidxstr)))
       (pp `(rest-dab station ,chidx))
+      (ensure-dab-on)
       (match (dab-command (dab.sl.station chidx))
         ('(item-set-response FS_OK)
          ;; TODO: find IP so zones can reach DAB
@@ -32,7 +36,8 @@
                    (index (car idx.name))
                    (turi (channel->turi `((id . ,index)))))
               `((title . ,channel)
-                (turi . ,turi))))
+                (turi . ,turi)
+                (type . "dab"))))
           (dab-channels)))))
 
 ;; start querying for stations. dab-channels is filled from dab-read-thread.

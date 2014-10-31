@@ -170,7 +170,7 @@
   (pq-current-set! *pq* `((title . ,(conc "SPOTIFY: "(alist-ref 'track event)))
                           (subtitle . ,(alist-ref 'artist event))
                           (image . ,(alist-ref 'image event))
-                          (provider . "spotify")
+                          (type . "spotify")
                           (pos . 0)
                           (duration . ,(* 0.001 (alist-ref 'duration_ms event)))
                           (paused . ,(not (playing&active? event))))))
