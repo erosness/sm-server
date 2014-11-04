@@ -210,6 +210,7 @@
   "outline element, audio type"
   `(((turi . "http://host/audio.mp3")
      (title . "title")
+     (type . "tunein")
      (subtitle . "description")
      (image . "http://host/image.png")))
   (tjson->cjsons

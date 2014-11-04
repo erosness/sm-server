@@ -72,7 +72,8 @@
 
  (test
   "containers->folders"
-  '((container (id . "1$7") (title . "Album") (subtitle . "Artist") (image . "albumArtURI"))
+  '((type . "dlna")
+    (container (id . "1$7") (title . "Album") (subtitle . "Artist") (image . "albumArtURI"))
     ;; important: missing subtitle, image etc don't produce fields with #f.
     (container (id . "1$6") (title . "Artist"))
     (track (id . "tid")
