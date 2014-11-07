@@ -122,7 +122,7 @@
 
   (define amixer-setter
     (make-amixer-getter/setter
-     (cmd/getter-setter "alsa_amixer -c 1" "cget" "cset" (conc "name=\"EQ Stage " band-index "\""))
+     (cmd/getter-setter "alsa_amixer" "cget" "cset" (conc "name=\"Tone Control " band-index " Gain\""))
      amixer-parse/values))
 
   (define gain->coefficients (make-biquad-converter (eq-band-frequency band-index)))
