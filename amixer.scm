@@ -155,7 +155,7 @@
 ;; atomic, but this could be cleaned up.
 (define (make-cmixer-interface reader #!optional
                                (writer display)
-                               (cmds '("cmixer" "Master")))
+                               (cmds '("cmixer" "Master Volume")))
 
   (define last-read #f)
 
