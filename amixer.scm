@@ -125,13 +125,15 @@
      (cmd/getter-setter "alsa_amixer" "cget" "cset" (conc "name=\"Tone Control " band-index " Gain\" -- "))
      amixer-parse/values))
 
-  (define gain->coefficients (make-biquad-converter (eq-band-frequency band-index)))
+  ;; EQ range is now -2000 ~ 2000.
+  (define (%->range %) (* (- % 50) 1/50 2000))
+  ;; (map %->range '(0 10 20 50 100))
 
   (lambda (#!optional val)
     (if (and val (not (eq? cached-value val))) ;; set if present and changed
         (begin
           (set! cached-value val)
-          (amixer-setter (gain->coefficients val))))
+          (amixer-setter (list (%->range val)))))
     cached-value))
 
 (define amixer-eq/cube
