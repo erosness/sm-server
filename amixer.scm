@@ -5,7 +5,7 @@
 (module amixer *
 
 (import chicken scheme extras)
-(use posix test data-structures irregex biquad srfi-1 srfi-13 srfi-18
+(use posix test data-structures irregex srfi-1 srfi-13 srfi-18
      matchable looper clojurian-syntax)
 
 (import process-cli notify)
@@ -86,31 +86,6 @@
                                (read-string 2048 p)))))))
 
 
-;; fp => (fp fp fp fp fp)
-(define (make-biquad-converter band #!optional (rate 48000) (slope 0.7))
-
-  ;; (test 0.5 (%->factor 75 1))
-  ;; (test -2.0 (%->factor 0))
-  (define (%->factor x #!optional (n 10))
-    (* (- x 50) #|[-50,50]|#
-       0.01     #|[-0.5 , 0.5]|#
-       2        #|[-1,1]|#
-       n        #|[-n,n]|#))
-
-  (lambda (gain%)
-    (map (o inexact->exact round (cut * <> 8388608))
-         (sigma-eq-coefficients  (%->factor gain%) band rate slope))))
-
-(define (eq-band-frequency band-index)
-  (alist-ref band-index
-             '((0 .    63)
-               (1 .   120)
-               (2 .  500)
-               (3 .  2000)
-               (4 . 10000))))
-;; (eq-band-frequency 2)
-
-
 (define (make-amixer-eq band-index)
   (assert (number? band-index))
 
@@ -122,16 +97,18 @@
 
   (define amixer-setter
     (make-amixer-getter/setter
-     (cmd/getter-setter "alsa_amixer -c 1" "cget" "cset" (conc "name=\"EQ Stage " band-index "\""))
+     (cmd/getter-setter "alsa_amixer" "cget" "cset" (conc "name=\"Tone Control " band-index " Gain\" -- "))
      amixer-parse/values))
 
-  (define gain->coefficients (make-biquad-converter (eq-band-frequency band-index)))
+  ;; EQ range is now -2000 ~ 2000.
+  (define (%->range %) (* (- % 50) 1/50 2000))
+  ;; (map %->range '(0 10 20 50 100))
 
   (lambda (#!optional val)
     (if (and val (not (eq? cached-value val))) ;; set if present and changed
         (begin
           (set! cached-value val)
-          (amixer-setter (gain->coefficients val))))
+          (amixer-setter (list (%->range val)))))
     cached-value))
 
 (define amixer-eq/cube
@@ -155,7 +132,7 @@
 ;; atomic, but this could be cleaned up.
 (define (make-cmixer-interface reader #!optional
                                (writer display)
-                               (cmds '("cmixer" "Master")))
+                               (cmds '("cmixer" "Master Volume")))
 
   (define last-read #f)
 

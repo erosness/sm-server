@@ -1,16 +1,7 @@
 /cube-server
-/dsp/biquad/biquad.so
-/dsp/biquad/biquad.import.scm
-/dsp/biquad/biquad.import.so
-/dsp/q523/q523.so
-/dsp/q523/q523.import.so
-/dsp/q523/q523.import.scm
 /blobbery/blobbery.so
 /blobbery/blobbery.import.scm
 /blobbery/blobbery.import.so
-/dsp/dsp.so
-/dsp/dsp.import.scm
-/dsp/dsp.import.so
 /dab/dab.import.scm
 /dab/dab.import.so
 /dab/dab.so
