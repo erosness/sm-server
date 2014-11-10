@@ -55,7 +55,14 @@
   ; type=INTEGER,access=rw---R--,values=1,min=0,max=8388608,step=0
   : values=13
   | dBscale-min=-80.00dB,step=0.80dB,mute=0
-")))
+"))
+
+
+ (test "negative values"
+       '(-2000)
+       (amixer-parse/values "numid=4,iface=MIXER,name='Tone Control 0 Gain'
+  ; type=INTEGER,access=rw------,values=1,min=-2000,max=2000,step=1
+  : values=-2000\n")))
 
 
 (test-group

@@ -13,7 +13,12 @@
 ;; parse the output of amixer cget and cget commands.
 (define (amixer-parse/values str)
 
-  (let ((regex '(: ":" (* space) "values=" (=> vals (+ (+ num) (or "," "\n"))))))
+  (let ((regex '(: ":" (* space) "values="
+                   (=> vals (+             ;; multiple values
+                             (? "-")       ;; negative number
+                             (+ num)       ;; single value
+                             (or "," "\n") ;; terminator
+                             )))))
 
     (cond ((irregex-search regex str) =>
            (lambda (m)
