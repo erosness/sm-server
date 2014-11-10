@@ -1,5 +1,0 @@
-;; -*- scheme -*-
-((author "Adellica")
- (depends blobbery bitstring clojurian q523 biquad
-          test)
- )

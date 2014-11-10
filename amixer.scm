@@ -5,7 +5,7 @@
 (module amixer *
 
 (import chicken scheme extras)
-(use posix test data-structures irregex biquad srfi-1 srfi-13 srfi-18
+(use posix test data-structures irregex srfi-1 srfi-13 srfi-18
      matchable looper clojurian-syntax)
 
 (import process-cli notify)
@@ -84,31 +84,6 @@
                                ;; to respond.
                                (thread-wait-for-i/o! (port->fileno p))
                                (read-string 2048 p)))))))
-
-
-;; fp => (fp fp fp fp fp)
-(define (make-biquad-converter band #!optional (rate 48000) (slope 0.7))
-
-  ;; (test 0.5 (%->factor 75 1))
-  ;; (test -2.0 (%->factor 0))
-  (define (%->factor x #!optional (n 10))
-    (* (- x 50) #|[-50,50]|#
-       0.01     #|[-0.5 , 0.5]|#
-       2        #|[-1,1]|#
-       n        #|[-n,n]|#))
-
-  (lambda (gain%)
-    (map (o inexact->exact round (cut * <> 8388608))
-         (sigma-eq-coefficients  (%->factor gain%) band rate slope))))
-
-(define (eq-band-frequency band-index)
-  (alist-ref band-index
-             '((0 .    63)
-               (1 .   120)
-               (2 .  500)
-               (3 .  2000)
-               (4 . 10000))))
-;; (eq-band-frequency 2)
 
 
 (define (make-amixer-eq band-index)

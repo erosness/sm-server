@@ -1,6 +1,0 @@
-
-(compile -s -O3 biquad.scm biquad_alg.c -J)
-(compile -s -O3 biquad.import.scm)
-
-(install-extension 'biquad
-                   '("biquad.so" "biquad.import.so"))

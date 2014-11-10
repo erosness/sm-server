@@ -29,7 +29,7 @@
         '())))
 
 ;; OBS! all modules must have a file <module-name>.meta
-;; "dsp/biquad/biquad.meta" => (biquad . "dab/biquad/")
+;; "looper/looper.meta" => (looper . "looper/")
 (define (locals)
   (map (lambda (path)
          (cons (-> path
