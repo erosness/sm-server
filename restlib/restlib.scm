@@ -128,8 +128,10 @@
           (begin
             (print ";; invalid url visit: " (uri->string (request-uri (current-request)))
                    " from " (remote-address))
-            `((error       . ,(conc "not found: " uri))
-              (valid-urls  . ,(list->vector (hash-table-keys *uris*)))))))))
+            (values
+	     `((error       . ,(conc "not found: " uri))
+	       (valid-urls  . ,(list->vector (hash-table-keys *uris*))))
+	     'not-found))))))
 
 ;; (define-handler /path (lambda () #f)) now defaults to /v1/path on the
 ;; interface. this will be a lot of fun to maintain in the long run.
