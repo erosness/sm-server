@@ -10,7 +10,7 @@
 (include "rest-dlna.scm")
 (include "rest-usb.scm")
 (include "rest-tunein.scm")
-(include "rest-bluetooth.scm")
+(include "rest-alsa-capture.scm")
 (cond-expand
  ((not arm)
   (include "rest-dummy-dab.scm")
