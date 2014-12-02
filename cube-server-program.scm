@@ -1,5 +1,10 @@
 (use pefat)
 
+;; ==================== Whacky ====================
+;; TODO: remove this once the ffserver configuration is out of
+;; device/tradio's init.rc
+(system "stop ffserver")
+
 (include "args.scm")
 
 

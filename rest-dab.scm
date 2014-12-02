@@ -16,6 +16,8 @@
 (define (ensure-dab-on)
   (if (not (dab-on?)) (dab-turn-on)))
 
+;; dab's t2s is like a normal alsa capture, but changes the frequence
+;; of the DAB module before sending the stream url.
 (define-turi-adapter channel->turi "dab"
   (lambda (params)
     (let* ((chidxstr (alist-ref 'id params))
@@ -25,7 +27,8 @@
       (match (dab-command (dab.sl.station chidx))
         ('(item-set-response FS_OK)
          ;; TODO: find IP so zones can reach DAB
-         `((url . "http://127.0.0.1:8090/dab/hi")))
+         `((url . "default:CARD=imxaudiovenice9")
+           (format . "alsa")))
         (anything (error (conc "cannot set channel " chidxstr) anything))))))
 
 (define-handler /v1/catalog/dab/stations
