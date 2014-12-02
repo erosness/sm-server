@@ -20,3 +20,17 @@
       (title . "Bluetooth")
       (type . "bt")
       (image . "http://www.kirya.net/wp-content/uploads/2007/07/bluetooth_logo.png"))))
+
+(define-handler /v1/catalog/line-in
+  (lambda ()
+    `((turi . ,(bt->turi '((d . "default:CARD=imxaudiotr1"))))
+      (title . "Line-In")
+      (type . "line-in")
+      (image . "http://www.futureshop.ca/multimedia/Products/500x500/102/10200/10200642.jpg"))))
+
+(define-handler /v1/catalog/toslink
+  (lambda ()
+    `((turi . ,(bt->turi '((d . "default:CARD=imxspdif"))))
+      (title . "Toslink")
+      (type . "toslink")
+      (image . "http://www.thonet-vander.com/img/icon/spdif.png"))))
