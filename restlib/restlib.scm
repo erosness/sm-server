@@ -133,19 +133,34 @@
 
 ;; (define-handler /path (lambda () #f)) now defaults to /v1/path on the
 ;; interface. this will be a lot of fun to maintain in the long run.
+;; (define-syntax define-handler
+;;   (ir-macro-transformer
+;;    (lambda (x e t)
+;;      (let ((path (e (cadr x)))
+;;            (body (caddr x))
+;;            (rest (cdddr x)))
+;;        (if (pair? rest) (error "illegal define-handler" x))
+;;        (if (not (equal? (substring (conc (symbol->string path) "   ") 0 4)
+;;                         "/v1/"))
+;;            (error "path must start with /v1/" path))
+;;        `(begin
+;;           (define ,path ,body)
+;;           (set-handler! ,(symbol->string path) ,path))))))
+
 (define-syntax define-handler
   (ir-macro-transformer
-   (lambda (x e t)
-     (let ((path (e (cadr x)))
-           (body (caddr x))
-           (rest (cdddr x)))
+   (lambda (x i t)
+     (let* ((path (strip-syntax (cadr x)))
+            (ipath (i path))
+            (body (caddr x))
+            (rest (cdddr x)))
        (if (pair? rest) (error "illegal define-handler" x))
        (if (not (equal? (substring (conc (symbol->string path) "   ") 0 4)
                         "/v1/"))
            (error "path must start with /v1/" path))
        `(begin
-          (define ,path ,body)
-          (set-handler! ,(symbol->string path) ,path))))))
+          (define ,ipath ,body)
+          (set-handler! ,(symbol->string path) ,ipath))))))
 
 
 ;; convenience for picking out query parameters
