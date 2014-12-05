@@ -20,8 +20,9 @@
 
 (define (i2c-open path #!optional (i2c-addr #x34))
   (define fd (file-open path open/rdwr))
-  (i2c-set-slave-addr fd i2c-addr)
+  (let ((ret (i2c-set-slave-addr fd i2c-addr)))
+    (if (< ret 0)
+        (error "i2c-set-slave-addr: Failed to acquire bus access and/or talk to slave. Got " ret)))
   fd)
 
-(define i2c-close file-close)
-)
+(define i2c-close file-close))
