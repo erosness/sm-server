@@ -22,7 +22,12 @@
 
   (define s (socket af/inet sock/dgram 0))
   (set-socket-option s sol/socket so/broadcast 1)
-  (socket-send-to s msg saddr)
+  ;; socket-send-to may error out (if you're offline for
+  ;; example). don't leak sockets in this case.
+  (condition-case (socket-send-to s msg saddr)
+                  (e (exn i/o net)
+                     (socket-close s)
+                     (signal e)))
   s)
 
 ;; send a UDP multicast message and close its socket
