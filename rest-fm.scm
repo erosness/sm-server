@@ -2,7 +2,7 @@
  ((and arm) (use dab-i2c))
  (else))
 
-(use test restlib clojurian-syntax looper)
+(use test restlib clojurian-syntax looper fmt)
 (import rest notify turi incubator)
 
 ;; ==================== fm (catalog) notifications ====================
@@ -34,10 +34,13 @@
 (define-turi-adapter fmfreq->turi "fm"
   turi-command)
 
+;; (hz-pretty-print 102550) => "102.55Mhz"
+(define (hz-pretty-print hz) (fmt #f (num (/ hz 1000) 10 2) "Mhz"))
+
 (define (fm-get-state)
   (let* ((freq (fm-frequency))
          (turi-alist `((hz . ,freq))))
-    `((title . ,freq)
+    `((title . ,(hz-pretty-print freq))
       (type . "fm")
       (frequency . ,freq)
       (tuneStatus . ,(symbol->string (fm-tunestatus)))
