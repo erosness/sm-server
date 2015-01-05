@@ -11,7 +11,7 @@
 ;; pointers)
 (define ioctl-int
   (foreign-lambda* int ((int fd) (int command) (int arg))
-              "return(ioctl(fd, command, arg));"))
+                   "return(ioctl(fd, command, arg));"))
 
 (define (i2c-set-slave-addr fd i2c-addr)
   ;; taken from linux/i2c-dev.h (not present in android-build system)
