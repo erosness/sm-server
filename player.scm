@@ -55,7 +55,7 @@
     (("ok" pos duration)
      (values (string->number pos)
              (string->number duration)))
-    (else #f)))
+    (else (values 0 0))))
 
 (test-group
  "parse cplay pos"
@@ -64,8 +64,8 @@
        (receive (parse-cplay-pos-response "ok 23.2341 45.23")))
 
  (test "parse cplay pos - failure"
-       '#f
-       (parse-cplay-pos-response "some garbage 1234")))
+       '(0 0)
+       (receive (parse-cplay-pos-response "some garbage 1234"))))
 
 (define (parse-cplay-paused?-response resp)
   (and-let* ((value (string-split resp))
