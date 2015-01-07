@@ -28,7 +28,7 @@
         (ensure-fm-on)
         (fm-frequency val)
         ;; TODO: find IP so zones can reach DAB
-        `((url . "http://127.0.0.1:8090/dab/hi")))
+        `((url . "default:CARD=imxaudiovenice9")))
       (error "invalid fm params. expected hz key with number value")))
 
 (define-turi-adapter fmfreq->turi "fm"
