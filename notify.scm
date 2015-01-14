@@ -81,9 +81,14 @@
 
       ;; if we return here, we get "cannot write to socket - broken
       ;; pipe" because Spiffy is trying to reply to an HTTP connection
-      ;; that we have hijacked. I wonder if thread-terminate! will
-      ;; leak anything?
-      (thread-terminate! (current-thread))))
+      ;; that we have hijacked.
+      ;;
+      ;; TODO: remove the ugly Spiffy error
+      ;; message but allow Spiffy to clean up its thread-count
+      ;; variable.
+      ))
+
+
 
   ;; return a named procedure
   notify-handler)
