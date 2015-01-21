@@ -97,5 +97,14 @@
 (define-handler /v1/player/notify (make-notify-handler))
 
 
+(use posix)
+;; return a value representing this cube-server instance.
+;; this way if cube-server restarts clients can detect that they need
+;; to refresh long running connections (notify)
+(define-handler /v1/instance
+  ;; Return as string, in case we want to change the value later
+  (lambda () `((instance . ,(conc (current-process-id))))))
+
+
 (include "notify.tests.scm")
 )
