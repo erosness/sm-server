@@ -59,7 +59,7 @@
 
 (define c (make-gochan))
 (define fm-hardware (hardware c))
-(define hw-thread (thread-start! (make-thread fm-hardware)))
+(define hw-thread (thread-start! (make-thread fm-hardware "dummy-hw-thread")))
 
 (define (fm-on?) #t))
 (import dab-i2c-mock)
