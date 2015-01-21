@@ -128,8 +128,9 @@
 
 ;; do this on every player hearbeat interval
 (define (player-thread-iteration)
-  (send-notification "/v1/player/pos"
-                     (player-pos-info)))
+  (if (playing?) ;; running and not paused?
+      (send-notification "/v1/player/pos"
+                         (player-pos-info))))
 
 (define player-seek-thread
   (thread-start!
