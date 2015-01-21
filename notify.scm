@@ -29,8 +29,6 @@
                                           (header-value 'echo (request-headers req))))
                                        (else #f)))))))
 
-;; TODO: clean this bit up a bit. we don't need heavyweight defaults
-;; like this
 (define *notify-connections* '())
 
 (define (send-notification path body #!optional
