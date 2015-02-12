@@ -8,7 +8,7 @@
 (module notify (send-notification make-notify-handler)
 
 (import chicken scheme ports data-structures)
-(use socket posix intarweb spiffy medea srfi-1 srfi-18 restlib)
+(use socket posix intarweb spiffy medea srfi-1 srfi-18 restlib extras)
 
 
 ;; create a message that represents `path` changing into `body`. port
@@ -39,13 +39,14 @@
   (let ((msg (change-message path body port)))
     (for-each
      (lambda (port)
-       (condition-case
-           (begin
-             (display msg port)
-             (display #\newline port)
-             (flush-output port))
-         (e (exn i/o net)
-            (print "invalid notify connection " port))))
+       ;; we often get "port already closed" exceptions. TODO: remove
+       ;; port from set if it's useless. I've seen this happen (it's
+       ;; not thread-safe after all)
+       (handle-exceptions e (print "invalid notify connection "
+                                   port ": " (condition->list e))
+                          (display msg port)
+                          (display #\newline port)
+                          (flush-output port)))
      (connections))))
 
 (define (make-notify-handler #!optional
@@ -59,13 +60,24 @@
       ;; TODO: make this thread-safe
       (set! (connections) (cons port (connections)))
 
-      ;; HACK: Block the thread here until we can read from it,
-      ;; since the client should never write anything through the
-      ;; socket we assume that when data becomes available it's the
-      ;; #eof character. Once that has been received we remove this
-      ;; port from the active connections.
-      (thread-wait-for-i/o! (port->fileno port) #:input)
-      (print  port " has been closed, removing connection")
+      ;; this part is tricky. we want to:
+      ;;
+      ;; - ignore any more data coming in from the client (clients can
+      ;; use it to keep the TCP connection alive)
+      ;;
+      ;; - close the TCP connection when client closes it
+      ;; - return back to spiffy for proper cleanup
+      ;; - spiffy prints an error message which is ugly but otherwise fine
+      ;;   (setting current-error-port does not help)
+      ;; - response data is sent asynchronously
+      ;; think of this code snippet as a TCP connection watchdog.
+      (let ((port (request-port (current-request))))
+        (let loop ()
+          (thread-wait-for-i/o! (port->fileno port) #:input)
+          (let ((r (read-char port)))
+            (pp `(,(current-thread) notify-input ,(remote-address) (char ,r)))
+            (if (not (eof-object? r))
+                (loop)))))
 
 
       ;; TODO: thread-safe before commit!!
