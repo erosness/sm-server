@@ -91,23 +91,17 @@
    ))
 
 ;; TODO: support arbitrary number of fields?
-(define ($dab-sl-uservice index field1 field2)
-  (bitconstruct ("\x02\x10\x0d\x00" bitstring) ;; node address
-                (index 32)                     ;;
-                (2 8)                          ;; field-count
-                (field1 bitstring)             ;;
-                (field2 bitstring)             ;;
-                (0 8)                          ;; filter-count
-                (0 8)                          ;; sort-count
-                ))
 
-(define ($field-label)       (bitconstruct (#x04 8)))
-(define ($field-short-label) (bitconstruct (#x05 8)))
 
 (define (dab.sl.uService uservice-index)
-  ($list-get ($dab-sl-uservice uservice-index
-                               ($field-label)
-                               ($field-short-label))))
+  ($list-get (bitconstruct ("\x02\x10\x0d\x00" bitstring) ;; node address
+                           (uservice-index 32)            ;;
+                           (2 8)    ;; field-count
+                           (#x04 8) ;; label
+                           (#x05 8) ;; short-label
+                           (0 8)    ;; filter-count
+                           (0 8)    ;; sort-count
+                           )))
 
 ;; dab
 (define dab.state         (nt:e8  "\x02\x01\x00\x00" off on))
