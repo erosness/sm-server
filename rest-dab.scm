@@ -13,7 +13,12 @@
 (define-handler /v1/catalog/dab
   (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
 
+(define (dab-abort-if-scanning)
+  (if dab-scanning?
+      (abort (make-property-condition 'dab-scanning))))
+
 (define (ensure-dab-on)
+  (dab-abort-if-scanning)
   (if (not (dab-on?)) (dab-turn-on)))
 
 ;; dab's t2s is like a normal alsa capture, but changes the frequence
@@ -44,13 +49,16 @@
           (dab-channels)))))
 
 ;; start querying for stations. dab-channels is filled from dab-read-thread.
+(define dab-scanning? #f)
 (begin
   (handle-exceptions e (void) (thread-terminate! dab-channels-thread))
   ;; (thread-state dab-channels-thread)
   (define dab-channels-thread
     (thread-start!
      (->> (lambda ()
+            (set! dab-scanning? #t)
             (dab-refresh-channels!)
+            (set! dab-scanning? #f)
             #f) ;; <-- exit thread on successful completion
           (loop/exceptions (lambda (e) (pp `(error DAB channels ,(condition->list e) )) #t))
           (loop/interval 10)

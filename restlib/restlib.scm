@@ -56,15 +56,17 @@
 ;; response instead of stderr.
 (define (wrap-errors handler)
   (lambda ()
-   (handle-exceptions exn
-     (send-response status: 'bad-request
-                    body: (conc ((condition-property-accessor 'exn 'message) exn)
-                                ": " ((condition-property-accessor 'exn 'arguments) exn) "\n"
-                                ;; condition->list is similar to
-                                ;; print-call-chain but it only print
-                                ;; chain for exn, so it's nicer.
-                                (with-output-to-string (lambda () (pp (condition->list exn))))))
-     (handler))))
+    (handle-exceptions exn
+      (if ((condition-predicate 'dab-scanning) exn)
+          (send-response status: 'service-unavailable)
+          (send-response status: 'bad-request
+                         body: (conc ((condition-property-accessor 'exn 'message) exn)
+                                     ": " ((condition-property-accessor 'exn 'arguments) exn) "\n"
+                                     ;; condition->list is similar to
+                                     ;; print-call-chain but it only print
+                                     ;; chain for exn, so it's nicer.
+                                     (with-output-to-string (lambda () (pp (condition->list exn)))))))
+      (handler))))
 
 ;; false if request is GET or if wrap-json hasn't been invoked
 (define current-json (make-parameter #f))

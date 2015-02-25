@@ -19,6 +19,7 @@
 ;;                                  (lambda (new) (set! *catalog-notify-connections* new))))
 
 (define (ensure-fm-on)
+  (dab-abort-if-scanning)
   (if (not (fm-on?)) (fm-turn-on)))
 
 
