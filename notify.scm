@@ -42,8 +42,12 @@
        ;; we often get "port already closed" exceptions. TODO: remove
        ;; port from set if it's useless. I've seen this happen (it's
        ;; not thread-safe after all)
-       (handle-exceptions e (print "invalid notify connection "
-                                   port ": " (condition->list e))
+       (handle-exceptions e (begin (print
+                                    "invalid notify connection " port ": "
+                                    (condition->list e) ", removing")
+                                   ;; TODO: make it thread-safe
+                                   (set! (connections)
+                                         (filter (lambda (p) (not (equal? p port))) (connections))))
                           (display msg port)
                           (display #\newline port)
                           (flush-output port)))
@@ -79,10 +83,6 @@
             (if (not (eof-object? r))
                 (loop)))))
 
-
-      ;; TODO: thread-safe before commit!!
-      (set! (connections)
-            (filter (lambda (p) (not (equal? p port))) (connections)))
 
       ;; this is dirty. we actually want to exit this thread
       ;; immediately, but that will clean up TCP connections and send a
