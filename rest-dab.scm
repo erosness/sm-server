@@ -39,6 +39,7 @@
 (define-handler /v1/catalog/dab/stations
   (pagize
    (lambda ()
+     (dab-abort-if-scanning)
      (map (lambda (idx.name)
             (let* ((channel (cdr idx.name))
                    (index (car idx.name))
