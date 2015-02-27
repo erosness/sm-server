@@ -20,17 +20,29 @@
 
 ;; like open-input-file* but doesn't block other threads. obs: this
 ;; port isn't thread-safe (it may block all threads if used from
-;; multiple threads). note that it's unbuffered.
+;; multiple threads). it's buffered, but not thread-safe.
 (define (open-input-file*/nonblock fd)
+  (##sys#file-nonblocking! fd)
+  (define buffer '())
   (make-input-port
    (lambda ()
-      (thread-wait-for-i/o! fd #:input)
-      (let ((r (file-read fd 1)))
-        (if (= 1 (cadr r)) ;; number of bytes read must = 1
-            (string-ref (car r) 0)
-            #!eof)))
-    (lambda () (file-select fd #f 0))
-    (lambda () (file-close fd))))
+     (let retry ()
+       (if (pair? buffer)
+           (let ((head (car buffer)))
+             (set! buffer (cdr buffer))
+             head)
+           ;; fill buffer and retry
+           (begin
+             (thread-wait-for-i/o! fd #:input)
+             (let* ((r (file-read fd 1024))
+                    (bytes (cadr r))
+                    (data (substring (car r) 0 bytes)))
+               (if (= 0 bytes) ;; we just waited for 0 bytes => eof
+                   #!eof
+                   (begin (set! buffer (string->list data))
+                          (retry))))))))
+   (lambda () (file-select fd #f 0))
+   (lambda () (file-close fd))))
 
 ;; like open-output-file* but doesn't buffer anything.
 (define (open-output-file*/nobuffer fd)
