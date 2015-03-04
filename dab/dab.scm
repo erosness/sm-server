@@ -9,8 +9,41 @@
 (include-relative "frame-serialize.scm")
 
 (use matchable test bitstring srfi-18 srfi-14 srfi-13)
+(use nanomsg)
 
-(define (dab-command data) (error "not yet implemented. (use dab-nn) or something."))
+;; ============================== nanomsg interface to fsapi ====================
+
+(define nnsock-dab (nn-socket 'req))
+(nn-connect nnsock-dab "tcp://127.0.0.1:12000")
+
+
+;; mutexless nanomsg-based message passing of binary Venice9/fsapi
+;; data. one message is one raw dab packet (with frame idx).
+(define (dab-command* frameless)
+  (let* ((fid (random #xffff))) ;; for error-checking
+    (nn-send nnsock-dab (bitstring->string ($frame fid frameless)))
+    (let* ((response (nn-recv nnsock-dab))
+           (frame (parse-frame response)))
+      (match frame
+        (('frame reply-fid reply)
+         (if (not (= fid reply-fid))
+             (error (conc "invalid reply frame for fid " fid) frame))
+         reply)
+        (else (error "invalid DAB frame" frame))))))
+
+;; we need mutexes because it's a req-rep which needs to go in
+;; lockstep.
+(define dab-command
+  (let ((mutex (make-mutex 'dab-command-mutex)))
+    (lambda (bs)
+      (dynamic-wind
+        ;; TODO: handle exceptions here?
+        (lambda () (mutex-lock! mutex))
+        (lambda () (dab-command* bs))
+        (lambda () (mutex-unlock! mutex))))))
+
+
+;; ==================== DAB utils ====================
 
  ;; turn off all submodules.
  ;;
