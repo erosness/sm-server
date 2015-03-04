@@ -1,5 +1,4 @@
 (use restlib dab matchable looper)
-(use dab-i2c) ;; or (import dab-i2c turi)
 
 (import turi)
 
