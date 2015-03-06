@@ -1,4 +1,4 @@
-(use srfi-18 bitstring dab dab-i2c)
+(use srfi-18 bitstring dab)
 
 ;; (dab-command (fm.state #f))
 (dab-command (dab.state #t))
@@ -41,8 +41,8 @@
 ;;; FM example
 ;; Start dab station from app
 
-(use dab dab-i2c matchable bitstring)
-;; eval stuff from dab-i2c.scm
+(use dab matchable bitstring)
+;; eval stuff from dab.scm
 (fm-turn-on)
 
 ;; Not sure if this makes a difference
