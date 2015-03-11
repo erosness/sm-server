@@ -82,14 +82,14 @@
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
 (define-handler /v1/player/pq/add
-  (lambda () (let ((json (current-json)))
-          (cond ((vector? json)
-                 ;; add a list of items
-                 (->> (vector->list json)
-                      (pq-add-list *pq*)
-                      (list->vector)))
-                ;; add a single item
-                (else (pq-add *pq* json))))))
+  (lambda ()
+    (let* ((json (current-json))
+           ;; either add a single track or a list of tracks
+           (jsonlist (vector->list
+                      (if (vector? json)
+                          json
+                          (vector json)))))
+      (list->vector (pq-add-list *pq* jsonlist)))))
 
 
 ;; Removes and item referenced by id from the playqueue
