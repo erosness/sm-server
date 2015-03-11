@@ -89,7 +89,10 @@
                       (if (vector? json)
                           json
                           (vector json)))))
-      (list->vector (pq-add-list *pq* jsonlist)))))
+      (list->vector (pq-add-list *pq*
+                                 ;; HACK: delete loop cause it belongs
+                                 ;; to pq's not tracks. see #99.
+                                 (map (cut alist-delete 'loop <>) jsonlist))))))
 
 
 ;; Removes and item referenced by id from the playqueue
