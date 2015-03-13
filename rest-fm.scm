@@ -1,5 +1,5 @@
 (cond-expand
- ((and arm) (use dab-i2c))
+ ((and arm) (use dab))
  (else))
 
 (use test restlib clojurian-syntax looper fmt)
