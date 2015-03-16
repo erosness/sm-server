@@ -55,11 +55,12 @@
  "uri creator"
  (with-request
   ("/" `((host ("host" . 80))))
-  (test "tr://host:80/v1/t2s?type=debug&id=123"
+   ;; HACK: host is renamed to 127.0.0.1 by issue #93
+  (test "tr://127.0.0.1:80/v1/t2s?type=debug&id=123"
         ((make-turi-creator "debug") '((id . 123))))
-  (test "tr://host:80/v1/t2s?type=debug&id=abc"
+  (test "tr://127.0.0.1:80/v1/t2s?type=debug&id=abc"
         ((make-turi-creator "debug") '((id . "abc"))))
-  (test "tr://host:80/v1/t2s?type=debug&foo=bar&monkey=krish"
+  (test "tr://127.0.0.1:80/v1/t2s?type=debug&foo=bar&monkey=krish"
         ((make-turi-creator "debug") '((foo . "bar") (monkey . "krish"))))))
 
 

@@ -87,8 +87,9 @@
  (parameterize ((current-wimp-user "foo"))
   (with-request
    ("/" `((host ("host" . 1))))
-   (test "path->url"   "tr://host:1/v1/t2s?type=wimp&id=x" (tid->turi '((id . "x"))))
-   (test "track->turi" "tr://host:1/v1/t2s?type=wimp&id=123&username=foo" (track->turi `((id . "123")))))))
+   ;; HACK: host is renamed to 127.0.0.1 by issue #93
+   (test "path->url"   "tr://127.0.0.1:1/v1/t2s?type=wimp&id=x" (tid->turi '((id . "x"))))
+   (test "track->turi" "tr://127.0.0.1:1/v1/t2s?type=wimp&id=123&username=foo" (track->turi `((id . "123")))))))
 
 ;; (with-request "?type=wimp&id=1234" (/t2s))
 
