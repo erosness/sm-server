@@ -79,10 +79,11 @@
         (let loop ()
           (thread-wait-for-i/o! (port->fileno port) #:input)
           (let ((r (read-char port)))
-            (pp `(,(current-thread) notify-input ,(remote-address) (char ,r)))
             (if (not (eof-object? r))
                 (loop)))))
 
+      ;; give power back to spiffy
+      (pp `(info ,(current-thread) notify-connection-down ,(remote-address)))
 
       ;; this is dirty. we actually want to exit this thread
       ;; immediately, but that will clean up TCP connections and send a
