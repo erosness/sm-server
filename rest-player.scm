@@ -171,7 +171,7 @@
 ;; send a pretend-current notification to our apps. should keep
 ;; player-pane in sync with what Spotify is doing.
 (define (spotify-notification event)
-  (pq-current-set! *pq* `((title . ,(conc "SPOTIFY: "(alist-ref 'track event)))
+  (pq-current-set! *pq* `((title . ,(alist-ref 'track event))
                           (subtitle . ,(alist-ref 'artist event))
                           (image . ,(alist-ref 'image event))
                           (type . "spotify")
