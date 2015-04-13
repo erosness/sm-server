@@ -73,7 +73,8 @@
             (pq-loop?-set! *pq* (cdr loop)))
 
           ;; Set and NOTIFY new current value
-          (let ((new-current (player-information current)))
+          (let ((new-current (player-information (alist-merge current
+                                                              json-request))))
             (pq-current-set! *pq* new-current)
             new-current))
         ;;else
