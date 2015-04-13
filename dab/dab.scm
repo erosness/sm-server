@@ -95,12 +95,46 @@
  )
 
  ;; TODO: apply this to all $list-get instead
-(define (parse-dab.sl.uService data)
+;; TODO: apply this to all $list-get instead
+;; returns `("channel label" service-index "component description")
+;; - channel label is the text displayed to user, eg "NRK P2"
+;; - service index is an int used to tune to this station (dab.sl.station), eg 22
+;; - component description describes contains information for stream type (audio/data) etc
+(define (parse-dab.sl.uComponent data)
   (match data
-    (('list-get-response 'FS_OK (channel . rest))
-     (string-trim-both channel (char-set #\space #\newline #\nul)))
+    (('list-get-response 'FS_OK (channel service-key component-description . rest))
+     (list (string-trim-both channel (char-set #\space #\newline #\nul))
+           (bitmatch service-key (((i 32)) i))
+           component-description))
     (('list-get-response 'FS_FAIL "") #f)
-    (else (error "invalid dab.sl.uService response" data))))
+    (else (error "invalid dab.sl.uComponent response" data))))
+
+
+;; TMId (Transport Mechanism Identifier), page 54 of ETSI EN 300 401 V1.4.1
+;; this 2-bit field shall indicate the transport mechanism used:
+;; bit15 - bit14
+;; 0 0: MSC - Stream mode - audio
+;; 0 1: MSC - Stream mode - data
+;; 1 0: FIDC
+;; 1 1: MSC - Packet mode - data
+(define (service-component-description-TMId sc)
+  ;;                          ,-- two first bits is TMId
+  (case (bitmatch sc (((tmid 2) (rest bitstring)) tmid))
+    ((0) 'audio)
+    ((1) 'data)
+    ((2) 'FIDC)
+    ((3) 'packet)))
+
+(define (msc-stream-audio? scd) ;; service component description
+  (equal? (service-component-description-TMId scd) 'audio))
+
+(test-group
+ "tmid"
+ (test 'audio  (service-component-description-TMId "\x00\x01"))
+ (test 'audio  (service-component-description-TMId "\x3F\x01"))
+ (test 'packet (service-component-description-TMId "\300\x01"))
+ (test 'FIDC   (service-component-description-TMId "\200\x01"))
+ (test 'data   (service-component-description-TMId "\100\x01")))
 
 (define (parse-dab.tuneStatus data)
   (match data
@@ -118,18 +152,20 @@
     (('item-get-response (FS_OK . str))
      (bitmatch str (((x 32)) x)))))
 
-(define (dab-channel-name idx)
-  (parse-dab.sl.uService (dab-command (dab.sl.uService idx))))
-
  ;; list all channels (idx . "label"). this is slow.
 (define (dab-channels*)
   (let loop ((n 1)
              (res '()))
-    (let ((channel (dab-channel-name n)))
-      (if channel
-          (loop (add1 n)
-                (cons (cons n channel) res))
-          (reverse res)))))
+    (let ((channel (parse-dab.sl.uComponent (dab-command (dab.sl.uComponent n)))))
+      (match channel
+        ((label service-key component-description)
+         (if (msc-stream-audio? component-description)
+             ;; valid channel, add it
+             (loop (add1 n)
+                   (cons (cons service-key label) res))
+             ;; ignore non-audio-channels
+             (loop (add1 n) res)))
+        (#f (reverse res)))))) ;; <-- parsing fails, presumably no more channels at index n
 
  ;; do a full scan. this takes a long time.
 (define (dab-full-scan)

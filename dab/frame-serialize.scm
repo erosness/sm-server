@@ -103,6 +103,25 @@
                            (0 8)    ;; sort-count
                            )))
 
+
+(define (dab.sl.uComponent component-index)
+  ($list-get (bitconstruct ("\x02\x10\x0e\x00" bitstring) ;; node address
+                           (component-index 32) ;; list key (key = index)
+                           (3 8)               ;; field-count
+                           ;; (#x01 8) ;; ensemble parent of this component
+                           (#x05 8) ;; label
+                           (#x02 8) ;; serviceKey
+                           (#x03 8) ;; compoentId
+                           ;;(#x04 8) ;; reserverdCharSet
+                           ;;(#x06 8) ;; shortLabel
+                           ;;(#x07 8) ;; audioLanguage
+                           ;;(#x08 8) ;; content
+                           ;;(#x09 8) ;; category
+                           ;;(#x0a 8) ;; valid
+                           ;;(#x0b 8) ;; scty
+                           (0 8)
+                           (0 8))))
+
 ;; dab
 (define dab.state         (nt:e8  "\x02\x01\x00\x00" off on))
 (define dab.sl.station    (nt:u32 "\x02\x10\x01\x00"))
