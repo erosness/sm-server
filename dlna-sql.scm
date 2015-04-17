@@ -1,6 +1,6 @@
 (module dlna-sql (set-db! browse search)
 
-(import chicken scheme data-structures srfi-1)
+(import chicken scheme data-structures srfi-1 srfi-13)
 
 (use (except sql-de-lite reset))
 
@@ -39,9 +39,13 @@
   (filter identity
           (map
            (lambda (row)
-             (cond ((equal? "container.storageFolder" (cadr row)) (row->folder row))
-                   ((equal? "item.audioItem.musicTrack" (cadr row)) (row->track row))
-                   (else #f))) rows)))
+             (cond (;; Containers
+                    (string-prefix? "container." (cadr row)) (row->folder row))
+                   (;; Tracks
+                    (equal? "item.audioItem.musicTrack" (cadr row)) (row->track row))
+                   (else
+                    (print "WARNING: " row " is not a container or track")
+                    #f))) rows)))
 
 
 (define (wrap-db-error thunk)
