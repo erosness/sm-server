@@ -38,9 +38,4 @@
 (define-handler /v1/browse/usb (argumentize (%make-results browse) 'q '(limit "10") '(offset "0")))
 (define-handler /v1/catalog/usb (argumentize (%make-results search) 'q '(limit "10") '(offset "0")))
 
-(define (start-static-file-server)
-  (root-path *mount-point*)
-  (vhost-map `((".*" . ,(lambda (cont) (cont)))))
-  (start-server port: *static-server-port*))
 
-;; (define t (thread-start! (lambda () (start-static-file-server))))
