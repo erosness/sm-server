@@ -30,7 +30,8 @@
   (map (lambda (x y) (cons x y)) fields row))
 
 (define (row->track row)
-  (row-> '(id type title duration artist album tid) row))
+  (row-> '(id type title duration artist album filename) row))
+
 (define (row->folder row)
   (row-> '(id type name) row))
 
