@@ -52,12 +52,16 @@
        (make-response port: (response-port (current-response))
                       status: 'continue))))
 
+;; Abort current procedure and return a HTTP 503 Service Unavailable response
+(define (response-unavailable)
+  (abort (make-property-condition 'unavailable)))
+
 ;; call handler with an exception handler, and log error to request
 ;; response instead of stderr.
 (define (wrap-errors handler)
   (lambda ()
     (handle-exceptions exn
-      (if ((condition-predicate 'dab-scanning) exn)
+      (if ((condition-predicate 'unavailable) exn)
           (send-response status: 'service-unavailable)
           (send-response status: 'bad-request
                          body: (conc ((condition-property-accessor 'exn 'message) exn)

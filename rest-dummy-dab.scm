@@ -15,7 +15,7 @@
 ;; TODO: don't duplicate
 (define (dab-abort-if-scanning)
   (if dab-scanning?
-      (abort (make-property-condition 'dab-scanning))))
+      (response-unavailable)))
 
 (define-handler /v1/catalog/dab/fail
   (lambda ()

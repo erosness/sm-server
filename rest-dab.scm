@@ -14,7 +14,7 @@
 
 (define (dab-abort-if-scanning)
   (if dab-scanning?
-      (abort (make-property-condition 'dab-scanning))))
+      (response-unavailable)))
 
 (define (ensure-dab-on)
   (dab-abort-if-scanning)
