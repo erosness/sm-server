@@ -3,11 +3,12 @@
 (import turi)
 
 
-;; turn on the actual radio module
-(dab-turn-on)
-
-;; turn off mute default
-(dab-command (audio.attenuation 0))
+(handle-exceptions
+    e (pp e)
+    ;; turn on the actual radio module
+    (dab-turn-on)
+    ;; turn off mute default
+    (dab-command (audio.attenuation 0)))
 
 (define-handler /v1/catalog/dab
   (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
