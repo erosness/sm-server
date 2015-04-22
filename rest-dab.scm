@@ -57,12 +57,13 @@
   (define dab-channels-thread
     (thread-start!
      (->> (lambda ()
-            (set! dab-scanning? #t)
-            (dab-refresh-channels!)
-            (set! dab-scanning? #f)
+            (dynamic-wind
+              (lambda () (set! dab-scanning? #t))
+              (lambda () (dab-refresh-channels!))
+              (lambda () (set! dab-scanning? #f)))
             #f) ;; <-- exit thread on successful completion
           (loop/exceptions (lambda (e) (pp `(error DAB channels ,(condition->list e) )) #t))
-          (loop/interval 10)
+          (loop/interval 60)
           (loop)))))
 
 
