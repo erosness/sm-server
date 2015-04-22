@@ -5,10 +5,7 @@
 
 (handle-exceptions
     e (pp e)
-    ;; turn on the actual radio module
-    (dab-turn-on)
-    ;; turn off mute default
-    (dab-command (audio.attenuation 0)))
+)
 
 (define-handler /v1/catalog/dab
   (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
@@ -57,6 +54,9 @@
   (define dab-channels-thread
     (thread-start!
      (->> (lambda ()
+            ;; initialize dab
+            (dab-turn-on) ;; turn on the actual radio module
+            (dab-command (audio.attenuation 0)) ;; turn off mute default
             (dynamic-wind
               (lambda () (set! dab-scanning? #t))
               (lambda () (dab-refresh-channels!))
