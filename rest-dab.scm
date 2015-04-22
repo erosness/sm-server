@@ -1,4 +1,4 @@
-(use restlib dab matchable looper)
+(use restlib dab matchable looper clojurian-syntax)
 
 (import turi)
 
