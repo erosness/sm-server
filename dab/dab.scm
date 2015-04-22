@@ -24,12 +24,15 @@
     (nn-send nnsock-dab (bitstring->string ($frame fid frameless)))
     (let* ((response (nn-recv nnsock-dab))
            (frame (parse-frame response)))
-      (match frame
-        (('frame reply-fid reply)
-         (if (not (= fid reply-fid))
-             (error (conc "invalid reply frame for fid " fid) frame))
-         reply)
-        (else (error "invalid DAB frame" frame))))))
+      (if (string-prefix? "error" response) ;; <-- nndab error blob: "error <msg>"
+          (error 'dab-command* response)
+          (match frame
+            (('frame reply-fid reply)
+             (if (not (= fid reply-fid))
+                 (error (conc "invalid reply frame for fid " fid) response))
+             reply)
+            (else (error "invalid DAB frame" response)))))))
+
 
 ;; we need mutexes because it's a req-rep which needs to go in
 ;; lockstep.
