@@ -149,8 +149,8 @@
     (make-search-result limit offset (length result) result)))
 
 (define-handler /v1/catalog/usb
-  (lambda () `((search .  #( ((title . "Search") (uri . ,(return-url "/catalog/usb/browse")))))
-          (preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/usb/search"))))))))
+  (lambda () `((search .  #( ((title . "Search") (uri . ,(return-url "/catalog/usb/search")))))
+          (preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/usb/browse"))))))))
 
 (define-handler /v1/catalog/usb/browse (argumentize (%make-results browse) '(id "1") '(limit "10") '(offset "0")))
 (define-handler /v1/catalog/usb/search (argumentize (%make-results search) 'q '(limit "10") '(offset "0")))
