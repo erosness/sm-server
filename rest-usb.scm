@@ -128,7 +128,7 @@
       (subtitle . ,(get 'artist))
       (type . "usb")
       (duration . ,(transform-duration (get 'duration)))
-      (turi . ,(conc "tr://" host ":" *static-server-port* "/" turi)))))
+      (turi . ,(conc "http://" host ":" *static-server-port* "/" turi)))))
 
 (define (transform-result res)
   (cond ((container? res) (response-container res))
