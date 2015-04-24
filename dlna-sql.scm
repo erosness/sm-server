@@ -13,7 +13,7 @@
 (define base-string (conc "SELECT o.OBJECT_ID, o.CLASS, o.NAME, d.DURATION, d.ARTIST, "
                           "d.ALBUM, d.PATH from OBJECTS o left join DETAILS d on (d.ID = o.DETAIL_ID) "))
 
-(define browse-string (conc base-string "where PARENT_ID = ? limit ? offset ?"))
+(define browse-string (conc base-string "where PARENT_ID = ?"))
 (define (browse-stmt db) (sql db browse-string))
 
 ;; nested SELECT keeps sqlite from concatenating the query string for
@@ -21,8 +21,8 @@
 (define search-string (conc base-string
                             "where OBJECT_ID glob '*$*' and o.CLASS = 'item.audioItem.musicTrack' "
                             "and (d.TITLE like (SELECT '%' || ? || '%')) "
-                            "group by d.PATH "
-                            "limit ? offset ?"))
+                            "group by d.PATH "))
+
 (define (search-stmt db) (sql db search-string))
 
 ;; Transforms
@@ -64,9 +64,9 @@
 
 
 ;;; Public api
-(define (browse #!optional (id 1) (limit 10) (offset 0))
-  (%do-query browse-stmt id limit offset))
+(define (browse #!optional (id 1))
+  (%do-query browse-stmt id))
 
-(define (search q #!optional (limit 10) (offset 0))
-  (%do-query search-stmt q limit offset))
+(define (search q)
+  (%do-query search-stmt q))
 )

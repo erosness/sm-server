@@ -141,17 +141,18 @@
 
 ;;;
 
-(define ((%make-results proc) q limit offset)
-  (let* ((ret (or (proc q limit offset)
+(define ((%make-results proc) q)
+  (let* ((ret (or (proc q)
                   ;; No database found, usb stick not present
-                  (response-unavailable)))
-         (result (transform-results ret)))
-    (make-search-result limit offset (length result) result)))
+                  (response-unavailable))))
+    (transform-results ret)))
 
 (define-handler /v1/catalog/usb
   (lambda () `((search .  #( ((title . "Search") (uri . ,(return-url "/catalog/usb/search")))))
           (preload . #( ((title . "Browse") (uri . ,(return-url "/catalog/usb/browse"))))))))
 
-(define-handler /v1/catalog/usb/browse (argumentize (%make-results browse) '(id "1") '(limit "10") '(offset "0")))
-(define-handler /v1/catalog/usb/search (argumentize (%make-results search) 'q '(limit "10") '(offset "0")))
+(define-handler /v1/catalog/usb/browse
+  (pagize (argumentize (%make-results browse) '(id "1"))))
 
+(define-handler /v1/catalog/usb/search
+  (pagize (argumentize (%make-results search) 'q)))
