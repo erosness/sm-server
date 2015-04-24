@@ -38,7 +38,7 @@
     (char-set-union char-set:a-z
                     char-set:A-Z
                     char-set:digit
-                    (char-set #\.)))))
+                    (char-set #\. #\/)))))
 
 (test-group
  "url-encoding"
