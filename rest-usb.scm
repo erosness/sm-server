@@ -18,8 +18,7 @@
   ;; Path to check for database file
   (set-db! "/tmp/mediadb/files.db"))
  (else
-  ;; TODO: what paths should be use?
-  (define *web-root* "/data")
+  (define *web-root* "/mnt/udisk")
   (set-db! "/data/files.db")
   ))
 
