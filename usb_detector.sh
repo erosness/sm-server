@@ -10,6 +10,10 @@
   (string-contains msg "to 0 (No-Media)"))
 
 (define (create-media-db)
+  ;; Make sure the media db does not already exist,
+  ;; without this we get issues if the usb device was changed while
+  ;; the unit was turned off.
+  (delete-media-db)
   (print "creating mediadb")
   (system "mediascanner -s /mnt/udisk -d /data" ))
 
