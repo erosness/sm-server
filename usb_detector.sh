@@ -10,9 +10,8 @@
   (string-contains msg "to 0 (No-Media)"))
 
 (define (create-media-db)
-  ;; Make sure the media db does not already exist,
-  ;; without this we get issues if the usb device was changed while
-  ;; the unit was turned off.
+  ;; Mediascanner fails if db is already present
+  ;; TODO: handle in mediascanner
   (delete-media-db)
   (print "creating mediadb")
   (system "mediascanner -s /mnt/udisk -d /data" ))
@@ -28,6 +27,11 @@
     ((? umount-msg?) (delete-media-db))
     ;; Ignore, but keep going
     (else #t)))
+
+;; Make sure there are no media dbs present,
+;; this happens if the user has removed the usb
+;; device while the unit was turned off.
+(delete-media-db)
 
 (with-input-from-pipe
  "vdc monitor"
