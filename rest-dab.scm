@@ -57,6 +57,9 @@
             ;; initialize dab
             (dab-turn-on) ;; turn on the actual radio module
             (dab-command (audio.attenuation 0)) ;; turn off mute default
+
+            ;; delete channels from previous search
+            (dab-command (dab.sl.prune 'prune))
             (dynamic-wind
               (lambda () (set! dab-scanning? #t))
               (lambda () (dab-refresh-channels!))
