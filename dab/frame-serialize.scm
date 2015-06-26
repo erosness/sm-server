@@ -128,6 +128,7 @@
 (define dab.scan.state    (nt:e8  "\x02\x0a\x01\x00" idle scan))
 (define dab.udls          (nt:c8 "\x02\x11\x00\x00"))
 (define dab.tuneStatus    (nt:e8 "\x02\x06\x00\x00" idle tuned selected))
+(define dab.sl.prune      (nt:e8 "\x02\x10\x07\x00" idle prune))
 
 ;; dab plus
 (define dab.dlplus.available (nt:e8 "\x02\x12\x04\x00" stopped running))
