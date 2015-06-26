@@ -39,6 +39,15 @@
 ;; (hz-pretty-print 102550) => "102.55Mhz"
 (define (hz-pretty-print hz) (fmt #f (num (/ hz 1000) 10 2) "Mhz"))
 
+
+;; TODO: make all fm/dab apis not throw?
+(define (fm-radio-text-safe)
+  (handle-exceptions e
+    (begin
+      (pp (condition->list e))
+      #f)
+    (fm-radio-text)))
+
 (define (fm-get-state)
   (let* ((freq (fm-frequency))
          (turi-alist `((hz . ,freq))))
@@ -46,10 +55,9 @@
       (type . "fm")
       (frequency . ,freq)
       (tuneStatus . ,(symbol->string (fm-tunestatus)))
-      (subtitle . ,(or (fm-radio-text) ""))
+      (subtitle . ,(or (fm-radio-text-safe) ""))
       (turi . ,(fmfreq->turi turi-alist))
       (signalStrength . ,(fm-signal-strength)))))
-
 
 (define (fm-searching?)
   (eq? (fm-tunestatus) 'idle))
