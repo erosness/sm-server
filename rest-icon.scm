@@ -15,4 +15,5 @@
         (begin (speaker-store (current-json))
                '((status . "ok")))
         (or (speaker-store)
-            `((icon . 0)))))))
+            `((icon . 0)
+              (name . "")))))))
