@@ -1,11 +1,13 @@
 (module rest-icon ()
 
-(import chicken scheme)
+(import chicken scheme data-structures)
 
 ;; local imports
 (import restlib store)
 
-(define speaker-store (make-store 'speaker-icon))
+(define speaker-store (make-store (string->symbol
+                                   (conc "speaker-icon" "-"
+                                         (rest-server-port)))))
 
 (define-handler /v1/player/icon
   (lambda ()
