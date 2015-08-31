@@ -45,9 +45,6 @@
                                path: `(/ "v1" "t2s")
                                query: `((type . ,type)
                                         ,@params)
-                               ;; workaround for
-                               ;; https://tradio.adellica.com/cube/cube-server/issues/93
-                               host: "127.0.0.1"
                                ;; bug workaround (uri-common):
                                port: (uri-port (current-host)))))))
 
