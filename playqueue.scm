@@ -107,10 +107,9 @@
 
 (define (pq-add* pq item)
   (assert-pq-item item)
-  (and (alist-ref 'id item)
-       (error "item already has id field" item))
 
-  (let ((item (alist-cons 'id (make-unique-id pq) item)))
+  (let* ((item (alist-delete 'id item))
+         (item (alist-cons 'id (make-unique-id pq) item)))
     (pq-list-set! pq (add-back (pq-list pq) item))
     item))
 
