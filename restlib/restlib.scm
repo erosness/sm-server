@@ -84,7 +84,7 @@
     ;; (current-json) should return false on GET requests and a truthy
     ;; value for PUT/POST
     (case (request-method (current-request))
-      [(GET) (handler)]
+      [(GET DELETE) (handler)]
       [(PUT POST)
        (let* ((req-string (request-string!))
               (json (or (read-json req-string)
