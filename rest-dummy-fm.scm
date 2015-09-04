@@ -57,7 +57,7 @@
           (else (hardware-tick)))
         (if msg (loop))))))
 
-(define c (make-gochan))
+(define c (gochan))
 (define fm-hardware (hardware c))
 (define hw-thread (thread-start! (make-thread fm-hardware "dummy-hw-thread")))
 
