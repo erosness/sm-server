@@ -13,12 +13,18 @@
   (dab-abort-if-scanning)
   (if (not (dab-on?)) (dab-turn-on)))
 
+;; find channel in (dab-channels) and return its fixnum index. or
+;; error if not found.
+(define (find-dab-index channel)
+  (car (or (find (lambda (pair) (equal? channel (cdr pair))) (dab-channels))
+           (error (conc "channel not found in " (dab-channels)) channel))))
+
 ;; dab's t2s is like a normal alsa capture, but changes the frequence
 ;; of the DAB module before sending the stream url.
 (define-turi-adapter channel->turi "dab"
   (lambda (params)
-    (let* ((chidxstr (alist-ref 'id params))
-           (chidx (string->number chidxstr)))
+    (let* ((chidxstr (alist-ref 'ch params))
+           (chidx    (find-dab-index chidxstr)))
       (pp `(rest-dab station ,chidx))
       (ensure-dab-on)
       (match (dab-command (dab.sl.station chidx))
@@ -35,7 +41,7 @@
      (map (lambda (idx.name)
             (let* ((channel (cdr idx.name))
                    (index (car idx.name))
-                   (turi (channel->turi `((id . ,index)))))
+                   (turi (channel->turi `((ch . ,channel)))))
               `((title . ,channel)
                 (turi . ,turi)
                 (type . "dab"))))
