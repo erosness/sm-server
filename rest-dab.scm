@@ -2,11 +2,6 @@
 
 (import turi)
 
-
-(handle-exceptions
-    e (pp e)
-)
-
 (define-handler /v1/catalog/dab
   (lambda () `((preload . #( ((title . "Radio Stations") (uri . "/catalog/dab/stations")))))))
 
