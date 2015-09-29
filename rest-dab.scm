@@ -59,7 +59,7 @@
             (dab-command (audio.attenuation 0)) ;; turn off mute default
 
             ;; delete channels from previous search
-            (dab-command (dab.sl.prune 'prune))
+            (dab-command (dab.sl.factoryReset 'reset))
             (dynamic-wind
               (lambda () (set! dab-scanning? #t))
               (lambda () (dab-refresh-channels!))
