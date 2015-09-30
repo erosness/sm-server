@@ -4,7 +4,7 @@
                )
 
 (import chicken scheme)
-(use intarweb test uri-common data-structures restlib)
+(use intarweb test uri-common data-structures restlib srfi-14)
 
 (import rest)
 
@@ -34,19 +34,48 @@
 ;; TODO: implement
 (define alist? list?)
 
+
+;; uri-common's uri-encode-string does not suffice because it won't
+;; encode "\303" for example. let's be more strict and list allowed
+;; characters instead.
+(define (safe-uri-encode s)
+  (uri-encode-string
+   s
+   (char-set-complement
+    (char-set-union (ucs-range->char-set (char->integer #\a)
+                                         (char->integer #\z))
+                    (ucs-range->char-set (char->integer #\A)
+                                         (char->integer #\Z))
+                    char-set:digit
+                    (char-set #\. #\/)))))
+
+(define (alist->querystring alst #!optional (separator "&"))
+  (string-intersperse
+   (map (lambda (pair)
+          (let ((name (car pair))
+                (value (->string (cdr pair))))
+            (conc name "=" (safe-uri-encode value))))
+        alst)
+   separator))
+
+;; we need to use uri-generic here because uri-common serializes the
+;; query-parameter without escaping "\303" and friends. this is bad.
+(use (prefix uri-generic generic:))
+
 (define (make-turi-creator type)
   (lambda (params)
     (assert (alist? params) "make-turi-creator: Not an alist" params)
 
-    ;; produce & separators, not &;
-    (parameterize ((form-urlencoded-separator "&"))
-      (uri->string (update-uri (current-host)
-                               scheme: 'tr
-                               path: `(/ "v1" "t2s")
-                               query: `((type . ,type)
-                                        ,@params)
-                               ;; bug workaround (uri-common):
-                               port: (uri-port (current-host)))))))
+    (generic:uri->string
+     (generic:make-uri scheme: 'tr
+                       host: (uri-host (current-host))
+                       port: (uri-port (current-host))
+                       path: `(/ "v1" "t2s")
+                       ;; uri-generic uri's simply do raw
+                       ;; string/lists for query-params:
+                       query: (alist->querystring `((type . ,type)
+                                                    ,@params))))))
+
 
 (test-group
  "uri creator"
@@ -58,7 +87,9 @@
   (test "tr://127.0.0.1:80/v1/t2s?type=debug&id=abc"
         ((make-turi-creator "debug") '((id . "abc"))))
   (test "tr://127.0.0.1:80/v1/t2s?type=debug&foo=bar&monkey=krish"
-        ((make-turi-creator "debug") '((foo . "bar") (monkey . "krish"))))))
+        ((make-turi-creator "debug") '((foo . "bar") (monkey . "krish"))))
+  (test "tr://127.0.0.1:80/v1/t2s?type=debug&evil=%C3"
+        ((make-turi-creator "debug") `((evil . "\303"))))))
 
 
 (define (register-audio-host! name handler)
