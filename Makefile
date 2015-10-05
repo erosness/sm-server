@@ -1,5 +1,5 @@
 DEPS = clojurian bitstring spiffy intarweb uri-common \
-	medea http-client fmt udp test uuid openssl \
+	medea http-client fmt udp test uuid openssl:1.6.4 \
 	ssax sxpath sxml-serializer sql-de-lite nrepl \
 	matchable args gochan nanomsg
 
