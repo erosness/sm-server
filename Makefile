@@ -1,25 +1,25 @@
 DEPS = \
- args \
- bitstring \
- clojurian \
- fmt \
- gochan \
- http-client \
- intarweb \
- matchable \
- medea \
- nanomsg
- nrepl \
+ args:1.4.4 \
+ bitstring:1.33 \
+ clojurian:0.0.1 \
+ fmt:0.805 \
+ gochan:0.3 \
+ http-client:0.7.1 \
+ intarweb:1.3 \
+ matchable:3.3 \
+ medea:0.1.8 \
+ nanomsg:0.3 \
+ nrepl:0.1 \
  openssl:1.6.4 \
- spiffy \
- sql-de-lite \
- ssax \
- sxml-serializer \
- sxpath \
- test \
- udp \
- uri-common \
- uuid \
+ spiffy:5.3.2 \
+ sql-de-lite:0.6.2 \
+ ssax:5.0.7 \
+ sxml-serializer:0.4 \
+ sxpath:0.2 \
+ test:0.9.9.6 \
+ udp:1.18 \
+ uri-common:1.4 \
+ uuid:0.1 \
 
 
 # install for tradio:
