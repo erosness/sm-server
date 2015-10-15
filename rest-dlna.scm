@@ -1,6 +1,6 @@
 
 (use dlna restlib spiffy srfi-18
-     srfi-13 ;; string-hash
+     srfi-13 ;; number->string
      uri-common ;; uri-encode/decode
      looper
      clojurian-syntax)
@@ -49,8 +49,9 @@
 ;; down to some "hash" value. we use this hash to pick the original
 ;; url back. chance of collision should be small! specially
 ;; considering there are normally only one or two possible originals.
+(include "fnv.scm")
 (define (service->sid service)
-  (conc (string-hash service 99999)))
+  (number->string (fnv1-32 service) 16))
 
 ;; return original service-string from sid or #f
 (define (sid->service sid services)
