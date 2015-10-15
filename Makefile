@@ -1,7 +1,26 @@
-DEPS = clojurian bitstring spiffy intarweb uri-common \
-	medea http-client fmt udp test uuid openssl:1.6.4 \
-	ssax sxpath sxml-serializer sql-de-lite nrepl \
-	matchable args gochan nanomsg
+DEPS = \
+ args \
+ bitstring \
+ clojurian \
+ fmt \
+ gochan \
+ http-client \
+ intarweb \
+ matchable \
+ medea \
+ nanomsg
+ nrepl \
+ openssl:1.6.4 \
+ spiffy \
+ sql-de-lite \
+ ssax \
+ sxml-serializer \
+ sxpath \
+ test \
+ udp \
+ uri-common \
+ uuid \
+
 
 # install for tradio:
 # ci=aosp-chicken-install make
