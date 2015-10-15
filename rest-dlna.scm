@@ -41,7 +41,7 @@
 ;; ==================== glossary ====================
 ;;
 ;; id - id param in turi (t2s&type=dlna&id=...)
-;; bid - browse-id, string used to id DLNA containers
+;; bid - browse-id, string used to id DLNA containers (DLNA server generates these)
 ;; service - url to a DLNA content-dir service
 ;; sid - hash of service url (for turi shortness)
 
