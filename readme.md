@@ -52,7 +52,6 @@ in the pq. There is a pq cursor!
  * Build
   * TODO Build everything with one `make`
   * TODO fix socket egg problem
-  * TODO keep versioning of deps under control
  * cube-server
   * TODO make start without network interfaces robust
   * modulerize

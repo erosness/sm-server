@@ -8,7 +8,11 @@
            (use posix)
            (string-trim-right
             (with-input-from-pipe
-             "git describe --tags --always"
+             ;; if git describe in pwd fails, desparately try the
+             ;; hardcoded android-build-directory. note that this
+             ;; shell-command is run at compile-time.
+             (conc "git describe --tags --always || "
+                   "(cd $ANDROID_BUILD_TOP/external/cube-server && git describe --tags --always)")
              read-string))))))
 
     `((cube-server . ,(cube-version))
