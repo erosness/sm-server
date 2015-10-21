@@ -155,20 +155,51 @@
     (('item-get-response (FS_OK . str))
      (bitmatch str (((x 32)) x)))))
 
- ;; list all channels (idx . "label"). this is slow.
-(define (dab-channels*)
+;; get all dab components (kinda lo-level dab channel) as a list. each
+;; list item is in the form: (idx label description). this will
+;; contain non-audio channels and sometimes channels that don't have a
+;; label set (#105)
+(define (dab-component-index dc)       (match dc ((sk l cd) sk) (else #f)))
+(define (dab-component-label dc)       (match dc ((sk l cd)  l) (else #f)))
+(define (dab-component-description dc) (match dc ((sk l cd) cd) (else #f)))
+;; get all dab components from module. this usually takes 1-2 seconds.
+(define (dab-components)
   (let loop ((n 1)
              (res '()))
     (let ((channel (parse-dab.sl.uComponent (dab-command (dab.sl.uComponent n)))))
       (match channel
         ((label service-key component-description)
-         (if (msc-stream-audio? component-description)
-             ;; valid channel, add it
-             (loop (add1 n)
-                   (cons (cons service-key label) res))
-             ;; ignore non-audio-channels
-             (loop (add1 n) res)))
+         (loop (add1 n)
+               (cons `(,service-key ,label ,component-description) res)))
         (#f (reverse res)))))) ;; <-- parsing fails, presumably no more channels at index n
+
+;; predicate for which dab-components we want to expose to user.
+(define dab-component-filter
+  (let ()
+    (define (string-nonempty? s) (not (string-null? s)))
+    (conjoin (o string-nonempty? dab-component-label)
+             (o msc-stream-audio? dab-component-description))))
+
+ ;; list all channels (idx . "label").
+(define (dab-channels* #!optional (components (dab-components)))
+
+  (map (lambda (dc) (cons (dab-component-index dc) (dab-component-label dc)))
+       (filter dab-component-filter components)))
+
+(test-group
+ "dab-channel*"
+
+ (define components
+   `(( 1 "NRK mp3"         "\x00\x02")
+     ( 2 "P4 TPEG"         "\300\x02") ;; bad
+     ( 3 ""                "\x00\x00") ;; bad
+     ( 4 "Ordentlig Radio" "\x00\x02")
+     ( 5 "P9 Retro"        "\x00\x02")
+     ( 6 "Radio Visjon"    "\x00\x02")
+     ( 7 "BMG Test Bergen" "\x00\x02")))
+
+ (test '(1 4 5 6 7) (map car (dab-channels* components))))
+
 
  ;; do a full scan. this takes a long time.
 (define (dab-full-scan)
