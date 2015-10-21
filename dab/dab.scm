@@ -1,5 +1,5 @@
 (module dab *
-(import extras chicken scheme)
+(import extras chicken scheme srfi-1)
 
 
 (use s48-modules)
