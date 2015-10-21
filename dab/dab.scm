@@ -201,7 +201,7 @@
  (test '(1 4 5 6 7) (map car (dab-channels* components))))
 
 
- ;; do a full scan. this takes a long time.
+ ;; do a full scan. this takes around 30 seconds
 (define (dab-full-scan)
   (dab-command (dab.scan.state 'scan))
   (let loop ()
