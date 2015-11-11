@@ -101,13 +101,11 @@
 ;; TODO: apply this to all $list-get instead
 ;; returns `("channel label" service-index "component description")
 ;; - channel label is the text displayed to user, eg "NRK P2"
-;; - service index is an int used to tune to this station (dab.sl.station), eg 22
 ;; - component description describes contains information for stream type (audio/data) etc
 (define (parse-dab.sl.uComponent data)
   (match data
-    (('list-get-response 'FS_OK (channel service-key component-description . rest))
+    (('list-get-response 'FS_OK (channel component-description . rest))
      (list (string-trim-both channel (char-set #\space #\newline #\nul))
-           (bitmatch service-key (((i 32)) i))
            component-description))
     (('list-get-response 'FS_FAIL "") #f)
     (else (error "invalid dab.sl.uComponent response" data))))
@@ -168,9 +166,9 @@
              (res '()))
     (let ((channel (parse-dab.sl.uComponent (dab-command (dab.sl.uComponent n)))))
       (match channel
-        ((label service-key component-description)
+        ((label component-description)
          (loop (add1 n)
-               (cons `(,service-key ,label ,component-description) res)))
+               (cons `(,n ,label ,component-description) res)))
         (#f (reverse res)))))) ;; <-- parsing fails, presumably no more channels at index n
 
 ;; predicate for which dab-components we want to expose to user.

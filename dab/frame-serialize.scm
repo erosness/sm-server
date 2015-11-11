@@ -107,11 +107,11 @@
 (define (dab.sl.uComponent component-index)
   ($list-get (bitconstruct ("\x02\x10\x0e\x00" bitstring) ;; node address
                            (component-index 32) ;; list key (key = index)
-                           (3 8)               ;; field-count
+                           (2 8)               ;; field-count
                            ;; (#x01 8) ;; ensemble parent of this component
                            (#x05 8) ;; label
-                           (#x02 8) ;; serviceKey
-                           (#x03 8) ;; compoentId
+                           ;;(#x02 8) ;; serviceKey
+                           (#x03 8) ;; componentId
                            ;;(#x04 8) ;; reserverdCharSet
                            ;;(#x06 8) ;; shortLabel
                            ;;(#x07 8) ;; audioLanguage
