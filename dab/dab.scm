@@ -1,5 +1,5 @@
 (module dab *
-(import extras chicken scheme)
+(import extras chicken scheme srfi-1)
 
 
 (use s48-modules)
@@ -101,13 +101,11 @@
 ;; TODO: apply this to all $list-get instead
 ;; returns `("channel label" service-index "component description")
 ;; - channel label is the text displayed to user, eg "NRK P2"
-;; - service index is an int used to tune to this station (dab.sl.station), eg 22
 ;; - component description describes contains information for stream type (audio/data) etc
 (define (parse-dab.sl.uComponent data)
   (match data
-    (('list-get-response 'FS_OK (channel service-key component-description . rest))
+    (('list-get-response 'FS_OK (channel component-description . rest))
      (list (string-trim-both channel (char-set #\space #\newline #\nul))
-           (bitmatch service-key (((i 32)) i))
            component-description))
     (('list-get-response 'FS_FAIL "") #f)
     (else (error "invalid dab.sl.uComponent response" data))))
@@ -155,22 +153,53 @@
     (('item-get-response (FS_OK . str))
      (bitmatch str (((x 32)) x)))))
 
- ;; list all channels (idx . "label"). this is slow.
-(define (dab-channels*)
+;; get all dab components (kinda lo-level dab channel) as a list. each
+;; list item is in the form: (idx label description). this will
+;; contain non-audio channels and sometimes channels that don't have a
+;; label set (#105)
+(define (dab-component-index dc)       (match dc ((sk l cd) sk) (else #f)))
+(define (dab-component-label dc)       (match dc ((sk l cd)  l) (else #f)))
+(define (dab-component-description dc) (match dc ((sk l cd) cd) (else #f)))
+;; get all dab components from module. this usually takes 1-2 seconds.
+(define (dab-components)
   (let loop ((n 1)
              (res '()))
     (let ((channel (parse-dab.sl.uComponent (dab-command (dab.sl.uComponent n)))))
       (match channel
-        ((label service-key component-description)
-         (if (msc-stream-audio? component-description)
-             ;; valid channel, add it
-             (loop (add1 n)
-                   (cons (cons service-key label) res))
-             ;; ignore non-audio-channels
-             (loop (add1 n) res)))
+        ((label component-description)
+         (loop (add1 n)
+               (cons `(,n ,label ,component-description) res)))
         (#f (reverse res)))))) ;; <-- parsing fails, presumably no more channels at index n
 
- ;; do a full scan. this takes a long time.
+;; predicate for which dab-components we want to expose to user.
+(define dab-component-filter
+  (let ()
+    (define (string-nonempty? s) (not (string-null? s)))
+    (conjoin (o string-nonempty? dab-component-label)
+             (o msc-stream-audio? dab-component-description))))
+
+ ;; list all channels (idx . "label").
+(define (dab-channels* #!optional (components (dab-components)))
+
+  (map (lambda (dc) (cons (dab-component-index dc) (dab-component-label dc)))
+       (filter dab-component-filter components)))
+
+(test-group
+ "dab-channel*"
+
+ (define components
+   `(( 1 "NRK mp3"         "\x00\x02")
+     ( 2 "P4 TPEG"         "\300\x02") ;; bad
+     ( 3 ""                "\x00\x00") ;; bad
+     ( 4 "Ordentlig Radio" "\x00\x02")
+     ( 5 "P9 Retro"        "\x00\x02")
+     ( 6 "Radio Visjon"    "\x00\x02")
+     ( 7 "BMG Test Bergen" "\x00\x02")))
+
+ (test '(1 4 5 6 7) (map car (dab-channels* components))))
+
+
+ ;; do a full scan. this takes around 30 seconds
 (define (dab-full-scan)
   (dab-command (dab.scan.state 'scan))
   (let loop ()
