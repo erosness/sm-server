@@ -68,7 +68,7 @@
 
     (generic:uri->string
      (generic:make-uri scheme: 'tr
-                       host: "127.0.0.1"
+                       host: (uri-host (current-host))
                        port: (uri-port (current-host))
                        path: `(/ "v1" "t2s")
                        ;; uri-generic uri's simply do raw
