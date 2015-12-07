@@ -12,7 +12,7 @@ DEPS = \
  nrepl:0.1 \
  openssl:1.6.4 \
  spiffy:5.3.2 \
- sql-de-lite:0.6.2 \
+ sql-de-lite:0.6.6 \
  ssax:5.0.7 \
  sxml-serializer:0.4 \
  sxpath:0.2 \
