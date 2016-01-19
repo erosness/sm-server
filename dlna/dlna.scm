@@ -35,10 +35,11 @@
 (define (%ssdp-search-fold packet address lst)
   (handle-exceptions e
     (begin
-      (pp `(error ssdp-search
-                  ,packet
-                  ,address
-                  ,(condition->list e)))
+      (write `(error ssdp-search
+                     ,packet
+                     ,address
+                     ,(condition->list e)))
+      (newline)
       lst)
     (let ((l (packet-location packet)))
       ;; avoid duplicates
