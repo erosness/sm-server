@@ -157,6 +157,19 @@
     (('item-get-response (FS_OK . str))
      (bitmatch str (((x 32)) x)))))
 
+(define (parse-dab.udls data)
+  (match data
+    (('item-get-response ('FS_OK . str))
+     (string-trim-whitespace str))
+    (else (error "parse-dab.udls: not match for " data))))
+
+;; Returns the current combined Dynamic Label for the selected
+;; station. An empty string indicates that the
+;; previous dynamic label is no longer valid.
+(define (dab-dls)
+  (parse-dab.udls (dab-command (dab.udls))))
+
+
 ;; get all dab components (kinda lo-level dab channel) as a list. each
 ;; list item is in the form: (idx label description). this will
 ;; contain non-audio channels and sometimes channels that don't have a
