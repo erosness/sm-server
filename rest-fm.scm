@@ -55,7 +55,7 @@
       (type . "fm")
       (frequency . ,freq)
       (tuneStatus . ,(symbol->string (fm-tunestatus)))
-      (subtitle . ,(or (fm-radio-text-safe) ""))
+      (subtitle . ,(fm-radio-text-safe))
       (turi . ,(fmfreq->turi turi-alist))
       (signalStrength . ,(fm-signal-strength)))))
 

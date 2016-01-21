@@ -238,10 +238,11 @@
 (define (parse-fm.rds.radioText data)
   (match data
     (('item-get-response (FS_OK . channel))
-     (and-let* ((trimmed (string-trim-both channel (char-set #\space #\newline #\nul)))
-                (dblspace-idx (substring-index "  " trimmed)))
-       ;; Return the substring up to the first double space
-       (substring trimmed 0 dblspace-idx)))))
+     (or (and-let* ((trimmed (string-trim-both channel (char-set #\space #\newline #\nul)))
+                    (dblspace-idx (substring-index "  " trimmed)))
+           ;; Return the substring up to the first double space or an
+           ;; empty string if no rds text
+           (substring trimmed 0 dblspace-idx)) ""))))
 
 (define (parse-fm.search data)
   (match data
