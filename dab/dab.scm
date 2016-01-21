@@ -97,6 +97,10 @@
  (test-error (parse-dab.scan.state '(item (FS_OK . "\x00"))))
  )
 
+(define (string-trim-whitespace str)
+  (string-trim-both str (char-set #\space #\newline #\nul)))
+
+
  ;; TODO: apply this to all $list-get instead
 ;; TODO: apply this to all $list-get instead
 ;; returns `("channel label" service-index "component description")
@@ -105,7 +109,7 @@
 (define (parse-dab.sl.uComponent data)
   (match data
     (('list-get-response 'FS_OK (channel component-description . rest))
-     (list (string-trim-both channel (char-set #\space #\newline #\nul))
+     (list (string-trim-whitespace channel)
            component-description))
     (('list-get-response 'FS_FAIL "") #f)
     (else (error "invalid dab.sl.uComponent response" data))))
