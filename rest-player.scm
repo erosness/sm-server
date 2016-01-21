@@ -9,7 +9,7 @@
         playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras posix srfi-1
-     medea)
+     medea matchable)
 
 (import notify incubator)
 
@@ -180,6 +180,10 @@
                           (paused . ,(not (playing&active? event))))))
 
 
+
+;; TODO: refactor
+;; Create a generic monitor thread constructor
+
 ;; watch if spotify is playing. if it is, we pause our own cplay and
 ;; we "sneak" spotify album-cover art and player state in there using
 ;; spotify-notification.
@@ -206,5 +210,33 @@
           (loop)
           ((flip make-thread) "spotify-monitor")))))
 
+;; Read and broadcast DAB dynamic label if dab is running
+;; Note that the dynamic label is only broadcasted through the notify
+;; socket, you won't get it from
+(begin
+  (handle-exceptions e (void) (thread-terminate! dab-dls-thread))
+  (use dab)
 
+
+  (define loop-iteration
+    (lambda ()
+      (and-let* (((pq-current *pq*))
+                 (subtitle (match (alist-ref 'type (pq-current *pq*))
+                             ("dab" (dab-dls))
+                             ("fm"  (fm-radio-text))
+                             (else #f)))
+                 (content (alist-merge (player-information) `((subtitle . ,subtitle)))))
+        (send-notification "/v1/player/current" content))
+      #t)) ; <-- keep going
+
+  (define dab-dls-thread
+    (thread-start!
+     (->> loop-iteration
+          (loop/interval 1)
+          (loop/exceptions (lambda (e)
+                             (pp `(,(current-thread),(condition->list e)))
+                             (thread-sleep! 10)
+                             #t))
+          (loop)
+          ((flip make-thread) "dab-dls-thread")))))
 )
