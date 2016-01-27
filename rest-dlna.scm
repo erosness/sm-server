@@ -147,8 +147,9 @@
 
 ;; for descriptive errors and easy repl access to sids.
 (define (services&sids)
-  (map (lambda (service) (cons service (service->sid service)))
-      (map ssdp-device-services (*devices*))))
+  (map (lambda (service)
+         (cons (string->symbol (conc "b" (service->sid service))) service))
+       (append-map ssdp-device-content-directories (*devices*))))
 
 (define-handler /v1/catalog/dlna/browse
   ;; TODO: note that we query the server for all search-results, and
