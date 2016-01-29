@@ -8,7 +8,7 @@
         rest ;; <-- (rest-server-port)
         playqueue)
 (use test restlib clojurian-syntax ports
-     srfi-18 extras posix srfi-1
+     srfi-18 extras posix srfi-1 srfi-13
      medea matchable)
 
 (import notify incubator)
