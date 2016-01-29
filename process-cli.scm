@@ -63,7 +63,8 @@
                  (file-close in-in)
                  (file-close out-in)
                  (file-close out-out)
-                 (process-execute cmd args env)))))
+                 (process-execute cmd args env))
+               #t)))
 
     (file-close in-in)
     (file-close out-out)

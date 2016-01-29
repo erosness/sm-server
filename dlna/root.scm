@@ -78,11 +78,9 @@
   (define (read-sxml) (ssax:xml->sxml (current-input-port) '()))
   (values (condition-case
            (with-input-from-request* uri #f read-sxml)
-           ((exn http client-error) #f)
-           ;; in case of error, just print it for now and return #f
-           (e ()
-              (pp `(dlna warning ,uri ,(condition->list e)))
-              #f))))
+           ;; quietly return #f on errors. more helpful error messages
+           ;; should be logged elsewhere if needed:
+           (e () #f))))
 
 
 (include "root.test.scm")

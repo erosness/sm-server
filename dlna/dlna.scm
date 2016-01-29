@@ -35,10 +35,11 @@
 (define (%ssdp-search-fold packet address lst)
   (handle-exceptions e
     (begin
-      (pp `(error ssdp-search
-                  ,packet
-                  ,address
-                  ,(condition->list e)))
+      (write `(error ssdp-search
+                     ,packet
+                     ,address
+                     ,(condition->list e)))
+      (newline)
       lst)
     (let ((l (packet-location packet)))
       ;; avoid duplicates
@@ -47,7 +48,11 @@
               lst
               (let ((doc (rootdesc-query l)))
                 (if doc (cons (make-ssdp-device l doc) lst)
-                    (error "cannot parse " l))))
+                    ;; we can't connect to or parse the root doc:
+                    (begin (write `(ssdp-search (error doc root)
+                                                ,l ,packet))
+                           (newline)
+                           lst))))
           lst))))
 
 ;; search for surrounding UPnP services. returns a procedure which

@@ -97,6 +97,10 @@
  (test-error (parse-dab.scan.state '(item (FS_OK . "\x00"))))
  )
 
+(define (string-trim-whitespace str)
+  (string-trim-both str (char-set #\space #\newline #\nul)))
+
+
  ;; TODO: apply this to all $list-get instead
 ;; TODO: apply this to all $list-get instead
 ;; returns `("channel label" service-index "component description")
@@ -105,7 +109,7 @@
 (define (parse-dab.sl.uComponent data)
   (match data
     (('list-get-response 'FS_OK (channel component-description . rest))
-     (list (string-trim-both channel (char-set #\space #\newline #\nul))
+     (list (string-trim-whitespace channel)
            component-description))
     (('list-get-response 'FS_FAIL "") #f)
     (else (error "invalid dab.sl.uComponent response" data))))
@@ -152,6 +156,19 @@
   (match data
     (('item-get-response (FS_OK . str))
      (bitmatch str (((x 32)) x)))))
+
+(define (parse-dab.udls data)
+  (match data
+    (('item-get-response ('FS_OK . str))
+     (string-trim-whitespace str))
+    (else (error "parse-dab.udls: not match for " data))))
+
+;; Returns the current combined Dynamic Label for the selected
+;; station. An empty string indicates that the
+;; previous dynamic label is no longer valid.
+(define (dab-dls)
+  (parse-dab.udls (dab-command (dab.udls))))
+
 
 ;; get all dab components (kinda lo-level dab channel) as a list. each
 ;; list item is in the form: (idx label description). this will
@@ -234,10 +251,11 @@
 (define (parse-fm.rds.radioText data)
   (match data
     (('item-get-response (FS_OK . channel))
-     (and-let* ((trimmed (string-trim-both channel (char-set #\space #\newline #\nul)))
-                (dblspace-idx (substring-index "  " trimmed)))
-       ;; Return the substring up to the first double space
-       (substring trimmed 0 dblspace-idx)))))
+     (or (and-let* ((trimmed (string-trim-both channel (char-set #\space #\newline #\nul)))
+                    (dblspace-idx (substring-index "  " trimmed)))
+           ;; Return the substring up to the first double space or an
+           ;; empty string if no rds text
+           (substring trimmed 0 dblspace-idx)) ""))))
 
 (define (parse-fm.search data)
   (match data
