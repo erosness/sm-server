@@ -9,7 +9,7 @@
 ;;; - better/simper thread-safety management
 ;;; - introduces on-exit callback (called from read-thread)
 
-(module process-cli (process-cli spawn*)
+(module process-cli (process-cli spawn* open-input-file*/nonblock)
 
 (import chicken scheme data-structures)
 (use posix extras ports srfi-13 srfi-18 posix srfi-1 clojurian-syntax)
