@@ -261,7 +261,11 @@
 ;; step 3 above means it should be safe to send one notify! on each
 ;; line (there are few of them and only when user changes
 ;; song/connects/disconnects.
-
+;;
+;; we also merge in the current (player-information) in the
+;; notification, this prevents us from losing the static fields, most
+;; noticeably 'image' and 'type' in the ui.
+;;
 ;; parse lines like:
 ;; (IND-decompose "IND:-A1The Ludlows")
 ;; (IND-decompose "IND:-A2James Horner")
@@ -291,9 +295,10 @@
 
 ;; use bt-notifier-* state and broadcast to clients
 (define (notify!)
-  (send-notification "/v1/player/current"
-                     `((title    . ,bt-notifier-album)
-                       (subtitle . ,bt-notifier-song))))
+  (let ((msg (alist-merge (player-information)
+                          `((title    . ,(or bt-notifier-album "Bluetooth"))
+                            (subtitle . ,(or bt-notifier-song ""))))))
+    (send-notification "/v1/player/current" msg)))
 
 
 (import process-cli) ;; TODO: dependency-graph is getting messy
