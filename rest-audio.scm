@@ -72,58 +72,41 @@
                      (lambda (eq) `((value . ,(list->vector eq))))))
 
 ;; HACK: use mock volume and eq on macosx
-;; (cond-expand
-;;  ((not arm)
-;;   (define-simple-wrapper /v1/player/volume volume    number?))
-;;  (else
-;;   (define-handler /v1/player/volume
-;;     (lambda ()
-;;       (if (current-json) (amixer-volume (alist-ref 'value (current-json))))
-;;       `((value . ,(amixer-volume)))))))
+(cond-expand
+ ((not arm)
+  (define-simple-wrapper /v1/player/volume volume    number?))
+ (else
+  (define-handler /v1/player/volume
+    (lambda ()
+      (if (current-json) (amixer-volume (alist-ref 'value (current-json))))
+      `((value . ,(amixer-volume)))))))
 
-(define-handler /v1/player/volume
-  (lambda ()
-    (if (current-json) (amixer-volume (alist-ref 'value (current-json))))
-    `((value . ,(amixer-volume)))))
 
-;; (cond-expand
-;;  ((not arm)
-;;   (define-simple-wrapper /v1/player/eq     equalizer equalizer?))
+(cond-expand
+ ((not arm)
+  (define-simple-wrapper /v1/player/eq     equalizer equalizer?))
 
-;;  (else
-;;   (define-handler /v1/player/eq
-;;     (lambda ()
-;;       (if (current-json)
-;;           (amixer-eq/notify (vector->list (alist-ref 'value (current-json))))
-;;           (amixer-eq/notify))))))
-(define-handler /v1/player/eq
-  (lambda ()
-    (if (current-json)
-        (amixer-eq/notify (vector->list (alist-ref 'value (current-json))))
-        (amixer-eq/notify))))
+ (else
+  (define-handler /v1/player/eq
+    (lambda ()
+      (if (current-json)
+                    (amixer-eq/notify (vector->list (alist-ref 'value (current-json))))
+          (amixer-eq/notify))))))
+
 
 ;; volume watchdog thread. if the volume is modified externally
 ;; (hardware volume button, for example), we pick it up in cube-server
 ;; (and also broadcast the changes).
 
-;; (cond-expand
-;;  ((or arm)
-;;   (begin
-;;     (handle-exceptions e (void) (thread-terminate! amixer-poll-thread))
-;;     (define amixer-poll-thread
-;;       (thread-start!
-;;        (->> (lambda ()
-;;               (amixer-eq/notify))
-;;             (loop/interval 1)
-;;             (loop/exceptions (lambda (e) (pp `(error amixer-poll-thread ,(condition->list e))) #t))
-;;             (loop))))))
-;;  (else '()))
-(begin
-  (handle-exceptions e (void) (thread-terminate! amixer-poll-thread))
-  (define amixer-poll-thread
-    (thread-start!
-     (->> (lambda ()
-            (amixer-eq/notify))
-          (loop/interval 1)
-          (loop/exceptions (lambda (e) (pp `(error amixer-poll-thread ,(condition->list e))) #t))
-          (loop)))))
+(cond-expand
+ ((or arm)
+  (begin
+    (handle-exceptions e (void) (thread-terminate! amixer-poll-thread))
+    (define amixer-poll-thread
+      (thread-start!
+       (->> (lambda ()
+              (amixer-eq/notify))
+            (loop/interval 1)
+            (loop/exceptions (lambda (e) (pp `(error amixer-poll-thread ,(condition->list e))) #t))
+            (loop))))))
+ (else '()))
