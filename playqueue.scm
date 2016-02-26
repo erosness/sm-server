@@ -15,12 +15,13 @@
                    pq-loop?-set!
                    pq-play
                    make-pq
+                   pq-drop-after
                    pq-add-current-change-listener)
 
 (import chicken scheme data-structures srfi-1)
 (use srfi-18 uri-common test uuid extras)
 
-(import concurrent-utils player)
+(import concurrent-utils player incubator)
 
 (include "state-var.scm")
 
@@ -197,6 +198,20 @@
       (and-let* ((c (pq-current pq)))
         (player-seek 0))))
 
+;; (pq-drop-after PQ ITEM)
+;; Return a pq-list with the tracks up to and including ITEM. Does not
+;; modify PQ
+(define (pq-drop-after* pq item)
+  (let ((l (pq-list pq)))
+    (let loop ((new-pq-list '())
+               (old-pq-list l))
+      (if (null? old-pq-list)
+          #f
+          (if (alist-equal-keys? (car old-pq-list) item '(id turi))
+              (reverse (cons item new-pq-list))
+              (loop (cons (car old-pq-list) new-pq-list)
+                    (cdr old-pq-list)))))))
+
 ;; ==================== thread-safety ====================
 (define (with-pq-mutex proc)
   ;; this ain't pretty
@@ -215,7 +230,8 @@
 
   (define pq-play  (with-pq-mutex pq-play*))
   (define pq-play-next  (with-pq-mutex pq-play-next*))
-  (define pq-play-prev  (with-pq-mutex pq-play-prev*)))
+  (define pq-play-prev  (with-pq-mutex pq-play-prev*))
+  (define pq-drop-after (with-pq-mutex pq-drop-after*)))
 
 (test-group
  "playqueue"
