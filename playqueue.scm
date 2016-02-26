@@ -1,4 +1,5 @@
 (module playqueue (pq-list
+                   pq-list-set!
                    pq-prev
                    pq-play-prev
                    pq-next
@@ -61,7 +62,7 @@
 ;; ==================== pq record ====================
 (define-record-type pq (%make-pq list mutex current loop?)
   pq?
-  (list pq-list pq-list-set!)
+  (list pq-list %pq-list-set)
   (mutex pq-mutex)
   (current %pq-current)
   (loop? pq-loop? pq-loop?-set!))
@@ -110,7 +111,7 @@
 
   (let* ((item (alist-delete 'id item))
          (item (alist-cons 'id (make-unique-id pq) item)))
-    (pq-list-set! pq (add-back (pq-list pq) item))
+    (%pq-list-set pq (add-back (pq-list pq) item))
     item))
 
 ;; this is tricky because we have a list of alists. our incoming json
@@ -121,12 +122,12 @@
 (define (pq-del* pq item)
   (or (pq-ref* pq item) (error "cannot find" item))
   (and-let* ((itemid (alist-ref 'id item)))
-    (pq-list-set! pq (remove (lambda (x)
+    (%pq-list-set pq (remove (lambda (x)
                             (let ((xid (alist-ref 'id x)))
                               (equal? xid itemid))) (pq-list pq)))))
 
 (define (pq-clear* pq)
-  (pq-list-set! pq '())
+  (%pq-list-set pq '())
   (pq-current-set! pq #f))
 
 (define (pq-next/lst* pq lst)
@@ -204,6 +205,7 @@
 
 (begin
   (define pq-ref   (with-pq-mutex pq-ref*))
+  (define pq-list-set!   (with-pq-mutex %pq-list-set))
   (define pq-add   (with-pq-mutex pq-add*))
   (define pq-add-list   (with-pq-mutex pq-add-list*))
   (define pq-del   (with-pq-mutex pq-del*))
