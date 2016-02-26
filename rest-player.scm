@@ -52,13 +52,28 @@
         (let* ((json-request (current-json))
                (existing (pq-ref *pq* json-request))
                (current (pq-current *pq*)))
-
           ;; Change track?
           (if (or (alist-ref 'turi json-request)
                   (alist-ref 'id json-request))
-              (let ((queue-item (or existing (pq-add *pq* json-request))))
-                (pq-play *pq* queue-item #f)
-                (set! current queue-item)))
+              (if existing
+                  ;; if the requested track is already in the queue, start playing it
+                  (begin
+                    (pq-play *pq* existing #f)
+                    (set! current existing))
+                  (or
+                   (begin
+                     ;; if the requested track is _not_ already in the
+                     ;; queue, delete all tracks following it, add requested and
+                     ;; play it.
+                     (and-let* ((played (pq-drop-after *pq* current))
+                                ((pq-list-set! *pq* played))
+                                (requested (pq-add *pq* json-request)))
+                       (pq-play *pq* requested)
+                       (set! current requested)))
+                   ;; no current, add requested and play it
+                   (let ((requested (pq-add *pq* json-request)))
+                     (pq-play *pq* requested)
+                     (set! current requested)))))
 
           ;; Change pos?
           (and-let* ((pos (assoc 'pos json-request)))
