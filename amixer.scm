@@ -85,6 +85,16 @@
                                (thread-wait-for-i/o! (port->fileno p))
                                (read-string 2048 p)))))))
 
+;; find the right "amixer" to use
+(define *alsa_cmd*
+  (let ()
+    (define (try cmd)
+      (and (equal? "ok\n" (with-input-from-pipe (conc cmd " >/dev/null 2>&1 && echo ok") read-string))
+           cmd))
+    (or (try "alsa_amixer")
+        (try "amixer")
+        (begin (warning "amixer.scm: no `amixer` (tried amixer and alsa_amixer). check PATH?") #f)
+        "amixer")))
 
 (define (make-amixer-eq band-index)
   (assert (number? band-index))
@@ -97,7 +107,7 @@
 
   (define amixer-setter
     (make-amixer-getter/setter
-     (cmd/getter-setter "alsa_amixer" "cget" "cset" (conc "name=\"Tone Control " band-index " Gain\" -- "))
+     (cmd/getter-setter *alsa_cmd* "cget" "cset" (conc "name=\"Tone Control " band-index " Gain\" -- "))
      amixer-parse/values))
 
   ;; EQ range is now -2000 ~ 2000.
