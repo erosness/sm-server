@@ -14,13 +14,6 @@
     `((url . ,(alist-ref 'd params))
       (format . "alsa"))))
 
-(define-handler /v1/catalog/bt
-  (lambda ()
-    `((turi . ,(bt->turi '((d . "default:CARD=imxaudiobtm720"))))
-      (title . "Bluetooth")
-      (type . "bt")
-      (image . "http://www.kirya.net/wp-content/uploads/2007/07/bluetooth_logo.png"))))
-
 (define-handler /v1/catalog/line-in
   (lambda ()
     `((turi . ,(bt->turi '((d . "default:CARD=imxaudiotr2"))))
