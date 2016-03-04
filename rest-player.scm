@@ -1,4 +1,5 @@
 (module rest-player (player-seek-thread
+                     player-information
                      spotify-monitor-thread
                      *pq*)
 

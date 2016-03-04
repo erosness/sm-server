@@ -14,6 +14,11 @@
 ;;; - TODO: restart cplay when Bluetooth sampling rates changes
 ;;;
 
+(import restlib turi
+        (only rest-player *pq*)
+        (only playqueue pq-current)
+        (only rest-player player-information))
+
 ;; ==================== BT NOTIFIER ====================
 ;;
 ;; we get one line per item-notification from the BT agent. it
