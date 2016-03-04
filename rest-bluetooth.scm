@@ -94,7 +94,8 @@
   (let ((line (read-line bt-port)))
 
     (display (conc "bt-notifier: line "
-                   (with-output-to-string (cut write line)))
+                   (with-output-to-string (cut write line))
+                   "\n")
              (current-error-port))
 
     (IND-process! line) ;; update global vars
