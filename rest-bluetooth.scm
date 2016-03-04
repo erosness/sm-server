@@ -120,7 +120,8 @@
 (define-turi-adapter bluetooth-turi "bt"
   (lambda (params)
     `((url . "default:CARD=imxaudiobtm720")
-      (format . "alsa"))))
+      (format . "alsa")
+      (ar . "44100"))))
 
 (define-handler /v1/catalog/bt
   (lambda ()
