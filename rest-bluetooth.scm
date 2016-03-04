@@ -100,7 +100,7 @@
 
     (IND-process! line) ;; update global vars
 
-    (if (equal? "bt" (alist-ref 'type (pq-current *pq*)))
+    (if (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))
         (notify!))))
 
 (begin
