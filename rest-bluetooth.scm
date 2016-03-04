@@ -92,14 +92,15 @@
 
 (define (bt-notifier-iteration)
   (let ((line (read-line bt-port)))
-    (IND-process! line) ;; update global vars
-
-    (if (equal? "bt" (alist-ref 'type (pq-current *pq*)))
-        (notify!))
 
     (display (conc "bt-notifier: line "
                    (with-output-to-string (cut write line)))
-             (current-error-port))))
+             (current-error-port))
+
+    (IND-process! line) ;; update global vars
+
+    (if (equal? "bt" (alist-ref 'type (pq-current *pq*)))
+        (notify!))))
 
 (begin
   (handle-exceptions e (void) (thread-terminate! bt-notifier))
