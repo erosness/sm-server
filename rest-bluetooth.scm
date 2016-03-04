@@ -14,6 +14,7 @@
 ;;; - TODO: restart cplay when Bluetooth sampling rates changes
 ;;;
 
+(use irregex)
 (import restlib turi
         (only rest-player *pq*)
         (only playqueue pq-current)
@@ -56,6 +57,7 @@
 ;; (IND-decompose "IND:-A1The Ludlows")
 ;; (IND-decompose "IND:-A2James Horner")
 ;; (IND-decompose "IND:-A3Legends Of The Fall Original Motion Picture Soundtrack")
+;; (IND-decompose "IND:-S44123Hz")
 (define (IND-decompose line)
   ;; check for prefix and return the rest of the string if match
   (define (prefix str) (and (string-prefix? str line)
@@ -63,12 +65,15 @@
   (define ((labeler key) value) (list key value))
   (cond ((prefix "IND:-A1") => (labeler 'song))
         ((prefix "IND:-A2") => (labeler 'artist))
-        ((prefix "IND:-A3") => (labeler 'album))))
+        ((prefix "IND:-A3") => (labeler 'album))
+        ((irregex-match `(: "IND:-S" (=> hz (* digit)) (w/nocase "Hz")) line) =>
+         (lambda (match) `(ar ,(string->number (irregex-match-substring match 'hz)))))))
 
 ;; aggregated bt-notifier state
 (define bt-notifier-artist #f)
 (define bt-notifier-album #f)
 (define bt-notifier-song #f)
+(define bt-notifier-ar #f)
 
 ;; update bt-notifier state
 ;; (IND-process! "IND:-A1PRefs Paradise")
@@ -77,6 +82,7 @@
     (('song name)   (set! bt-notifier-song name))
     (('artist name) (set! bt-notifier-artist name))
     (('album name)  (set! bt-notifier-album name))
+    (('ar ar)       (set! bt-notifier-ar ar))
     (else #f)))
 
 ;; use bt-notifier-* state and broadcast to clients
@@ -123,7 +129,7 @@
   (lambda (params)
     `((url . "default:CARD=imxaudiobtm720")
       (format . "alsa")
-      (ar . "44100"))))
+      ,@(if bt-notifier-ar `((ar . ,bt-notifier-ar)) `()))))
 
 (define-handler /v1/catalog/bt
   (lambda ()
