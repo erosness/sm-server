@@ -50,7 +50,10 @@
   (lambda ()
     (if (current-json)
         (let* ((json-request (current-json))
+               ;; returns the first track with the same id as json
+               ;; request or #f if none
                (existing (pq-ref *pq* json-request))
+               ;; the currently playing track or #f if none
                (current (pq-current *pq*)))
           ;; Change track?
           (if (or (alist-ref 'turi json-request)
