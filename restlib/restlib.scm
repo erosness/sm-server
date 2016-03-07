@@ -121,7 +121,7 @@
 
 
 
-(define log? #f)
+(define log? #t)
 (define (log-handler thunk)
   (lambda () (if log? (print ";; request: " (uri->string (request-uri (current-request)))))
      (thunk)))
