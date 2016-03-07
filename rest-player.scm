@@ -38,6 +38,13 @@
                (player-pos-info)
                `((loop . ,(pq-loop? *pq*)))))
 
+
+;; Note: [pq-play with #f]
+;; in the player/current handler we update 'current' at the very end of any
+;; POST request. passing #f to pq-play prevents it from updating
+;; current (since we're going to do this anyway when all the requested
+;; updates have been applied
+
 ;; Manipulate current track.
 ;; POST: Looks for three keys; turi, paused, pos.
 ;; If turi is present adds this item to pq and starts playing.
@@ -61,7 +68,8 @@
               (if existing
                   ;; if the requested track is already in the queue, start playing it
                   (begin
-                    (pq-play *pq* existing #f)
+                    (print "pq: playing track which already exists in pq")
+                    (pq-play *pq* existing #f) ;; - see [pq-play with #f]
                     (set! current existing))
                   (or
                    (begin
@@ -71,11 +79,11 @@
                      (and-let* ((played (pq-drop-after *pq* current))
                                 ((pq-list-set! *pq* played))
                                 (requested (pq-add *pq* json-request)))
-                       (pq-play *pq* requested)
+                       (pq-play *pq* requested #f) ;; - see [pq-play with #f]
                        (set! current requested)))
                    ;; no current, add requested and play it
                    (let ((requested (pq-add *pq* json-request)))
-                     (pq-play *pq* requested)
+                     (pq-play *pq* requested #f) ;; - see [pq-play with #f]
                      (set! current requested)))))
 
           ;; Change pos?
