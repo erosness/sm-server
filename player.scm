@@ -37,7 +37,7 @@
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
 (define (cplay source #!key (format #f) (ar #f))
-  (assert (number? (or ar "")))
+  (assert (number? (or ar 0)))
   (assert (string? (or format "")))
   (let ((lformat (if format (list "-f" format) '()))
         (lsource (list (cond ((uri-reference? source) (uri->string source))
