@@ -16,6 +16,7 @@
 
 (use irregex)
 (import restlib turi
+        (only incubator alist-merge)
         (only rest-player *pq*)
         (only playqueue pq-current)
         (only rest-player player-information))
