@@ -36,17 +36,21 @@
 
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
-(define (cplay source #!optional (format #f))
+(define (cplay source #!key (format #f) (ar #f))
+  (assert (number? (or ar 0)))
+  (assert (string? (or format "")))
   (let ((lformat (if format (list "-f" format) '()))
         (lsource (list (cond ((uri-reference? source) (uri->string source))
-                             (else source)))))
-    (append '("cplay") lformat lsource)))
+                             (else source))))
+        (lar (if ar (list "-ar" (number->string ar)) '())))
+    (append '("cplay") lformat lar lsource)))
 
 (test-group
  "cplay"
  (test '("cplay" "filename") (cplay "filename"))
  (test '("cplay" "filename") (cplay (uri-reference "filename")))
- (test '("cplay" "-f" "alsa" "file") (cplay "file" "alsa")))
+ (test '("cplay" "-f" "alsa" "file") (cplay "file" format: "alsa"))
+ (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: "44100")))
 
 ;; pos responses from cplay contain both pos and duration. return both
 ;; here too.
@@ -154,7 +158,9 @@
                                             #f
                                             read-json)))
     (cplay (alist-ref 'url response)
-           (alist-ref 'format response))))
+           format: (alist-ref 'format response)
+           ar: (alist-ref 'ar response))))
+
 
 (define (play-command turi)
   (let ((turi (if (uri? turi) turi (uri-reference turi))))
