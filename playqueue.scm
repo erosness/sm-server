@@ -207,7 +207,7 @@
                (old-pq-list l))
       (if (null? old-pq-list)
           #f
-          (if (alist-equal-keys? (car old-pq-list) item '(id turi))
+          (if (alist-equal-keys? (car old-pq-list) (or item '()) '(id turi))
               (reverse (cons item new-pq-list))
               (loop (cons (car old-pq-list) new-pq-list)
                     (cdr old-pq-list)))))))
