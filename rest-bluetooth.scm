@@ -19,7 +19,7 @@
         (only incubator alist-merge)
         (only rest-player *pq*)
         (only playqueue pq-current)
-        (only rest-player player-information))
+        (only rest-player player-information /v1/player/current))
 
 ;; ==================== BT NOTIFIER ====================
 ;;
@@ -59,6 +59,8 @@
 ;; (IND-decompose "IND:-A2James Horner")
 ;; (IND-decompose "IND:-A3Legends Of The Fall Original Motion Picture Soundtrack")
 ;; (IND-decompose "IND:-S44123Hz")
+;; (IND-decompose "IND:-M0")
+;; (IND-decompose "IND:-M1")
 (define (IND-decompose line)
   ;; check for prefix and return the rest of the string if match
   (define (prefix str) (and (string-prefix? str line)
@@ -67,6 +69,8 @@
   (cond ((prefix "IND:-A1") => (labeler 'song))
         ((prefix "IND:-A2") => (labeler 'artist))
         ((prefix "IND:-A3") => (labeler 'album))
+        ((equal? line "IND:-M1") 'mute)
+        ((equal? line "IND:-M0") 'unmute)
         ((irregex-match `(: "IND:-S" (=> hz (* digit)) (w/nocase "Hz")) line) =>
          (lambda (match) `(ar ,(string->number (irregex-match-substring match 'hz)))))))
 
@@ -76,6 +80,46 @@
 (define bt-notifier-song #f)
 (define bt-notifier-ar #f)
 
+
+;; ======================= Bluetooth REST interface ====================
+;;
+;; this snippet could have been in rest-alsa-capture.scm with the
+;; others, but it needs to know the sampling-rate which we get from
+;; sniffing the BTM720's UART interface (see IND:-S)
+
+(define-turi-adapter bluetooth-turi "bt"
+  (lambda (params)
+    `((url . "default:CARD=imxaudiobtm720")
+      (format . "alsa")
+      ,@(if bt-notifier-ar `((ar . ,bt-notifier-ar)) `()))))
+
+(define-handler /v1/catalog/bt
+  (lambda ()
+    `((turi . , (bluetooth-turi '()))
+      (title . "Bluetooth")
+      (type . "bt")
+      (image . "http://www.kirya.net/wp-content/uploads/2007/07/bluetooth_logo.png"))))
+
+;; ======================
+;; typical IND sequence:
+;; (IND-decompose "IND:*C1") ;; bt connected
+;; (IND-decompose "IND:-C2") ;; bt codec (1:SBC, 2=AAC, 3=aptX)
+;; (IND-decompose "IND:-S44100Hz") ;; set samplerate
+;; (IND-decompose "IND:-M0") ;; <-- will start cplay at 44100hz
+;; (IND-decompose "IND:-A1The Lonely Mountains")
+;; (IND-decompose "IND:-A2Kim Janssen")
+;; (IND-decompose "IND:-A3The Lonely Mountains")
+;;
+;; note that song/artist etc comes after unmute, so although
+;; (/v1/catalog/bt) just fills a dummy title, it should be fixes by
+;; the subsequent A1-A3's.
+;;
+;; stop the current cplay and start a new one for bluetooth, and
+;; announce to everybody what just happened.
+(define (restart-cplay/bluetooth!)
+  (parameterize ((current-json (/v1/catalog/bt)))
+    (/v1/player/current)))
+
 ;; update bt-notifier state
 ;; (IND-process! "IND:-A1PRefs Paradise")
 (define (IND-process! line)
@@ -84,6 +128,7 @@
     (('artist name) (set! bt-notifier-artist name))
     (('album name)  (set! bt-notifier-album name))
     (('ar ar)       (set! bt-notifier-ar ar))
+    ('unmute        (restart-cplay/bluetooth!))
     (else #f)))
 
 ;; use bt-notifier-* state and broadcast to clients
@@ -119,22 +164,3 @@
           (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
                                                ,(condition->list e))) #t))
           (loop)))))
-
-;; ======================= Bluetooth REST interface ====================
-;;
-;; this snippet could have been in rest-alsa-capture.scm with the
-;; others, but it needs to know the sampling-rate which we get from
-;; sniffing the BTM720's UART interface (see IND:-S)
-
-(define-turi-adapter bluetooth-turi "bt"
-  (lambda (params)
-    `((url . "default:CARD=imxaudiobtm720")
-      (format . "alsa")
-      ,@(if bt-notifier-ar `((ar . ,bt-notifier-ar)) `()))))
-
-(define-handler /v1/catalog/bt
-  (lambda ()
-    `((turi . , (bluetooth-turi '()))
-      (title . "Bluetooth")
-      (type . "bt")
-      (image . "http://www.kirya.net/wp-content/uploads/2007/07/bluetooth_logo.png"))))
