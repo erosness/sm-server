@@ -14,7 +14,7 @@
 ;;; - TODO: restart cplay when Bluetooth sampling rates changes
 ;;;
 
-(use irregex)
+(use irregex matchable)
 (import restlib turi
         (only incubator alist-merge)
         (only rest-player *pq*)
