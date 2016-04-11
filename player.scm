@@ -50,7 +50,7 @@
  (test '("cplay" "filename") (cplay "filename"))
  (test '("cplay" "filename") (cplay (uri-reference "filename")))
  (test '("cplay" "-f" "alsa" "file") (cplay "file" format: "alsa"))
- (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: "44100")))
+ (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100)))
 
 ;; pos responses from cplay contain both pos and duration. return both
 ;; here too.
