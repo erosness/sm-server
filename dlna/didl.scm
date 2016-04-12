@@ -31,6 +31,24 @@
               ,@(r 'subtitle container-artist)
               ,@(r 'image container-image)))
 
+(use irregex)
+;; parse to match "((hh:mm:)|(mm:)|)ss". returns #f if unable to
+;; parse.
+(define (parse-duration str)
+  (cond ((irregex-match `(: (or (: (=> hh (* digit)) ":" (=> mm (* digit)) ":")
+                                (: (=> mm (* digit)) ":")
+                                (:))
+                            (=> ss (* digit) (? "." (* digit))))
+                        str)
+         =>
+         (lambda (m)
+           (define (match name)
+             (or (string->number (or (irregex-match-substring m name) "")) 0))
+           (+ (match 'ss)
+              (* 60 (+ (match 'mm)
+                       (* 60 (match 'hh)))))))
+        (else #f)))
+
 ;; convert an sxml item into pretty blurps
 (define (track->talist item)
   (define (r field proc)
@@ -43,11 +61,16 @@
   (define item-album  (sxpath/car "u:album/text()" ns))
   (define item-image  (sxpath/car "u:albumArtURI/text()" ns))
   (define item-turi   (sxpath/car "d:res/text()" ns))
+  (define (item-duration item)
+    (define duration ((sxpath/car "d:res/@duration/text()" ns) item))
+    (if (string? duration) (parse-duration duration) #f))
+
   `(track ,@(r 'id       item-id)
           ,@(r 'turi     item-turi)
           ,@(r 'title    item-title)
           ,@(r 'subtitle item-artist)
           ,@(r 'album    item-album)
+          ,@(r 'duration item-duration)
           ,@(r 'image    item-image)))
 
 (define doc-containers (sxpath "//d:DIDL-Lite/d:container" ns))

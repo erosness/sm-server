@@ -1,4 +1,17 @@
 
+(test-group
+ "parse-duration"
+ (define (min . args) (fold + 0 (map (cut * <> 60) args)))
+ (define (hour . args) (fold + 0 (map (cut * <> 60 60) args)))
+ (define (sec . args) (fold + 0 args))
+ (test "simplest case" (sec (hour 1) (min 2) 3) (parse-duration "1:2:3"))
+ (test "00 format" (sec (hour 1) (min 2) 3.5) (parse-duration "01:02:03.5"))
+ (test "0" (sec (hour 2) (min 3) 4.5) (parse-duration "2:3:4.5"))
+
+ (test "only seconds" 12345.25 (parse-duration "12345.25"))
+ (test "minutes:seconds" (sec (min 10) 3) (parse-duration "10:3"))
+ (test "garbage" #f (parse-duration "foo")))
+
 
 (test-group
  "unbox-result"
@@ -55,6 +68,15 @@
      (urn:schemas-upnp-org:metadata-1-0/upnp/:album "With Love")
      (urn:schemas-upnp-org:metadata-1-0/upnp/:albumArtURI "cover.jpg")
      (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:res "http://host/file.mp3"))))
+
+ (test "track->talist duration"
+       `(track (id . "ID") (turi . "file://turi") (duration . ,(+ 4.5 (* 60 (+ 3 (* 60 2))))))
+       (track->talist
+        '(urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:item
+          (@ (id "ID"))
+          (urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/:res
+           (@ (duration "2:3:4.5"))
+           "file://turi"))))
 
  (test
   "container->folder"
