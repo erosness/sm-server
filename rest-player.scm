@@ -91,7 +91,8 @@
           ;; Change pos?
           (and-let* ((pos (assoc 'pos json-request))
                      ;; Don't allow seek on infinite streams
-                     ((not (equal? (alist-ref 'duration json-request) -1))))
+                     ((not (equal? (alist-ref 'duration json-request) -1.0))))
+            (print "seeking track to position " (cdr pos))
             (player-seek (cdr pos)))
 
           ;; Change paused?
