@@ -11,7 +11,6 @@
 (include "rest-usb.scm")
 (include "rest-tunein.scm")
 (include "rest-alsa-capture.scm")
-(include "rest-bluetooth.scm")
 
 (cond-expand
  ((not arm)
@@ -19,6 +18,7 @@
   (include "rest-dummy-fm.scm")
   )
  (else
+  (include "rest-bluetooth.scm")
   (include "rest-dab.scm")
   (include "rest-fm.scm")
   ))
