@@ -89,7 +89,9 @@
                      (set! current requested)))))
 
           ;; Change pos?
-          (and-let* ((pos (assoc 'pos json-request)))
+          (and-let* ((pos (assoc 'pos json-request))
+                     ;; Don't allow seek on infinite streams
+                     ((not (equal? (alist-ref 'duration json-request) -1))))
             (player-seek (cdr pos)))
 
           ;; Change paused?
