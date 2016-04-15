@@ -111,8 +111,12 @@
   (assert-pq-item item)
 
   (let* ((item (alist-delete 'id item))
+         (pos (alist-ref 'pos item))
          (item (alist-cons 'id (make-unique-id pq) item)))
-    (%pq-list-set pq (add-back (pq-list pq) item))
+    ;; Don't store 'pos in playqueue, but keep it in return value.
+    ;; This allows clients to specify that a track should start at a
+    ;; specific position this time, but not _always_.
+    (%pq-list-set pq (add-back (pq-list pq) (alist-delete 'pos item)))
     item))
 
 ;; this is tricky because we have a list of alists. our incoming json
