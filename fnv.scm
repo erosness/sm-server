@@ -13,12 +13,14 @@
 ;;;        hash = hash XOR byte_of_data
 ;;;   return hash
 ;;;
-;;; The following is probably very slow!
 
 (define (fnv1-32 str)
-  (string-fold
-   (lambda (char sum)
-     (let ((byte (char->integer char)))
-       (bitwise-and #xffffffff (bitwise-xor (* #x01000193 #|<-- prime|# sum) byte))))
-   #x811c9dc5 ;; <- hash init FNV1_32_INIT
-   str))
+  ((foreign-lambda* int ((c-string str))
+                    "
+  int hval = 0x811c9dc5; // <- hash init FNV1_32_INIT
+  unsigned char *s = (unsigned char *)str;
+  while (*s) {
+    hval *= 0x01000193; // FNV_32_PRIME
+    hval ^= (int)*s++;
+  }
+  return(hval);") str))
