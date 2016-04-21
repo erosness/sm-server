@@ -81,18 +81,22 @@
 
 
 (test-group
- "uri creator"
+ "turi creator"
  (with-request
   ("/" `((host ("server.header" . 80))))
-  (test "tr://server.header:80/v1/t2s?type=debug&id=123"
+  (test "turi alphanumeric"
+        "tr://server.header:80/v1/t2s?type=debug&id=123"
         ((make-turi-creator "debug") '((id . 123))))
-  (test "tr://server.header:80/v1/t2s?type=debug&id=abc"
+  (test "turi numeric"
+        "tr://server.header:80/v1/t2s?type=debug&id=abc"
         ((make-turi-creator "debug") '((id . "abc"))))
-  (test "tr://server.header:80/v1/t2s?type=debug&foo=bar&monkey=krish"
+  (test "turi multiple params"
+        "tr://server.header:80/v1/t2s?type=debug&foo=bar&monkey=krish"
         ((make-turi-creator "debug") '((foo . "bar") (monkey . "krish"))))
-  (test "tr://server.header:80/v1/t2s?type=debug&evil=%C3"
+  (test "turi escape sequences"
+        "tr://server.header:80/v1/t2s?type=debug&evil=%C3"
         ((make-turi-creator "debug") `((evil . "\303"))))
-  (test "explicit hostname"
+  (test "turi explicit hostname"
         "tr://blup:80/v1/t2s?type=foo&id=13"
         ((make-turi-creator "foo" host: (lambda () "blup")) `((id . 13))))))
 
