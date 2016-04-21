@@ -87,7 +87,7 @@
 ;; others, but it needs to know the sampling-rate which we get from
 ;; sniffing the BTM720's UART interface (see IND:-S)
 
-(define-turi-adapter bluetooth-turi "bt"
+(define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
     `((url . "default:CARD=imxaudiobtm720")
       (format . "alsa")

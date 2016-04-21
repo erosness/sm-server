@@ -21,7 +21,7 @@
 
 ;; dab's t2s is like a normal alsa capture, but changes the frequence
 ;; of the DAB module before sending the stream url.
-(define-turi-adapter channel->turi "dab"
+(define-local-turi-adapter channel->turi "dab"
   (lambda (params)
     (let* ((chidxstr (alist-ref 'ch params))
            (chidx    (find-dab-index chidxstr)))
