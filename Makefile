@@ -1,4 +1,5 @@
 DEPS = \
+ uri-generic:2.43 \
  args:1.4.4 \
  bitstring:1.33 \
  clojurian:0.0.1 \
