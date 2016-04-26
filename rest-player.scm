@@ -135,10 +135,9 @@
           `((status . "ok")))))
 
 
-;; Removes every item from the playqueue and stops the player
+;; Removes every item from the playqueue
 (define-handler /v1/player/pq/clear
   (lambda () (pq-clear *pq*)
-     (player-quit)
      `((status . "ok"))))
 
 
