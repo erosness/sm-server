@@ -26,6 +26,8 @@
 (include "rest-player.scm")
 (include "rest-version.scm")
 
+(include "rest-icon.scm")
+
 (use nrepl posix srfi-18 spiffy)
 
 (define (make-nonblocking-stdin)
@@ -92,5 +94,7 @@
                   (player-store)) '())))
 
     dns-sd-unregister!))
+
+
 
 

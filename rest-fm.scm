@@ -33,7 +33,7 @@
           (format . "alsa")))
       (error "invalid fm params. expected hz key with number value")))
 
-(define-turi-adapter fmfreq->turi "fm"
+(define-local-turi-adapter fmfreq->turi "fm"
   turi-command)
 
 ;; (hz-pretty-print 102550) => "102.55Mhz"

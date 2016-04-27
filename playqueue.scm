@@ -1,4 +1,5 @@
 (module playqueue (pq-list
+                   pq-list-set!
                    pq-prev
                    pq-play-prev
                    pq-next
@@ -14,12 +15,13 @@
                    pq-loop?-set!
                    pq-play
                    make-pq
+                   pq-drop-after
                    pq-add-current-change-listener)
 
 (import chicken scheme data-structures srfi-1)
 (use srfi-18 uri-common test uuid extras)
 
-(import concurrent-utils player)
+(import concurrent-utils player incubator)
 
 (include "state-var.scm")
 
@@ -61,7 +63,7 @@
 ;; ==================== pq record ====================
 (define-record-type pq (%make-pq list mutex current loop?)
   pq?
-  (list pq-list pq-list-set!)
+  (list pq-list %pq-list-set)
   (mutex pq-mutex)
   (current %pq-current)
   (loop? pq-loop? pq-loop?-set!))
@@ -107,11 +109,14 @@
 
 (define (pq-add* pq item)
   (assert-pq-item item)
-  (and (alist-ref 'id item)
-       (error "item already has id field" item))
 
-  (let ((item (alist-cons 'id (make-unique-id pq) item)))
-    (pq-list-set! pq (add-back (pq-list pq) item))
+  (let* ((item (alist-delete 'id item))
+         (pos (alist-ref 'pos item))
+         (item (alist-cons 'id (make-unique-id pq) item)))
+    ;; Don't store 'pos in playqueue, but keep it in return value.
+    ;; This allows clients to specify that a track should start at a
+    ;; specific position this time, but not _always_.
+    (%pq-list-set pq (add-back (pq-list pq) (alist-delete 'pos item)))
     item))
 
 ;; this is tricky because we have a list of alists. our incoming json
@@ -122,12 +127,12 @@
 (define (pq-del* pq item)
   (or (pq-ref* pq item) (error "cannot find" item))
   (and-let* ((itemid (alist-ref 'id item)))
-    (pq-list-set! pq (remove (lambda (x)
+    (%pq-list-set pq (remove (lambda (x)
                             (let ((xid (alist-ref 'id x)))
                               (equal? xid itemid))) (pq-list pq)))))
 
 (define (pq-clear* pq)
-  (pq-list-set! pq '())
+  (%pq-list-set pq '())
   (pq-current-set! pq #f))
 
 (define (pq-next/lst* pq lst)
@@ -197,6 +202,20 @@
       (and-let* ((c (pq-current pq)))
         (player-seek 0))))
 
+;; (pq-drop-after PQ ITEM)
+;; Return a pq-list with the tracks up to and including ITEM. Does not
+;; modify PQ
+(define (pq-drop-after* pq item)
+  (let ((l (pq-list pq)))
+    (let loop ((new-pq-list '())
+               (old-pq-list l))
+      (if (null? old-pq-list)
+          #f
+          (if (alist-equal-keys? (car old-pq-list) (or item '()) '(id turi))
+              (reverse (cons item new-pq-list))
+              (loop (cons (car old-pq-list) new-pq-list)
+                    (cdr old-pq-list)))))))
+
 ;; ==================== thread-safety ====================
 (define (with-pq-mutex proc)
   ;; this ain't pretty
@@ -205,6 +224,7 @@
 
 (begin
   (define pq-ref   (with-pq-mutex pq-ref*))
+  (define pq-list-set!   (with-pq-mutex %pq-list-set))
   (define pq-add   (with-pq-mutex pq-add*))
   (define pq-add-list   (with-pq-mutex pq-add-list*))
   (define pq-del   (with-pq-mutex pq-del*))
@@ -214,7 +234,8 @@
 
   (define pq-play  (with-pq-mutex pq-play*))
   (define pq-play-next  (with-pq-mutex pq-play-next*))
-  (define pq-play-prev  (with-pq-mutex pq-play-prev*)))
+  (define pq-play-prev  (with-pq-mutex pq-play-prev*))
+  (define pq-drop-after (with-pq-mutex pq-drop-after*)))
 
 (test-group
  "playqueue"

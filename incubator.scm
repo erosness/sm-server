@@ -83,6 +83,26 @@
  (test "alist can be false" '((foo . 1) (bar . 2))
        (alist-merge '((foo . 1)) #f '((bar . 2)))))
 
+;; Do 'keys' in 'xs' and 'ys' have the same value?
+;; Does not support nested alists
+(define (alist-equal-keys? xs ys keys)
+  (let loop ((keys keys))
+    (if (null? keys) #t
+        (and (let ((xval (alist-ref (car keys) xs))
+                   (yval (alist-ref (car keys) ys)))
+               (and xval yval (equal? xval yval)))
+             (loop (cdr keys))))))
+
+(let ((alist1 '((foo . 1) (bar . 2) (baz . 3) (laps . 4)))
+      (alist2 '((foo . 1) (bar . 2) (baz . 4) (zoo . "12")))
+      (alist3 '((bar . 2))))
+ (test-group
+  "alist-equal-keys?"
+  (test "both has key equal" #t (alist-equal-keys? alist1 alist2 '(foo bar)))
+  (test "both has key not equal" #f (alist-equal-keys? alist1 alist2 '(foo bar baz)))
+  (test "both has not key" #f (alist-equal-keys? alist1 alist2 '(laps zoo)))
+  (test "empty keyset" #t (alist-equal-keys? alist1 alist2 '()))))
+
 ;; Measure time based on wallclock time
 (define (wallclock-time thunk)
   (define clock current-milliseconds)

@@ -1,6 +1,6 @@
 
 (use dlna restlib spiffy srfi-18
-     srfi-13 ;; string-hash
+     srfi-13 ;; number->string
      uri-common ;; uri-encode/decode
      looper
      clojurian-syntax)
@@ -41,7 +41,7 @@
 ;; ==================== glossary ====================
 ;;
 ;; id - id param in turi (t2s&type=dlna&id=...)
-;; bid - browse-id, string used to id DLNA containers
+;; bid - browse-id, string used to id DLNA containers (DLNA server generates these)
 ;; service - url to a DLNA content-dir service
 ;; sid - hash of service url (for turi shortness)
 
@@ -49,8 +49,9 @@
 ;; down to some "hash" value. we use this hash to pick the original
 ;; url back. chance of collision should be small! specially
 ;; considering there are normally only one or two possible originals.
+(include "fnv.scm")
 (define (service->sid service)
-  (conc (string-hash service 99999)))
+  (number->string (fnv1-32 service) 16))
 
 ;; return original service-string from sid or #f
 (define (sid->service sid services)
@@ -146,8 +147,9 @@
 
 ;; for descriptive errors and easy repl access to sids.
 (define (services&sids)
-  (map (lambda (service) (cons service (service->sid service)))
-      (map ssdp-device-services (*devices*))))
+  (map (lambda (service)
+         (cons (string->symbol (conc "b" (service->sid service))) service))
+       (append-map ssdp-device-content-directories (*devices*))))
 
 (define-handler /v1/catalog/dlna/browse
   ;; TODO: note that we query the server for all search-results, and
