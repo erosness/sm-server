@@ -5,10 +5,12 @@
 
 
 ;; typically holds current sessionId and countryCode
-(define *wimp-base-url*     (make-parameter "https://api.wimpmusic.com/v1"))
+(define *wimp-base-url*     (make-parameter "https://api.tidal.com/v1"))
 (define *wimp-query*        (make-parameter with-input-from-request))
 (define current-session-params (make-parameter #f))
 (define *wimp-session-params* #f)
+
+(define tidal-token "57QOvPeJ87DeB0J4")
 
 ;; most servers don't allow ; as query separator, even though it's in
 ;; the uri-specification. set "&" first so that we use that when
@@ -47,8 +49,7 @@
 (define (wimp-login username password)
   (let ((params `((username . ,username)
                   (password . ,password)
-                  (clientName . "iOS_WiMP-2.5.1.no")
-                  (token . "xRxdq-jJNdbCc7La"))))
+                  (token . ,tidal-token))))
     (-> ((*wimp-query*) (wimp-base-url "login/username")
          params
          read-json)
