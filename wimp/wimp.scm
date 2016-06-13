@@ -141,4 +141,22 @@
   (conc "http://images.osl.wimpmusic.com/im/im?w=" w "&h=" h "&artistid=" aid))
 
 
+;; TIDAL images
+;; image resources are returned in an uuid-like string on the
+;; following format: "0f592645-1fd6-492d-8944-d4475c688183"
+;; To get an image, replace dashes with forward slashes and append
+;; '/<w>x<h>.jpg' where 'w' and 'h' are height and weight.
+;; As if that wasn't fun enough, different image types are stored in
+;; different sizes, hence the overrides below.
+;; See: http://developer.tidal.com/technical/images/
+(define (tidal-image-url image-id #!optional (w 160) (h 160))
+  (let ((convert (lambda (str) (string-translate str "-" "/"))))
+   (conc "https://resources.tidal.com/images/" (convert image-id) "/" w "x" h ".jpg")))
+
+(define (tidal-mood-image-url image-id)
+  (tidal-image-url image-id 320 320))
+
+(define (tidal-playlist-image-url image-id)
+  (tidal-image-url image-id 160 107))
+
 ;; (wimp-login "97670550" "herrowimp")
