@@ -3,7 +3,7 @@
 (import chicken scheme data-structures)
 (use wimp uri-common test clojurian-syntax restlib
      medea
-     matchable srfi-18)
+     matchable srfi-18 srfi-1)
 
 (import turi
         rest ;; <-- return-url
@@ -145,7 +145,18 @@
 
 (define (playlist->search-result playlist)
   `((title . ,(alist-ref 'title playlist))
+    (image . ,(tidal-playlist-image-url (alist-ref 'image playlist)))
     (uri   . ,(return-url "/catalog/wimp/playlist/tracks?uuid=" (alist-ref 'uuid playlist)))))
+
+(define (mood->search-result mood)
+  `((title . ,(alist-ref 'name mood))
+    (image . ,(tidal-mood-image-url (alist-ref 'image mood)))
+    (uri   . ,(return-url "/catalog/wimp/moods?mood=" (alist-ref 'path mood)))))
+
+(define (genre->search-result genre)
+  `((title . ,(alist-ref 'name genre))
+    (image . ,(tidal-mood-image-url (alist-ref 'image genre)))
+    (uri   . ,(return-url "/catalog/wimp/genres/albums?genre=" (alist-ref 'path genre)))))
 
 (define (wimp-process-result result-proc result)
   (map result-proc
@@ -153,6 +164,8 @@
             (alist-ref 'items)
             (vector->list))))
 
+
+;; TODO: refactor make q optinal and get rid of make-wimp-get-call
 (define ((make-wimp-search-call search process) q username #!optional (limit 10) (offset 0))
   (parameterize ((current-wimp-user username)
                  (current-session-params (wimp-get-session username)))
@@ -162,7 +175,14 @@
                           (alist-ref 'totalNumberOfItems result)
                           (wimp-process-result process result)))))
 
-
+(define ((make-wimp-get-call get process) username #!optional (limit 10) (offset 0))
+  (parameterize ((current-wimp-user username)
+                 (current-session-params (wimp-get-session username)))
+    (let ((result (get `((offset . ,offset)
+                         (limit  . ,limit)))))
+      (make-search-result limit offset
+                          (alist-ref 'totalNumberOfItems result)
+                          (wimp-process-result process result)))))
 
 
 (define (wrap-wimp-login-status handler)
@@ -194,26 +214,39 @@
      ;; stored:
      (e (wimp missing-login) (make-wimp-login-error)))))
 
+
+;; TODO: refactor wrap-wimp and wrap-wimp-no-q
 (define (wrap-wimp search-proc convert #!optional (query-param 'q))
   (wrap-wimp-login-status
    (argumentize
     (make-wimp-search-call search-proc convert)
     query-param 'username '(limit "10") '(offset "0"))))
 
+(define (wrap-wimp-no-q search-proc convert)
+  (wrap-wimp-login-status
+   (argumentize
+    (make-wimp-get-call search-proc convert)
+    'username '(limit "10") '(offset "0"))))
+
 (define (wimp-user-playlists/current-user _ignored_ query-params)
   (wimp-user-playlists (alist-ref 'userId (current-session-params)) query-params))
 
 ;;==================== handlers ====================
 (define-handler /v1/catalog/wimp
-  (wrap-wimp-login-status ;; TODO: why do we wrap login-status here?
+  (wrap-wimp-login-status
    (lambda () `((search . #( ((title . "Artists") (uri . ,(return-url "/catalog/wimp/artist")))
                         ((title . "Albums")  (uri . ,(return-url "/catalog/wimp/album")))
                         ((title . "Tracks")  (uri . ,(return-url "/catalog/wimp/track")))))
-           (preload . #( ((title . "Playlists") (uri . ,(return-url "/catalog/wimp/playlists")))))))))
+           (preload . #( ((title . "Playlists") (uri . ,(return-url "/catalog/wimp/playlists")))
+                         ((title . "Moods") (uri . ,(return-url "/catalog/wimp/moods")))
+                         ((title . "Discover") (uri . ,(return-url "/catalog/wimp/discover")))
+                         ((title . "New") (uri . ,(return-url "/catalog/wimp/new")))
+                         ((title . "Genres") (uri . ,(return-url "/catalog/wimp/genres")))))))))
 
 (define-handler /v1/catalog/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
 (define-handler /v1/catalog/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
 (define-handler /v1/catalog/wimp/artist        (wrap-wimp wimp-search-artist artist->search-result))
+
 
 ;; falls apart: no query parameter anymore
 (define-handler /v1/catalog/wimp/playlists
@@ -228,6 +261,70 @@
 
 (define-handler /v1/catalog/wimp/playlist/tracks
   (wrap-wimp wimp-playlist-tracks track->search-result 'uuid))
+
+;; TODO: refactor
+(define-handler /v1/catalog/wimp/moods
+  (wrap-wimp-login-status
+   (argumentize (lambda (username mood limit offset)
+                  (parameterize ((current-session-params (wimp-get-session username)))
+                    (match mood
+                      ("" (let ((res (wimp-editorial-moods)))
+                            (make-search-result limit    ; limit
+                                                offset   ; offset
+                                                (vector-length res)
+                                                (map mood->search-result (vector->list res)))))
+                      (else (let ((res (wimp-editorial-moods-playlists mood)))
+                              (make-search-result 100 0
+                                                  (alist-ref 'totalNumberOfItems res)
+                                                  (wimp-process-result playlist->search-result res)))))))
+                'username '(mood "") '(limit 10) '(offset 0))))
+
+(define-handler /v1/catalog/wimp/discover
+  (lambda () `((limit . 10)
+          (offset . 0)
+          (total . 2)
+          (items . #( ((title . "Discover Tracks")
+                       (uri   . ,(return-url "/catalog/wimp/discover/tracks")))
+                      ((title . "Discover Albums")
+                       (uri   . ,(return-url "/catalog/wimp/discover/albums"))))))))
+
+(define-handler /v1/catalog/wimp/discover/tracks
+  (wrap-wimp-no-q wimp-editorial-discovery-tracks track->search-result))
+(define-handler /v1/catalog/wimp/discover/albums
+  (wrap-wimp-no-q wimp-editorial-discovery-albums album->search-result))
+
+(define-handler /v1/catalog/wimp/new
+  (lambda () `((limit . 10)
+          (offset . 0)
+          (total . 3)
+          (items . #( ((title . "New Tracks")
+                       (uri   . ,(return-url "/catalog/wimp/discover/tracks")))
+                      ((title . "New Albums")
+                       (uri   . ,(return-url "/catalog/wimp/discover/albums")))
+                      ((title . "New Playlists")))))))
+
+(define-handler /v1/catalog/wimp/new/tracks
+  (wrap-wimp-no-q wimp-editorial-featured-new-tracks track->search-result))
+(define-handler /v1/catalog/wimp/new/albums
+  (wrap-wimp-no-q wimp-editorial-featured-new-albums album->search-result))
+(define-handler /v1/catalog/wimp/new/playlists
+  (wrap-wimp-no-q wimp-editorial-featured-new-playlists playlist->search-result))
+
+(define-handler /v1/catalog/wimp/genres
+  (wrap-wimp-login-status
+   (argumentize (lambda (username limit offset)
+                  (parameterize ((current-session-params (wimp-get-session username)))
+                    (let* ((res (wimp-genres))
+                           (albums (filter (lambda (x) (alist-ref 'hasAlbums x)) (vector->list res))))
+                      (set! qq albums)
+                      (make-search-result 100
+                                          0
+                                          (length albums)
+                                          (map genre->search-result albums)))))
+                'username '(limit 10) '(offset 0))))
+
+(define-handler /v1/catalog/wimp/genres/albums
+  (wrap-wimp wimp-genres-albums album->search-result 'genre))
 
 (define-handler /v1/catalog/wimp/login
   (wrap-wimp-login-status

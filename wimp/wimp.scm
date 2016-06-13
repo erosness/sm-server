@@ -5,10 +5,12 @@
 
 
 ;; typically holds current sessionId and countryCode
-(define *wimp-base-url*     (make-parameter "https://api.wimpmusic.com/v1"))
+(define *wimp-base-url*     (make-parameter "https://api.tidal.com/v1"))
 (define *wimp-query*        (make-parameter with-input-from-request))
 (define current-session-params (make-parameter #f))
 (define *wimp-session-params* #f)
+
+(define tidal-token "57QOvPeJ87DeB0J4")
 
 ;; most servers don't allow ; as query separator, even though it's in
 ;; the uri-specification. set "&" first so that we use that when
@@ -47,8 +49,7 @@
 (define (wimp-login username password)
   (let ((params `((username . ,username)
                   (password . ,password)
-                  (clientName . "iOS_WiMP-2.5.1.no")
-                  (token . "xRxdq-jJNdbCc7La"))))
+                  (token . ,tidal-token))))
     (-> ((*wimp-query*) (wimp-base-url "login/username")
          params
          read-json)
@@ -114,6 +115,26 @@
 (define wimp-track-streamurl       (wimp-lambda ()      "tracks"    tid "streamurl"))
 (define wimp-user-playlists        (wimp-lambda ()      "users"     uid "playlists"))
 
+;; Discovery
+(define wimp-editorial-discovery-tracks (wimp-lambda () "discovery" "new" "tracks"))
+(define wimp-editorial-discovery-albums (wimp-lambda () "discovery" "new" "albums"))
+
+;; Featured
+(define wimp-editorial-featured (wimp-lambda () "featured"))
+(define wimp-editorial-featured-new-albums (wimp-lambda () "featured" "new" "albums"))
+(define wimp-editorial-featured-new-tracks (wimp-lambda () "featured" "new" "tracks"))
+(define wimp-editorial-featured-new-playlists (wimp-lambda () "featured" "new" "playlists"))
+
+;; Moods
+(define wimp-editorial-moods (wimp-lambda () "moods"))
+(define wimp-editorial-moods-playlists (wimp-lambda () "moods" mood "playlists"))
+
+;; Genres
+(define wimp-genres (wimp-lambda () "genres"))
+(define wimp-genres-albums (wimp-lambda () "genres" genre "albums"))
+(define wimp-genres-tracks (wimp-lambda () "genres" genre "tracks"))
+(define wimp-genres-playlists (wimp-lambda () "genres" genre "playlists"))
+
 ;; TODO: cache this somehow. don't make requests all over the place.
 (define (wimp-current-user-id)
   (alist-ref 'userId ((wimp-lambda () "sessions" id) (alist-ref 'sessionId *wimp-session-params*))))
@@ -124,5 +145,26 @@
 (define (wimp-artist-image-url aid #!optional (w 100) (h 100))
   (conc "http://images.osl.wimpmusic.com/im/im?w=" w "&h=" h "&artistid=" aid))
 
+
+;; TIDAL images
+;; image resources are returned in an uuid-like string on the
+;; following format: "0f592645-1fd6-492d-8944-d4475c688183"
+;; To get an image, replace dashes with forward slashes and append
+;; '/<w>x<h>.jpg' where 'w' and 'h' are height and weight.
+;; As if that wasn't fun enough, different image types are stored in
+;; different sizes, hence the overrides below.
+;; See: http://developer.tidal.com/technical/images/
+(define (tidal-image-url image-id #!optional (w 160) (h 160))
+  (let ((convert (lambda (str) (string-translate str "-" "/"))))
+   (conc "https://resources.tidal.com/images/" (convert image-id) "/" w "x" h ".jpg")))
+
+(define (tidal-mood-image-url image-id)
+  (tidal-image-url image-id 320 320))
+
+(define (tidal-playlist-image-url image-id)
+  (tidal-image-url image-id 160 107))
+
+(define (tidal-genre-image-url image-id)
+  (tidal-image-url image-id 220 146))
 
 ;; (wimp-login "97670550" "herrowimp")
