@@ -115,6 +115,21 @@
 (define wimp-track-streamurl       (wimp-lambda ()      "tracks"    tid "streamurl"))
 (define wimp-user-playlists        (wimp-lambda ()      "users"     uid "playlists"))
 
+;; Discovery
+(define wimp-editorial-discovery-tracks (wimp-lambda () "discovery" "new" "tracks"))
+(define wimp-editorial-discovery-albums (wimp-lambda () "discovery" "new" "albums"))
+
+;; Featured
+(define wimp-editorial-featured (wimp-lambda () "featured"))
+(define wimp-editorial-featured-new-albums (wimp-lambda () "featured" "new" "albums"))
+(define wimp-editorial-featured-new-tracks (wimp-lambda () "featured" "new" "tracks"))
+(define wimp-editorial-featured-new-playlists (wimp-lambda () "featured" "new" "playlists"))
+
+;; Moods
+(define wimp-editorial-moods (wimp-lambda () "moods"))
+(define wimp-editorial-moods-playlists (wimp-lambda () "moods" mood "playlists"))
+
+
 ;; TODO: cache this somehow. don't make requests all over the place.
 (define (wimp-current-user-id)
   (alist-ref 'userId ((wimp-lambda () "sessions" id) (alist-ref 'sessionId *wimp-session-params*))))
