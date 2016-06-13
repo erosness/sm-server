@@ -129,6 +129,11 @@
 (define wimp-editorial-moods (wimp-lambda () "moods"))
 (define wimp-editorial-moods-playlists (wimp-lambda () "moods" mood "playlists"))
 
+;; Genres
+(define wimp-genres (wimp-lambda () "genres"))
+(define wimp-genres-albums (wimp-lambda () "genres" genre "albums"))
+(define wimp-genres-tracks (wimp-lambda () "genres" genre "tracks"))
+(define wimp-genres-playlists (wimp-lambda () "genres" genre "playlists"))
 
 ;; TODO: cache this somehow. don't make requests all over the place.
 (define (wimp-current-user-id)
@@ -158,5 +163,8 @@
 
 (define (tidal-playlist-image-url image-id)
   (tidal-image-url image-id 160 107))
+
+(define (tidal-genre-image-url image-id)
+  (tidal-image-url image-id 220 146))
 
 ;; (wimp-login "97670550" "herrowimp")
