@@ -145,6 +145,7 @@
 
 (define (playlist->search-result playlist)
   `((title . ,(alist-ref 'title playlist))
+    (image . ,(tidal-playlist-image-url (alist-ref 'image playlist)))
     (uri   . ,(return-url "/catalog/wimp/playlist/tracks?uuid=" (alist-ref 'uuid playlist)))))
 
 (define (wimp-process-result result-proc result)
