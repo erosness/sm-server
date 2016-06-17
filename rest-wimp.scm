@@ -298,10 +298,11 @@
           (offset . 0)
           (total . 3)
           (items . #( ((title . "New Tracks")
-                       (uri   . ,(return-url "/catalog/wimp/discover/tracks")))
+                       (uri   . ,(return-url "/catalog/wimp/new/tracks")))
                       ((title . "New Albums")
-                       (uri   . ,(return-url "/catalog/wimp/discover/albums")))
-                      ((title . "New Playlists")))))))
+                       (uri   . ,(return-url "/catalog/wimp/new/albums")))
+                      ((title . "New Playlists")
+                       (uri   . ,(return-url "/catalog/wimp/new/playlists"))))))))
 
 (define-handler /v1/catalog/wimp/new/tracks
   (wrap-wimp-no-q wimp-editorial-featured-new-tracks track->search-result))
