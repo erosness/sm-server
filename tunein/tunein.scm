@@ -20,6 +20,7 @@
 ;;; elements in our list too.
 
 (use http-client medea uri-common irregex files ports data-structures fmt
+     (only intarweb request? make-request response-port)
      test)
 
 
@@ -132,11 +133,24 @@
                    (pick-a-uri (cdr url.blob))))
            url.blobs))
 
+;; read only a portion of an HTTP response and return as string. this
+;; is useful for very large or infinite streams of data which would
+;; otherwise hang with-input-from-request as it's trying to cleanup
+;; the HTTP connection.
+(define (safe-response-string uri max-len)
+  (let ((uri (if (uri? uri) uri
+                 (uri-reference uri))))
+    (receive (data uri response)
+        (call-with-response
+         (if (request? uri) uri (make-request uri: uri))
+         (lambda (r) (void))
+         (lambda (r) (read-string max-len (response-port r))))
+      (close-connection! uri) ;; kill keep-alive connections too (corrupt if we didn't read all)
+      data)))
 
 (define (parse-playlist-uri uri)
   ;; read max 50k of response
-  (let ((str (with-input-from-request uri #f (cut read-string (* 1024 50)))))
-    (pick-a-uri str)))
+  (pick-a-uri (safe-response-string uri (* 1024 50))))
 
 ;; lookup the uri, if necessary, and return the most likely uri that
 ;; can be passed to cplay/ffmpeg for actual audio content. it's more
@@ -152,7 +166,11 @@
     ;; it's direct.
     ;; http://inside.radiotime.com/developers/guide/solutions/streaming/chapter3
     ((mp3 aac wmv wma asf flac ogg mp4) uri)
-    (else (parse-playlist-uri uri) )))
+    (else  (or (parse-playlist-uri uri)
+               ;; if we can't pick a uri from the content of the HTTP response,
+               ;; it's probably not a playlist but actual audio. in that case,
+               ;; try cplay with the original uri:
+               uri))))
 
 
 
