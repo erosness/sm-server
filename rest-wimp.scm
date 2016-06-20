@@ -262,31 +262,30 @@
 (define-handler /v1/catalog/wimp/playlist/tracks
   (wrap-wimp wimp-playlist-tracks track->search-result 'uuid))
 
-;; TODO: refactor
 (define-handler /v1/catalog/wimp/moods
   (wrap-wimp-login-status
-   (argumentize (lambda (username mood limit offset)
-                  (parameterize ((current-session-params (wimp-get-session username)))
-                    (match mood
-                      ("" (let ((res (wimp-editorial-moods)))
-                            (make-search-result limit    ; limit
-                                                offset   ; offset
-                                                (vector-length res)
-                                                (map mood->search-result (vector->list res)))))
-                      (else (let ((res (wimp-editorial-moods-playlists mood)))
-                              (make-search-result 100 0
-                                                  (alist-ref 'totalNumberOfItems res)
-                                                  (wimp-process-result playlist->search-result res)))))))
-                'username '(mood "") '(limit 10) '(offset 0))))
+   (pagize
+    (argumentize (lambda (username mood)
+                   (parameterize ((current-session-params (wimp-get-session username)))
+
+                     (match mood
+                       ("" (let ((res (wimp-editorial-moods)))
+                             (map mood->search-result (vector->list res))))
+                       (else (let ((res (wimp-editorial-moods-playlists mood)))
+                               (wimp-process-result playlist->search-result res))))))
+
+                 'username '(mood "")))))
+
+
 
 (define-handler /v1/catalog/wimp/discover
-  (lambda () `((limit . 10)
-          (offset . 0)
-          (total . 2)
-          (items . #( ((title . "Discover Tracks")
-                       (uri   . ,(return-url "/catalog/wimp/discover/tracks")))
-                      ((title . "Discover Albums")
-                       (uri   . ,(return-url "/catalog/wimp/discover/albums"))))))))
+  (pagize
+   (lambda () `( ((title . "Discover Tracks")
+             (uri   . ,(return-url "/catalog/wimp/discover/tracks")))
+            ((title . "Discover Albums")
+             (uri   . ,(return-url "/catalog/wimp/discover/albums")))))))
+
+
 
 (define-handler /v1/catalog/wimp/discover/tracks
   (wrap-wimp-no-q wimp-editorial-discovery-tracks track->search-result))
@@ -294,15 +293,13 @@
   (wrap-wimp-no-q wimp-editorial-discovery-albums album->search-result))
 
 (define-handler /v1/catalog/wimp/new
-  (lambda () `((limit . 10)
-          (offset . 0)
-          (total . 3)
-          (items . #( ((title . "New Tracks")
-                       (uri   . ,(return-url "/catalog/wimp/new/tracks")))
-                      ((title . "New Albums")
-                       (uri   . ,(return-url "/catalog/wimp/new/albums")))
-                      ((title . "New Playlists")
-                       (uri   . ,(return-url "/catalog/wimp/new/playlists"))))))))
+  (pagize
+   (lambda () `( ((title . "New Tracks")
+             (uri   . ,(return-url "/catalog/wimp/new/tracks")))
+            ((title . "New Albums")
+             (uri   . ,(return-url "/catalog/wimp/new/albums")))
+            ((title . "New Playlists")
+             (uri   . ,(return-url "/catalog/wimp/new/playlists")))))))
 
 (define-handler /v1/catalog/wimp/new/tracks
   (wrap-wimp-no-q wimp-editorial-featured-new-tracks track->search-result))
@@ -313,16 +310,13 @@
 
 (define-handler /v1/catalog/wimp/genres
   (wrap-wimp-login-status
-   (argumentize (lambda (username limit offset)
-                  (parameterize ((current-session-params (wimp-get-session username)))
-                    (let* ((res (wimp-genres))
-                           (albums (filter (lambda (x) (alist-ref 'hasAlbums x)) (vector->list res))))
-                      (set! qq albums)
-                      (make-search-result 100
-                                          0
-                                          (length albums)
-                                          (map genre->search-result albums)))))
-                'username '(limit 10) '(offset 0))))
+   (pagize
+    (argumentize (lambda (username)
+                   (parameterize ((current-session-params (wimp-get-session username)))
+                     (let* ((res (wimp-genres))
+                            (albums (filter (lambda (x) (alist-ref 'hasAlbums x)) (vector->list res))))
+                       (map genre->search-result albums))))
+                 'username))))
 
 (define-handler /v1/catalog/wimp/genres/albums
   (wrap-wimp wimp-genres-albums album->search-result 'genre))
