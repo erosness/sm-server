@@ -41,6 +41,17 @@
                `((loop . ,(pq-loop? *pq*)))))
 
 
+;; Tracks that should not be added to the playqueue,
+;; ie. maestro capture devices.
+(define (play-direct? item)
+  (let ((type (alist-ref 'type item)))
+    (match type
+      ("line-in" #t)
+      ("toslink" #t)
+      ("bt"      #t)
+      (else      #f))))
+
+
 ;; Note: [pq-play with #f]
 ;; in the player/current handler we update 'current' at the very end of any
 ;; POST request. passing #f to pq-play prevents it from updating
@@ -74,6 +85,12 @@
                     (pq-play *pq* existing #f) ;; - see [pq-play with #f]
                     (set! current existing))
                   (or
+                   ;; Should this track be played without being added
+                   ;; to the playqueue?
+                   (and-let* (((play-direct? json-request)))
+                     (pq-play *pq* json-request #f)
+                     (set! current json-request))
+
                    (begin
                      ;; if the requested track is _not_ already in the
                      ;; queue, delete all tracks following it, add requested and
@@ -83,6 +100,7 @@
                                 (requested (pq-add *pq* json-request)))
                        (pq-play *pq* requested #f) ;; - see [pq-play with #f]
                        (set! current requested)))
+
                    ;; no current, add requested and play it
                    (let ((requested (pq-add *pq* json-request)))
                      (pq-play *pq* requested #f) ;; - see [pq-play with #f]

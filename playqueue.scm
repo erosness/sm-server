@@ -158,7 +158,8 @@
 (define (pq-prev* pq) (pq-next/lst* pq (reverse (pq-list pq))))
 
 (define (pq-play* pq item #!optional (update-current #t))
-  (let* ((item (or (pq-ref* pq item) (error "not found in pq" item)))
+  (let* ((item (or (pq-ref* pq item)
+                   (begin (print "playing item not in playqueue " item) item)))
          (track (alist-ref 'turi item)))
     (play! (play-command track)
            (lambda ()
