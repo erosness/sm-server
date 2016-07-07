@@ -80,7 +80,10 @@
     (raise (or ((condition-property-accessor 'client-error 'body) exn)
                ((condition-property-accessor 'server-error 'body) exn)
                exn))
-    ((*wimp-query*) (wimp-url (append-urls urls) params) #f read-json)))
+    (let ((url (wimp-url (append-urls urls) params)))
+      (print ";; => wimp: " (uri->string url))
+      ((*wimp-query*) url #f read-json))))
+
 
 ;; construct a lambda with arguments from url parts that are symbols and a
 ;; query-list. urls parts that are strings are added literary. eg:
