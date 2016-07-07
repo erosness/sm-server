@@ -138,6 +138,14 @@
 (define wimp-genres-tracks (wimp-lambda () "genres" genre "tracks"))
 (define wimp-genres-playlists (wimp-lambda () "genres" genre "playlists"))
 
+;; Favorites
+(define wimp-favorites-albums (wimp-lambda () "users" uid "favorites" "albums"))
+(define wimp-favorites-artists (wimp-lambda () "users" uid "favorites" "artists"))
+(define wimp-favorites-playlists (wimp-lambda () "users" uid "favorites" "playlists"))
+(define wimp-favorites-tracks (wimp-lambda () "users" uid "favorites" "tracks"))
+
+
+
 ;; TODO: cache this somehow. don't make requests all over the place.
 (define (wimp-current-user-id)
   (alist-ref 'userId ((wimp-lambda () "sessions" id) (alist-ref 'sessionId *wimp-session-params*))))
