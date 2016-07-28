@@ -97,8 +97,7 @@
   (lambda ()
     `((turi . , (bluetooth-turi '()))
       (title . "Bluetooth")
-      (type . "bt")
-      (image . "http://www.kirya.net/wp-content/uploads/2007/07/bluetooth_logo.png"))))
+      (type . "bt"))))
 
 ;; ======================
 ;; typical IND sequence:
