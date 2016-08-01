@@ -2,7 +2,8 @@
 
 (import chicken scheme data-structures)
 
-(use intarweb spiffy)
+(use intarweb spiffy
+     (only posix with-input-from-pipe))
 
 ;; local imports
 (import restlib store)
@@ -23,6 +24,9 @@
         ;; TODO: maybe validate that incoming json has field 'icon'
         ;; with an integer value
         (begin (speaker-store (current-json))
+               (with-input-from-pipe (conc "spotifyctl 7879 label "
+                                           (alist-ref 'name (current-json)))
+                                     void)
                '((status . "ok")))
         (or (speaker-store)
             empty-value)))))
