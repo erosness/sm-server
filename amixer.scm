@@ -192,7 +192,7 @@
 
        ;; write number x to p with appending newline
        (lambda (x p)
-         (write `("setting volume to" ,x))
+         (write `("setting volume to" ,x)) (newline) ;; <-- debug log to stdout
          (notify x)
          (display x p)
          (display #\newline p)
