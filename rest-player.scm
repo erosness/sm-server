@@ -75,6 +75,10 @@
                (existing (pq-ref *pq* json-request))
                ;; the currently playing track or #f if none
                (current (pq-current *pq*)))
+
+		  (print "player/current incoming request")
+		  (pp (current-json))
+
           ;; Change track?
           (if (or (alist-ref 'turi json-request)
                   (alist-ref 'id json-request))
@@ -108,8 +112,10 @@
 
           ;; Change pos?
           (and-let* ((pos (assoc 'pos json-request))
+					 (current)
+					 (current-duration (alist-ref 'duration current))
                      ;; Don't allow seek on infinite streams
-                     ((>= (alist-ref 'duration json-request) 0)))
+                     ((>= current-duration 0)))
             (print "seeking track to position " (cdr pos))
             (player-seek (cdr pos)))
 
