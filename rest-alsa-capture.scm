@@ -18,12 +18,10 @@
   (lambda ()
     `((turi . ,(alsa->turi '((d . "default:CARD=imxaudiotr2"))))
       (title . "Line-In")
-      (type . "line-in")
-      (image . "http://www.futureshop.ca/multimedia/Products/500x500/102/10200/10200642.jpg"))))
+      (type . "line-in"))))
 
 (define-handler /v1/catalog/toslink
   (lambda ()
     `((turi . ,(alsa->turi '((d . "default:CARD=imxspdif"))))
       (title . "Toslink")
-      (type . "toslink")
-      (image . "http://www.thonet-vander.com/img/icon/spdif.png"))))
+      (type . "toslink"))))

@@ -80,7 +80,10 @@
     (raise (or ((condition-property-accessor 'client-error 'body) exn)
                ((condition-property-accessor 'server-error 'body) exn)
                exn))
-    ((*wimp-query*) (wimp-url (append-urls urls) params) #f read-json)))
+    (let ((url (wimp-url (append-urls urls) params)))
+      (print ";; => wimp: " (uri->string url))
+      ((*wimp-query*) url #f read-json))))
+
 
 ;; construct a lambda with arguments from url parts that are symbols and a
 ;; query-list. urls parts that are strings are added literary. eg:
@@ -134,6 +137,14 @@
 (define wimp-genres-albums (wimp-lambda () "genres" genre "albums"))
 (define wimp-genres-tracks (wimp-lambda () "genres" genre "tracks"))
 (define wimp-genres-playlists (wimp-lambda () "genres" genre "playlists"))
+
+;; Favorites
+(define wimp-favorites-albums (wimp-lambda () "users" uid "favorites" "albums"))
+(define wimp-favorites-artists (wimp-lambda () "users" uid "favorites" "artists"))
+(define wimp-favorites-playlists (wimp-lambda () "users" uid "favorites" "playlists"))
+(define wimp-favorites-tracks (wimp-lambda () "users" uid "favorites" "tracks"))
+
+
 
 ;; TODO: cache this somehow. don't make requests all over the place.
 (define (wimp-current-user-id)

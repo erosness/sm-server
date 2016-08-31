@@ -20,6 +20,7 @@
 ;;; elements in our list too.
 
 (use http-client medea uri-common irregex files ports data-structures fmt
+     (only intarweb request? make-request response-port response-headers header-value)
      test)
 
 
@@ -132,11 +133,46 @@
                    (pick-a-uri (cdr url.blob))))
            url.blobs))
 
+;; make a port return #!eof after `len` number of bytes. stolen from
+;; Peter Bex
+;; (http://bugs.call-cc.org/browser/project/release/4/http-client/trunk/http-client.scm#L227)
+(define (make-delimited-input-port port len)
+  (if len
+      (let ((pos 0))
+        (make-input-port
+         (lambda () ;; read-char
+           (if (>= pos len)
+               #!eof
+               (begin (set! pos (add1 pos))
+                      (read-char port))))
+         (lambda () (or (= pos len) (char-ready? port))) ;; char-ready?
+         (lambda () (close-input-port port))             ;; close
+         ))
+      port ;; no need to delimit anything
+      ))
+
+;; read only a portion of an HTTP response and return as string. this
+;; is useful for very large or infinite streams of data which would
+;; otherwise hang with-input-from-request as it's trying to cleanup
+;; the HTTP connection.
+(define (safe-response-string uri max-len)
+  (let ((uri (if (uri? uri) uri
+                 (uri-reference uri))))
+    (receive (data uri response)
+        (call-with-response
+         (if (request? uri) uri (make-request uri: uri))
+         (lambda (r) (void))
+         (lambda (r) (read-string max-len
+                             (make-delimited-input-port
+                              (response-port r)
+                              (header-value 'content-length
+                                            (response-headers r))))))
+      (close-connection! uri) ;; kill keep-alive connections too (corrupt if we didn't read all)
+      data)))
 
 (define (parse-playlist-uri uri)
   ;; read max 50k of response
-  (let ((str (with-input-from-request uri #f (cut read-string (* 1024 50)))))
-    (pick-a-uri str)))
+  (pick-a-uri (safe-response-string uri (* 1024 50))))
 
 ;; lookup the uri, if necessary, and return the most likely uri that
 ;; can be passed to cplay/ffmpeg for actual audio content. it's more
@@ -152,7 +188,11 @@
     ;; it's direct.
     ;; http://inside.radiotime.com/developers/guide/solutions/streaming/chapter3
     ((mp3 aac wmv wma asf flac ogg mp4) uri)
-    (else (parse-playlist-uri uri) )))
+    (else  (or (parse-playlist-uri uri)
+               ;; if we can't pick a uri from the content of the HTTP response,
+               ;; it's probably not a playlist but actual audio. in that case,
+               ;; try cplay with the original uri:
+               uri))))
 
 
 

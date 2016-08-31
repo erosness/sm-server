@@ -231,6 +231,37 @@
 (define (wimp-user-playlists/current-user _ignored_ query-params)
   (wimp-user-playlists (alist-ref 'userId (current-session-params)) query-params))
 
+
+;; -------------
+;; Favorites handler common code
+
+;; Returns the userId of the current session or an empty string if no
+;; current session. We return the empty string instead of #f to get
+;; make-wimp-login-error trigger. With #f a chicken stack trace is
+;; returned to the user instead.
+(define (current-session-userid)
+  (or (and (current-session-params)
+           (alist-ref 'userId (current-session-params)))
+      ""))
+
+;; Create a handler for the favorites end-points
+;; The conversion is slightly differnt here because the enpoint
+;; returns a list of objects with two keys; 'item' and 'created' in
+;; the 'items' array, instead of the contents of 'item' as the others do.
+(define (make-wimp-favorites-handler search converter)
+  (wrap-wimp-login-status
+   (argumentize
+    (lambda (username limit offset)
+      (parameterize ((current-wimp-user username)
+                     (current-session-params (wimp-get-session username)))
+        (let ((result (search (current-session-userid))))
+          (make-search-result limit offset
+                              (alist-ref 'totalNumberOfItems result)
+                              (map converter (map (lambda (x) (alist-ref 'item x))
+                                                  (vector->list (alist-ref 'items result))))))))
+    'username '(limit "10") '(offset "0"))))
+
+
 ;;==================== handlers ====================
 (define-handler /v1/catalog/wimp
   (wrap-wimp-login-status
@@ -241,7 +272,8 @@
                          ((title . "Moods") (uri . ,(return-url "/catalog/wimp/moods")))
                          ((title . "Discover") (uri . ,(return-url "/catalog/wimp/discover")))
                          ((title . "New") (uri . ,(return-url "/catalog/wimp/new")))
-                         ((title . "Genres") (uri . ,(return-url "/catalog/wimp/genres")))))))))
+                         ((title . "Genres") (uri . ,(return-url "/catalog/wimp/genres")))
+                         ((title . "Favorites") (uri . ,(return-url "/catalog/wimp/favorites")))))))))
 
 (define-handler /v1/catalog/wimp/track         (wrap-wimp wimp-search-track  track->search-result))
 (define-handler /v1/catalog/wimp/album         (wrap-wimp wimp-search-album  album->search-result))
@@ -336,9 +368,25 @@
          `((user . ,(and-let* ((username (current-query-param 'username)))
                       (wimp-get-session username))))))))
 
+;; Favorites
+(define-handler /v1/catalog/wimp/favorites
+  (pagize
+   (lambda () `( ((title . "Albums")
+             (uri   . ,(return-url "/catalog/wimp/favorites/albums")))
+            ((title . "Artists")
+             (uri   . ,(return-url "/catalog/wimp/favorites/artists")))
+            ((title . "Tracks")
+             (uri   . ,(return-url "/catalog/wimp/favorites/tracks")))))))
+
+(define-handler /v1/catalog/wimp/favorites/albums
+  (make-wimp-favorites-handler wimp-favorites-albums album->search-result))
+(define-handler /v1/catalog/wimp/favorites/artists
+  (make-wimp-favorites-handler wimp-favorites-artists artist->search-result))
+(define-handler /v1/catalog/wimp/favorites/tracks
+  (make-wimp-favorites-handler wimp-favorites-tracks track->search-result))
+
+
 ;; ==================== tests ====================
-
-
 (use wimp uri-common test irregex intarweb spiffy)
 
 ;; whenever wimp tries to make a request, pick out its request uri and
