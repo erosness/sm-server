@@ -165,9 +165,18 @@
 ;; As if that wasn't fun enough, different image types are stored in
 ;; different sizes, hence the overrides below.
 ;; See: http://developer.tidal.com/technical/images/
+;;
+;; [#178] image-id may also be other types than string, in particular 'null'.
+;; When the argument is not a string, return it unchanged.
 (define (tidal-image-url image-id #!optional (w 160) (h 160))
-  (let ((convert (lambda (str) (string-translate str "-" "/"))))
-   (conc "https://resources.tidal.com/images/" (convert image-id) "/" w "x" h ".jpg")))
+  (cond
+   ((string? image-id)
+	(let ((convert (lambda (str)
+					 (string-translate str "-" "/"))))
+	  (conc "https://resources.tidal.com/images/" (convert image-id) "/" w "x" h ".jpg")))
+   (else image-id)))
+
+
 
 (define (tidal-mood-image-url image-id)
   (tidal-image-url image-id 320 320))
