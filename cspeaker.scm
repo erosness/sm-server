@@ -24,6 +24,7 @@
 ;; rest plugin layers
 (include "rest-audio.scm")
 (include "rest-player.scm")
+(include "rest-mplayer.scm")
 (include "rest-version.scm")
 
 (include "rest-icon.scm")
