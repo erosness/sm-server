@@ -1,4 +1,4 @@
-(module rest-mplayer (;; player-seek-thread
+(module* rest-mplayer (;; player-seek-thread
 ;;                     player-information
 ;;                     spotify-monitor-thread
                      /v1/mplayer/current
