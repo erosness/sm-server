@@ -24,7 +24,7 @@
 
 (import concurrent-utils player incubator)
 
-;;(include "state-var.scm")
+(include "state-var.scm")
 
 ;; (include "concurrent-utils.scm")
 
