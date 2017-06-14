@@ -168,7 +168,7 @@
 ;; Returns the playqueue
 (define-handler /v1/mplayer/pq (lambda () (list->vector (pq-list *mpq*))))
 
-(define-handler /v1/player/next
+(define-handler /v1/mplayer/next
   (lambda ()
     (pq-play-next *mpq* #t)
     (player-information)))
