@@ -86,13 +86,13 @@
                   ;; if the requested track is already in the queue, start playing it
                   (begin
                     (print "mpq: playing track which already exists in mpq")
-                    (pq-play *mpq* existing #f) ;; - see [pq-play with #f]
+                    (pq-leader-play *mpq* existing #f) ;; - see [pq-play with #f]
                     (set! current existing))
                   (or
                    ;; Should this track be played without being added
                    ;; to the playqueue?
                    (and-let* (((play-direct? json-request)))
-                     (pq-play *mpq* json-request #f)
+                     (pq-leader-play *mpq* json-request #f)
                      (set! current json-request))
 
                    (begin
@@ -102,12 +102,12 @@
                      (and-let* ((played (pq-drop-after *mpq* current))
                                 ((pq-list-set! *mpq* played))
                                 (requested (pq-add *mpq* json-request)))
-                       (pq-play *mpq* requested #f) ;; - see [pq-play with #f]
+                       (pq-leader-play *mpq* requested #f) ;; - see [pq-play with #f]
                        (set! current requested)))
 
                    ;; no current, add requested and play it
                    (let ((requested (pq-add *mpq* json-request)))
-                     (pq-play *mpq* requested #f) ;; - see [pq-play with #f]
+                     (pq-leader-play *mpq* requested #f) ;; - see [pq-play with #f]
                      (set! current requested)))))
 
           ;; Change pos?
