@@ -159,7 +159,7 @@
 (define (pq-prev* pq) (pq-next/lst* pq (reverse (pq-list pq))))
 
 (define (pq-leader-play* pq item #!key (update-current #t)(is_leader #t))
-        (pq-play* pq item update-current: update-current is_leader: #t)))
+        (pq-play* pq item update-current: update-current is_leader: #t))
 
 (define (pq-play* pq item #!key (update-current #t) (is_leader #f))
   (let* ((item (or (pq-ref* pq item)
