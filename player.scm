@@ -124,7 +124,7 @@
        (set! cplay-cmd
              (process-cli
               (car scommand)
-              (append (cdr scommand) '("master"))
+              (append (cdr scommand) '("leader"))
               (lambda ()
                 ;; important: starting another thread for this is like
                 ;; "posting" this to be ran in the future. without
@@ -138,7 +138,7 @@
        (set! cplay-cmd
              (process-cli
               (car scommand)
-              (append (cdr scommand) '("master"))
+              (append (cdr scommand) '("follower"))
               (lambda ()
                 ;; important: starting another thread for this is like
                 ;; "posting" this to be ran in the future. without
