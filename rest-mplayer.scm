@@ -11,10 +11,9 @@
         playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras posix srfi-1 srfi-13
-     medea matchable)
+     medea matchable irregex matchable)
 
 (import notify incubator)
-
 (define *mpq* (make-pq)) ;; Multiroom play queue.
 
 (define ((change-callback path) oldval newval)
@@ -22,6 +21,16 @@
 
 (pq-add-current-change-listener
  *mpq* (change-callback "/v1/mplayer/current"))
+
+
+
+(define (local-ip)
+  (irregex-match-substring
+   (irregex-search
+    '(: "addr:" (=> ip (or "192" "10") ;; assuming your LAN has this ip
+                    (= 3 "." (** 1 3 numeric))) )
+    (with-input-from-pipe "ifconfig|grep inet" read-string))
+   'ip))
 
 
 
@@ -38,6 +47,7 @@
 (define (player-information #!optional (current (pq-current *mpq*)))
   (alist-merge current
                (player-pos-info)
+	       `((uid_leader . ,(local-ip)))
                `((loop . ,(pq-loop? *mpq*)))))
 
 
@@ -50,6 +60,33 @@
       ("toslink" #t)
       ("bt"      #t)
       (else      #f))))
+
+
+(define-handler /v1/mplayer/follower
+  ( lambda()
+    (if (current-json)
+	(let ((uid_leader (alist-ref 'uid_leader (current-json))))
+	  (play-follower uid_leader)
+	  (print "UID: " uid_leader)
+	  `((uid_follower . ,(local-ip)))
+	  ))))
+
+;;    (let* ((uid_leader (assoc 'uid_leader (current-json))))
+;;      (print "uid_leader: " (cdr uid_leader))
+;;      (play-follower (cdr uid_leader)))
+;;     `((uid_follower . ,(local-ip)))
+;;    ))
+
+(define-handler /v1/mplayer/addfollower
+  ( lambda()
+    (if (current-json)
+	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
+	  (play-addfollower uid_follower)
+	  (print "UID: " uid_follower)
+;;	  `((status . "ok"))
+	  (player-information)
+	  ))))
+  
 
 
 ;; Note: [pq-play with #f]
@@ -287,4 +324,3 @@
      )))
 
 )
-

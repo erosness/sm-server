@@ -1,4 +1,4 @@
-;;; player: a simple wrapper around cplay
+;;; player: a simple wrapper around gstplay
 ;;;
 ;;; supports tr:// scheme so that PQ and cube-browser can be on
 ;;; separate machine. some tracks, like wimp's tid's, need to
@@ -21,7 +21,9 @@
                 player-pos
                 player-seek
                 player-quit
-                play-command)
+                play-command
+		player-follower
+		player-addfollower)
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client matchable
@@ -45,6 +47,13 @@
         (lar (if ar (list "-ar" (number->string ar)) '())))
     (append '("cplay") lformat lar lsource)))
 
+(define (cplay_follower source)
+  (let ((lsource (list source "follower")))
+    (append '("cplay") lsource)
+    )
+  )
+
+
 (test-group
  "cplay"
  (test '("cplay" "filename") (cplay "filename"))
@@ -60,6 +69,9 @@
      (values (string->number pos)
              (string->number duration)))
     (else (values 0 0))))
+
+(define (parse-add-response resp)
+  (print "Response from gstplay: " resp))
 
 (test-group
  "parse cplay pos"
@@ -91,6 +103,7 @@
 ;; sequentially. this makes the world a simpler place. we should
 ;; probably introduce this model on all mutation to the player.
 (define (make-play-worker)
+  (print "entering playworker")
   (define cplay-cmd (lambda a #f))
 
   (define (send-cmd str #!optional (parser values))
@@ -105,6 +118,7 @@
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
+       (print "starting player")
        (set! cplay-cmd
              (process-cli
               (car scommand)
@@ -124,6 +138,7 @@
       (('pause)    (send-cmd "pause"))
       (('unpause)  (send-cmd "unpause"))
       (('seek pos) (send-cmd (conc "seek " pos) parse-cplay-pos-response))
+      (('add uid)  (send-cmd (conc "add " uid) parse-add-response) )
       (('quit)     (send-cmd "quit"))
       (else (print "Unknown command: " msg)))) )
 
@@ -147,9 +162,22 @@
 (define (playing?)   (and (not (eq? #f (play-worker `(pos))))
                           (not (player-paused?))))
 
+
+
 (define (play! cmd on-exit)
   (prepause-spotify)
+  (print "Making worker")
   (play-worker `(play ,cmd ,on-exit)))
+
+
+
+(define (play-follower-cmd uid_leader)
+  (
+   (cplay_follower uid_leader)
+   )
+  )
+
+
 
 (define (play-command/tr turi)
   (let ((response (with-input-from-request* (update-uri turi
@@ -163,11 +191,21 @@
 
 
 (define (play-command turi)
+  (print "play command" turi)
   (let ((turi (if (uri? turi) turi (uri-reference turi))))
     (case (uri-scheme turi)
       ((tr) (play-command/tr turi))
       (else (cplay turi)))))
 
+(define (play-addfollower uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
+
+(define (play-follower uid_leader)
+  (print "start following")
+  ;;  (print "Data: " play-follower-cmd uid_leader)
+  (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback")))
+;;  (play-worker `(play ("cplay" "192.168.42.3" "follower")   (print ";; ignoring callback")))
+  (print "finish following")
+  )
 
 
 (test-group
