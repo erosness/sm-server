@@ -16,6 +16,8 @@
 
 (module* player (cplay
                 play!
+                leader-play!
+                follow!
                 player-pause
                 player-unpause
                 player-pos
@@ -129,7 +131,35 @@
                 ;; this, we'd start nesting locks and things which we
                 ;; don't want.
                 (thread-start! on-exit)))))
-      (('pos)      (send-cmd "pos" parse-cplay-pos-response))
+       (('leader-play scommand on-exit)
+       ;; reset & kill old cplayer
+       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
+       (cplay-cmd "quit")
+       (set! cplay-cmd
+             (process-cli
+              (car scommand)
+              (append (cdr scommand) '("leader"))
+              (lambda ()
+                ;; important: starting another thread for this is like
+                ;; "posting" this to be ran in the future. without
+                ;; this, we'd start nesting locks and things which we
+                ;; don't want.
+                (thread-start! on-exit)))))
+       (('follow scommand on-exit)
+       ;; reset & kill old cplayer
+       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
+       (cplay-cmd "quit")
+       (set! cplay-cmd
+             (process-cli
+              (car scommand)
+              (append (cdr scommand) '("follower"))
+              (lambda ()
+                ;; important: starting another thread for this is like
+                ;; "posting" this to be ran in the future. without
+                ;; this, we'd start nesting locks and things which we
+                ;; don't want.
+                (thread-start! on-exit)))))
+    (('pos)      (send-cmd "pos" parse-cplay-pos-response))
       (('duration)
        (call-with-values ;; better way to do this?
            (lambda () (send-cmd "pos" parse-cplay-pos-response))
@@ -166,7 +196,6 @@
 
 (define (play! cmd on-exit)
   (prepause-spotify)
-  (print "Making worker")
   (play-worker `(play ,cmd ,on-exit)))
 
 
@@ -177,6 +206,17 @@
    )
   )
 
+(define (leader-play! cmd on-exit)
+  (prepause-spotify)
+  (pp "At leader-play!") ;; ?????
+  (pp cmd) ;; ?????
+  (play-worker `(leader-play ,cmd ,on-exit)))
+
+(define (follow! cmd on-exit)
+  (prepause-spotify)
+  (pp "At follow!") ;; ?????
+  (pp cmd) ;; ?????
+  (play-worker `(follow ,cmd ,on-exit)))
 
 
 (define (play-command/tr turi)
