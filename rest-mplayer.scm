@@ -86,7 +86,20 @@
 ;;	  `((status . "ok"))
 	  (player-information)
 	  ))))
-  
+
+(define-handler /v1/mplayer/removefollower
+  (lambda()
+    (if (current-json)
+	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
+	  (play-rmfollower uid_follower)
+	  (player-information)
+	  ))))
+
+(define-handler /v1/mplayer/quit
+  (lambda()
+    (player-quit)
+    (player-information)
+    ))
 
 
 ;; Note: [pq-play with #f]

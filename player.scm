@@ -25,7 +25,8 @@
                 player-quit
                 play-command
 		player-follower
-		player-addfollower)
+		player-addfollower
+		player-rmfollower)
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client matchable
@@ -73,6 +74,8 @@
     (else (values 0 0))))
 
 (define (parse-add-response resp)
+  (print "Response from gstplay: " resp))
+(define (parse-remove-response resp)
   (print "Response from gstplay: " resp))
 
 (test-group
@@ -169,6 +172,7 @@
       (('unpause)  (send-cmd "unpause"))
       (('seek pos) (send-cmd (conc "seek " pos) parse-cplay-pos-response))
       (('add uid)  (send-cmd (conc "add " uid) parse-add-response) )
+      (('remove uid) (send-cmd (conc "remove" uid) parse-remove-response) )
       (('quit)     (send-cmd "quit"))
       (else (print "Unknown command: " msg)))) )
 
@@ -238,6 +242,8 @@
       (else (cplay turi)))))
 
 (define (play-addfollower uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
+
+(define (play-rmfollower uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (play-follower uid_leader)
   (print "start following")
