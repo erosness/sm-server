@@ -48,7 +48,9 @@
   (alist-merge current
                (player-pos-info)
 	       `((uid_leader . ,(local-ip)))
-               `((loop . ,(pq-loop? *mpq*)))))
+               `((loop . ,(pq-loop? *mpq*)))
+	       `((status . "Ok"))
+	       ))
 
 
 ;; Tracks that should not be added to the playqueue,
@@ -68,14 +70,16 @@
 	(let ((uid_leader (alist-ref 'uid_leader (current-json))))
 	  (play-follower uid_leader)
 	  (print "UID: " uid_leader)
-	  `((uid_follower . ,(local-ip)))
-	  ))))
+	  `((uid_follower . ,(local-ip))
+	    (status . "Ok")
+	    )
+	  )
+	`((uid_follower . ,(local-ip))
+	  (status . "Fail")
+	  )
+	)))
 
-;;    (let* ((uid_leader (assoc 'uid_leader (current-json))))
-;;      (print "uid_leader: " (cdr uid_leader))
-;;      (play-follower (cdr uid_leader)))
-;;     `((uid_follower . ,(local-ip)))
-;;    ))
+
 
 (define-handler /v1/mplayer/addfollower
   ( lambda()
@@ -83,9 +87,10 @@
 	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
 	  (play-addfollower uid_follower)
 	  (print "UID: " uid_follower)
-;;	  `((status . "ok"))
-	  (player-information)
-	  ))))
+	  (player-information)	  
+	  )
+	`((status . "Fail"))
+	)))
 
 (define-handler /v1/mplayer/removefollower
   (lambda()
@@ -93,7 +98,9 @@
 	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
 	  (play-rmfollower uid_follower)
 	  (player-information)
-	  ))))
+	  )
+	`((status . "Fail"))
+	)))
 
 (define-handler /v1/mplayer/quit
   (lambda()

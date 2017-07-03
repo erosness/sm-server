@@ -172,7 +172,7 @@
       (('unpause)  (send-cmd "unpause"))
       (('seek pos) (send-cmd (conc "seek " pos) parse-cplay-pos-response))
       (('add uid)  (send-cmd (conc "add " uid) parse-add-response) )
-      (('remove uid) (send-cmd (conc "remove" uid) parse-remove-response) )
+      (('remove uid) (send-cmd (conc "remove " uid) parse-remove-response) )
       (('quit)     (send-cmd "quit"))
       (else (print "Unknown command: " msg)))) )
 
