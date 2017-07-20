@@ -11,6 +11,7 @@
 (include "rest-usb.scm")
 (include "rest-tunein.scm")
 (include "rest-alsa-capture.scm")
+;; (include "rest-group.scm")
 
 (cond-expand
  ((not arm)
