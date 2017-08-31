@@ -1,19 +1,34 @@
 (module rest-icon ()
 
-(import chicken scheme data-structures)
+(import chicken scheme data-structures srfi-1)
 
-(use intarweb spiffy
+(use test restlib clojurian-syntax ports
+     srfi-18 extras posix srfi-1 srfi-13
+     medea matchable irregex matchable medea matchable irregex  intarweb spiffy
      (only posix with-input-from-pipe))
 
 ;; local imports
 (import restlib store)
+
+(define uid_leader 
+  (irregex-match-substring
+   (irregex-search
+    '(: "inet " (=> ip (or "192" "10") ;; assuming your LAN has this ip
+                    (= 1 "." (** 1 3 numeric))
+                    (= 1 ".42")
+                    (= 1 "." (** 1 3 numeric))
+                                    ) )
+    (with-input-from-pipe "ip a|grep inet" read-string))
+   'ip))
 
 (define speaker-store (make-store (string->symbol
                                    (conc "speaker-icon" "-"
                                          (rest-server-port)))))
 
 (define empty-value `((icon . 0)
-                      (name . "")))
+                      (name . "")
+                      (uid_leader  . ,uid_leader)
+                      (type . "M")) )
 
 (define-handler /v1/player/icon
   (lambda ()
@@ -28,5 +43,6 @@
                                            (alist-ref 'name (current-json)))
                                      void)
                '((status . "ok")))
-        (or (speaker-store)
+        (if (speaker-store)
+            (alist-cons 'uid_leader uid_leader (alist-delete 'uid_leader (speaker-store)) )
             empty-value)))))

@@ -22,15 +22,19 @@
 (pq-add-current-change-listener
  *mpq* (change-callback "/v1/mplayer/current"))
 
-
+ 
 
 (define (local-ip)
   (irregex-match-substring
    (irregex-search
-    '(: "addr:" (=> ip (or "192" "10") ;; assuming your LAN has this ip
-                    (= 3 "." (** 1 3 numeric))) )
-    (with-input-from-pipe "ifconfig|grep inet" read-string))
+    '(: "inet " (=> ip (or "192" "10") ;; assuming your LAN has this ip
+                    (= 1 "." (** 1 3 numeric))
+		    (= 1 ".42")
+		    (= 1 "." (** 1 3 numeric))
+		    		    ) )
+    (with-input-from-pipe "ip a|grep inet" read-string))
    'ip))
+
 
 
 

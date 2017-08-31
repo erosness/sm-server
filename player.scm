@@ -206,6 +206,7 @@
 
 (define (play-follower-cmd uid_leader)
   (
+   (play-worker `(quit))
    (cplay_follower uid_leader)
    )
   )
