@@ -1,6 +1,9 @@
+
 DEPS = \
  uri-generic:2.43 \
  args:1.4.4 \
+ message-digest:3.4.0 \
+ md5:3.2.0 \
  bitstring:1.33 \
  clojurian:0.0.1 \
  fmt:0.805 \
