@@ -77,6 +77,9 @@
   (print "Response from gstplay: " resp))
 (define (parse-remove-response resp)
   (print "Response from gstplay: " resp))
+(define (parse-nexttrack?-response resp)
+  (print "Response from gstplay: " resp))
+
 
 (test-group
  "parse cplay pos"
@@ -125,55 +128,52 @@
        (cplay-cmd "quit")
        (print "starting player")
        (set! cplay-cmd
-             (process-cli
-              (car scommand)
-              (cdr scommand)
-              (lambda ()
-                ;; important: starting another thread for this is like
-                ;; "posting" this to be ran in the future. without
-                ;; this, we'd start nesting locks and things which we
-                ;; don't want.
-                (thread-start! on-exit)))))
+         (process-cli
+         (car scommand)
+         (cdr scommand)
+         (lambda ()
+           ;; important: starting another thread for this is like
+           ;; "posting" this to be ran in the future. without
+           ;; this, we'd start nesting locks and things which we
+           ;; don't want.
+           (thread-start! on-exit)))))
+
        (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (set! cplay-cmd
-             (process-cli
-              (car scommand)
-              (append (cdr scommand) '("leader"))
-              (lambda ()
-                ;; important: starting another thread for this is like
-                ;; "posting" this to be ran in the future. without
-                ;; this, we'd start nesting locks and things which we
-                ;; don't want.
-                (thread-start! on-exit)))))
+         (process-cli
+         (car scommand)
+         (append (cdr scommand) '("leader"))
+         (lambda ()
+           (thread-start! on-exit)))))
+
        (('follow scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (set! cplay-cmd
-             (process-cli
-              (car scommand)
-              (append (cdr scommand) '("follower"))
-              (lambda ()
-                ;; important: starting another thread for this is like
-                ;; "posting" this to be ran in the future. without
-                ;; this, we'd start nesting locks and things which we
-                ;; don't want.
-                (thread-start! on-exit)))))
-    (('pos)      (send-cmd "pos" parse-cplay-pos-response))
+         (process-cli
+         (car scommand)
+         (append (cdr scommand) '("follower"))
+         (lambda ()
+           (thread-start! on-exit)))))
+
+      (('pos)      (send-cmd "pos" parse-cplay-pos-response))
       (('duration)
-       (call-with-values ;; better way to do this?
-           (lambda () (send-cmd "pos" parse-cplay-pos-response))
-         (lambda (pos #!optional duration) duration)))
-      (('paused?)  (send-cmd "paused?" parse-cplay-paused?-response))
-      (('pause)    (send-cmd "pause"))
-      (('unpause)  (send-cmd "unpause"))
-      (('seek pos) (send-cmd (conc "seek " pos) parse-cplay-pos-response))
-      (('add uid)  (send-cmd (conc "add " uid) parse-add-response) )
+        (call-with-values ;; better way to do this?
+        (lambda () (send-cmd "pos" parse-cplay-pos-response))
+          (lambda (pos #!optional duration) duration)))
+      (('paused?)    (send-cmd "paused?" parse-cplay-paused?-response))
+      (('pause)      (send-cmd "pause"))
+      (('unpause)    (send-cmd "unpause"))
+      (('seek pos)   (send-cmd (conc "seek " pos) parse-cplay-pos-response))
+      (('add uid)    (send-cmd (conc "add " uid) parse-add-response) )
       (('remove uid) (send-cmd (conc "remove " uid) parse-remove-response) )
-      (('quit)     (send-cmd "quit"))
+      (('nexttrack)  (send-cmd "nexttrack " track))
+      (('nexttrack?) (send-cmd "nexttrack?" parse-nexttrack?-response) )
+      (('quit)       (send-cmd "quit"))
       (else (print "Unknown command: " msg)))) )
 
 (define play-worker
@@ -185,17 +185,22 @@
   (thread-sleep! 0.1))
 
 ;; Control operations
-(define (player-pause)      (play-worker `(pause)))
-(define (player-unpause)    (prepause-spotify) (play-worker `(unpause)))
-(define (player-paused?)    (play-worker `(paused?)))
-(define (player-pos)        (play-worker `(pos)))
-(define (player-duration)   (play-worker `(duration)))
-(define (player-seek seek)  (prepause-spotify) (play-worker `(seek ,seek)))
-(define (player-quit)       (play-worker `(quit)))
+(define (player-pause)           (play-worker `(pause)))
+(define (player-unpause)         (prepause-spotify) (play-worker `(unpause)))
+(define (player-paused?)         (play-worker `(paused?)))
+(define (player-pos)             (play-worker `(pos)))
+(define (player-duration)        (play-worker `(duration)))
+(define (player-seek seek)       (prepause-spotify) (play-worker `(seek ,seek)))
+(define (player-quit)            (play-worker `(quit)))
 ;; cplay runningn and not paused:
 (define (playing?)   (and (not (eq? #f (play-worker `(pos))))
                           (not (player-paused?))))
+(define (player-nexttrack?) (play-worker `(nexttrack?)))
 
+(define (player-nexttrack turi)
+  (let ((uri (play-command (turi))))
+    (print "Turi: " turi)
+    (play-worker `(nexttrack ,uri)))
 
 
 (define (play! cmd on-exit)
@@ -267,3 +272,4 @@
 
 ;; (define player (play! (play-command "tr://localhost:5060/t2s?type=wimp&id=12345678")))
 ;; (player "quit")
+
