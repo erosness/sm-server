@@ -32,7 +32,7 @@
 (use fmt test uri-common srfi-18 test http-client matchable
      srfi-1 posix
      extras ;; <-- pp
-     clojurian-syntax medea)
+     clojurian-syntax medea looper)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
@@ -265,5 +265,13 @@
  (test-error (play-command "i l l e g a l")))
  (test "filename" (next-command "filename"))
 )
+
+(define monitor-thread
+  (let ((t (lambda () (print (player-pos) )) ))
+    (thread-start! 
+      (->> t
+        (loop/interval 2)
+        (loop)
+        ((flip make-thread) "Monitor"))) ))
 
 
