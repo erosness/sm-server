@@ -50,7 +50,7 @@
         (lar (if ar (list "-ar" (number->string ar)) '())))
     (append '("cplay") lformat lar lsource)))
 
-(define (cplay_follower source)
+(define (cplay-follower source)
   (let ((lsource (list source "follower")))
     (append '("cplay") lsource)
     )
@@ -62,7 +62,9 @@
  (test '("cplay" "filename") (cplay "filename"))
  (test '("cplay" "filename") (cplay (uri-reference "filename")))
  (test '("cplay" "-f" "alsa" "file") (cplay "file" format: "alsa"))
- (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100)))
+ (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100))
+ (test '("cplay" "filename" "follower") (cplay-follower "filename"))
+)
 
 ;; pos responses from cplay contain both pos and duration. return both
 ;; here too.
@@ -78,7 +80,9 @@
 (define (parse-remove-response resp)
   (print "Response from gstplay: " resp))
 (define (parse-nexttrack?-response resp)
-  (print "Response from gstplay: " resp))
+  (print "Nexttrack? response from gstplay: " resp))
+(define (parse-nexttrack-response resp)
+  (print "Nexttrack set response from gstplay: " resp))
 
 
 (test-group
@@ -165,15 +169,15 @@
         (call-with-values ;; better way to do this?
         (lambda () (send-cmd "pos" parse-cplay-pos-response))
           (lambda (pos #!optional duration) duration)))
-      (('paused?)    (send-cmd "paused?" parse-cplay-paused?-response))
-      (('pause)      (send-cmd "pause"))
-      (('unpause)    (send-cmd "unpause"))
-      (('seek pos)   (send-cmd (conc "seek " pos) parse-cplay-pos-response))
-      (('add uid)    (send-cmd (conc "add " uid) parse-add-response) )
-      (('remove uid) (send-cmd (conc "remove " uid) parse-remove-response) )
-      (('nexttrack)  (send-cmd "nexttrack " track))
-      (('nexttrack?) (send-cmd "nexttrack?" parse-nexttrack?-response) )
-      (('quit)       (send-cmd "quit"))
+      (('paused?)       (send-cmd "paused?" parse-cplay-paused?-response))
+      (('pause)         (send-cmd "pause"))
+      (('unpause)       (send-cmd "unpause"))
+      (('seek pos)      (send-cmd (conc "seek " pos) parse-cplay-pos-response))
+      (('add uid)       (send-cmd (conc "add " uid) parse-add-response) )
+      (('remove uid)    (send-cmd (conc "remove " uid) parse-remove-response) )
+      (('nexttrack nxt) (send-cmd (conc "nexttrack " nxt) parse-nexttrack-response) )
+      (('nexttrack?)    (send-cmd "nexttrack?" parse-nexttrack?-response) )
+      (('quit)          (send-cmd "quit"))
       (else (print "Unknown command: " msg)))) )
 
 (define play-worker
@@ -192,27 +196,23 @@
 (define (player-duration)        (play-worker `(duration)))
 (define (player-seek seek)       (prepause-spotify) (play-worker `(seek ,seek)))
 (define (player-quit)            (play-worker `(quit)))
-;; cplay runningn and not paused:
+;; cplay running and not paused:
 (define (playing?)   (and (not (eq? #f (play-worker `(pos))))
                           (not (player-paused?))))
 (define (player-nexttrack?) (play-worker `(nexttrack?)))
 
 (define (player-nexttrack turi)
-  (let ((uri (play-command (turi))))
-    (print "Turi: " turi)
-    (play-worker `(nexttrack ,uri)))
-
+  (let ((nxt  (next-command turi)))
+    (play-worker `(nexttrack ,nxt))))
 
 (define (play! cmd on-exit)
   (prepause-spotify)
   (play-worker `(play ,cmd ,on-exit)))
 
-
-
-(define (play-follower-cmd uid_leader)
+(define (play-follower-cmd uid-leader)
   (
    (play-worker `(quit))
-   (cplay_follower uid_leader)
+   (cplay-follower uid-leader)
    )
   )
 
@@ -241,35 +241,29 @@
 
 
 (define (play-command turi)
-  (print "play command" turi)
   (let ((turi (if (uri? turi) turi (uri-reference turi))))
     (case (uri-scheme turi)
       ((tr) (play-command/tr turi))
       (else (cplay turi)))))
+
+(define (next-command turi)
+  (car (cdr (play-command turi))))
 
 (define (play-addfollower uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
 
 (define (play-rmfollower uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (play-follower uid_leader)
-  (print "start following")
-  ;;  (print "Data: " play-follower-cmd uid_leader)
   (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback")))
-;;  (play-worker `(play ("cplay" "192.168.42.3" "follower")   (print ";; ignoring callback")))
-  (print "finish following")
   )
 
-
-(test-group
- "play-command"
+(test-group "play-command"
 
  (test '("cplay" "file:///filename") (play-command "file:///filename"))
  (test '("cplay" "http://domain/file.mp3") (play-command "http://domain/file.mp3"))
-
  (test '("cplay" "filename") (play-command "filename"))
  (test-error (play-command "i l l e g a l")))
+ (test "filename" (next-command "filename"))
 )
 
-;; (define player (play! (play-command "tr://localhost:5060/t2s?type=wimp&id=12345678")))
-;; (player "quit")
 
