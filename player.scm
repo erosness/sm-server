@@ -32,7 +32,9 @@
 (use fmt test uri-common srfi-18 test http-client matchable
      srfi-1 posix
      extras ;; <-- pp
-     clojurian-syntax medea looper)
+     clojurian-syntax)
+
+(use looper medea)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
@@ -266,11 +268,21 @@
  (test "filename" (next-command "filename"))
 )
 
+(define (monitor-body) 
+  (let ((pos (player-pos)))
+    (if (pos)
+      (let ((duration (player-duration)))
+        (print "pos=" pos)
+        (print "dur=" duration))
+      (print "No player") ))
+
+;;  (let ((t (lambda ()  (call-with-values (player-pos)) (lambda ( pos duration ) (print "Pos=" pos " Duration=" duration)) )) ))
+
+
 (define monitor-thread
-  (let ((t (lambda () (print (player-pos) )) ))
     (thread-start! 
-      (->> t
-        (loop/interval 2)
+      (->> monitor-body
+        (loop/interval 4)
         (loop)
         ((flip make-thread) "Monitor"))) ))
 
