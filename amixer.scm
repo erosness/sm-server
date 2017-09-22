@@ -183,8 +183,11 @@
       (make-cmixer-interface
        ;; read line-by-line from port p and convert to numberical value
        (lambda (p)
-         (let* ((line (read-line p 1024))
-                (volume (string->number (string-trim line))))
+         (let* ((line ( string-trim (read-line p 1024)))
+                (length-of-line (min 10 (string-length line)))
+                (volume (string->number (substring line 0 length-of-line))))
+
+	   (print "line:" line " length:" length-of-line " vol:" volume )
            (cond ((eof-object? line) line)
                  (else
                   (notify volume)
@@ -204,5 +207,5 @@
 
 (define amixer-eq amixer-eq/cube)
 
-(include "amixer.test.scm")
+;; (include "amixer.test.scm")
 )
