@@ -79,7 +79,7 @@
   (define-handler /v1/player/volume
     (lambda ()
 ;; Note: cmixer can't handle more than 13 characters in the volume setting. Thus we truncate value into 1/10 settings.
-      (let ((volume-value (/ (truncate (* 10. (alist-ref 'value (current-json)))) 10. )))
+      (let ((volume-value (if (current-json)(/ (truncate (* 10. (alist-ref 'value (current-json)))) 10. ) #f )))
         (if (current-json) (amixer-volume volume-value))
         `((value . ,(amixer-volume))))))))
 
