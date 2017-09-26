@@ -31,10 +31,9 @@
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client matchable
      srfi-1 posix
-     extras ;; <-- pp
-     clojurian-syntax)
+     extras)
 
-(use looper medea)
+(import clojurian-syntax looper medea)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
@@ -270,11 +269,11 @@
 
 (define (monitor-body) 
   (let ((pos (player-pos)))
-    (if (pos)
+    (if (and pos (< pos 30000000))
       (let ((duration (player-duration)))
         (print "pos=" pos)
         (print "dur=" duration))
-      (print "No player") ))
+      (print "No player") )))
 
 ;;  (let ((t (lambda ()  (call-with-values (player-pos)) (lambda ( pos duration ) (print "Pos=" pos " Duration=" duration)) )) ))
 
@@ -284,6 +283,6 @@
       (->> monitor-body
         (loop/interval 4)
         (loop)
-        ((flip make-thread) "Monitor"))) ))
+        ((flip make-thread) "Monitor") )))
 
 
