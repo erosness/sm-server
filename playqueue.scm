@@ -180,7 +180,7 @@
                ;; propegated back to the REST response. the errors in
                ;; this callback, however, will crash the server:
                (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
-                                (pq-play-next pq))))
+                                (pq-play-next pq) (lambda () (print "At prenext")) )))
 
            (play! (play-command track)
             (lambda ()
@@ -196,7 +196,7 @@
                ;; propegated back to the REST response. the errors in
                ;; this callback, however, will crash the server:
                (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
-                                (pq-play-next pq)))))
+                                (pq-play-next pq) (lambda () (print "At prenext"))))))
     (print "playing " track)
     (if update-current
         (pq-current-set! pq item))))

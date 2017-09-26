@@ -16,7 +16,8 @@
 
 (module* player (cplay
                 play!
-                leader-play!
+                preplay!
+                leader-preplay!
                 follow!
                 player-pause
                 player-unpause
@@ -33,7 +34,8 @@
      srfi-1 posix
      extras)
 
-(import clojurian-syntax looper medea)
+(use looper)
+(import clojurian-syntax medea)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
@@ -53,9 +55,7 @@
 
 (define (cplay-follower source)
   (let ((lsource (list source "follower")))
-    (append '("cplay") lsource)
-    )
-  )
+    (append '("cplay") lsource)))
 
 
 (test-group
@@ -206,9 +206,13 @@
   (let ((nxt  (next-command turi)))
     (play-worker `(nexttrack ,nxt))))
 
-(define (play! cmd on-exit)
+(define (play! cmd on-exit on-next)
   (prepause-spotify)
   (play-worker `(play ,cmd ,on-exit)))
+
+(define (nextplay! cmd on-exit on-next)
+  (prepause-spotify)
+  (play-worker `(play ,cmd ,on-exit )))
 
 (define (play-follower-cmd uid-leader)
   (
@@ -217,11 +221,18 @@
    )
   )
 
-(define (leader-play! cmd on-exit)
+(define (leader-play! cmd on-exit on-next)
   (prepause-spotify)
   (pp "At leader-play!") ;; ?????
   (pp cmd) ;; ?????
   (play-worker `(leader-play ,cmd ,on-exit)))
+
+(define (leader-preplay! cmd on-exit on-next)
+  (prepause-spotify)
+  (pp "At leader-play!") ;; ?????
+  (pp cmd) ;; ?????
+  (play-worker `(leader-play ,cmd ,on-exit)))
+
 
 (define (follow! cmd on-exit)
   (prepause-spotify)
@@ -263,9 +274,9 @@
  (test '("cplay" "file:///filename") (play-command "file:///filename"))
  (test '("cplay" "http://domain/file.mp3") (play-command "http://domain/file.mp3"))
  (test '("cplay" "filename") (play-command "filename"))
- (test-error (play-command "i l l e g a l")))
- (test "filename" (next-command "filename"))
-)
+ (test-error (play-command "i l l e g a l"))
+ (test "filename" (next-command "filename")))
+
 
 (define (monitor-body) 
   (let ((pos (player-pos)))
@@ -279,10 +290,12 @@
 
 
 (define monitor-thread
-    (thread-start! 
-      (->> monitor-body
-        (loop/interval 4)
-        (loop)
-        ((flip make-thread) "Monitor") )))
-
+  (thread-start! 
+    (->> 
+      monitor-body
+      (print "in loop")
+      (loop/interval 4)
+      (loop)
+      ((flip make-thread) "Monitor") )))
+)
 
