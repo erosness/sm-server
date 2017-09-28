@@ -57,7 +57,6 @@
   (let ((lsource (list source "follower")))
     (append '("cplay") lsource)))
 
-
 (test-group
  "cplay"
  (test '("cplay" "filename") (cplay "filename"))
@@ -84,7 +83,6 @@
   (print "Nexttrack? response from gstplay: " resp))
 (define (parse-nexttrack-response resp)
   (print "Nexttrack set response from gstplay: " resp))
-
 
 (test-group
  "parse cplay pos"
@@ -267,11 +265,9 @@
 (define (play-rmfollower uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (play-follower uid_leader)
-  (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback")))
-  )
+  (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback"))))
 
 (test-group "play-command"
-
  (test '("cplay" "file:///filename") (play-command "file:///filename"))
  (test '("cplay" "http://domain/file.mp3") (play-command "http://domain/file.mp3"))
  (test '("cplay" "filename") (play-command "filename"))
@@ -281,11 +277,6 @@
 (define nexttrack-callback #f)
 (define monitor-thread #f)
 
-(define (setup-nexttrack-callback on-next)
-  (set! nexttrack-callback on-next)
-  (if (not monitor-thread)
-    (set! monitor-thread (make-monitor-thread))))
-
 (define (do-nexttrack-callback)
   (let ((cb nexttrack-callback))
     (print "CB:" cb)
@@ -294,15 +285,13 @@
 	  (set! nexttrack-callback #f)
 	  (cb)))))
 
-(define (monitor-body) 
+(define (monitor-body)
   (let ((pos (player-pos)))
     (if (and pos (< pos 30000000))
       (let ((duration (player-duration)))
-        (print "pos=" pos)
-        (print "dur=" duration)
         (if (< (- duration pos) 15)
           (do-nexttrack-callback)))
-      (print "No player")))))
+      (print "No player"))))
 
 (define (make-monitor-thread)
   (thread-start! 
@@ -311,6 +300,10 @@
       (loop/interval 4)
       (loop)
       ((flip make-thread) "Monitor") )))
+
+(define (setup-nexttrack-callback on-next)
+  (set! nexttrack-callback on-next)
+  (if (not monitor-thread)
+    (set! monitor-thread (make-monitor-thread))))
+
 )
-
-
