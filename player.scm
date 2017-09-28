@@ -208,6 +208,7 @@
 
 (define (play! cmd on-exit on-next)
   (prepause-spotify)
+  (setup-nexttrack-callback on-next)
   (play-worker `(play ,cmd ,on-exit)))
 
 (define (nextplay! cmd on-exit on-next)
@@ -277,25 +278,39 @@
  (test-error (play-command "i l l e g a l"))
  (test "filename" (next-command "filename")))
 
+(define nexttrack-callback #f)
+(define monitor-thread #f)
+
+(define (setup-nexttrack-callback on-next)
+  (set! nexttrack-callback on-next)
+  (if (not monitor-thread)
+    (set! monitor-thread (make-monitor-thread))))
+
+(define (do-nexttrack-callback)
+  (let ((cb nexttrack-callback))
+    (print "CB:" cb)
+    (if cb
+	(begin
+	  (set! nexttrack-callback #f)
+	  (cb)))))
 
 (define (monitor-body) 
   (let ((pos (player-pos)))
     (if (and pos (< pos 30000000))
       (let ((duration (player-duration)))
         (print "pos=" pos)
-        (print "dur=" duration))
-      (print "No player") )))
+        (print "dur=" duration)
+        (if (< (- duration pos) 15)
+          (do-nexttrack-callback)))
+      (print "No player")))))
 
-;;  (let ((t (lambda ()  (call-with-values (player-pos)) (lambda ( pos duration ) (print "Pos=" pos " Duration=" duration)) )) ))
-
-
-(define monitor-thread
+(define (make-monitor-thread)
   (thread-start! 
     (->> 
       monitor-body
-      (print "in loop")
       (loop/interval 4)
       (loop)
       ((flip make-thread) "Monitor") )))
 )
+
 
