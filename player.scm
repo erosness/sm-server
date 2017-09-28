@@ -16,8 +16,8 @@
 
 (module* player (cplay
                 play!
-                preplay!
-                leader-preplay!
+                nextplay!
+                leader-nextplay!
                 follow!
                 player-pause
                 player-unpause
