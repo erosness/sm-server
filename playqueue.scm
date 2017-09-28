@@ -202,6 +202,9 @@
     (if update-current
         (pq-current-set! pq item))))
 
+(define (pq-nexttrack* on-next)
+  (nextplay! #f on-next))
+
 ;; Play next song
 (define (pq-play-next* pq #!optional (force-loop #f))
   (or (and-let* ((next (pq-next* pq force-loop)))
@@ -210,6 +213,10 @@
         (pq-current-set! pq #f)
         (player-quit))))
 
+;; Prepare for next track
+(define (pq-nexttrack-next* pq)
+  (and-let* ((next (pq-next* pq force-loop)))
+        (pq-nexttrack* pq next)))
 
 ;; Play previous song
 ;; - if current song has played for more than 2 seconds, seek to start
