@@ -209,9 +209,11 @@
   (setup-nexttrack-callback on-next)
   (play-worker `(play ,cmd ,on-exit)))
 
-(define (nextplay! cmd on-exit on-next)
+(define (nextplay! turi on-next)
+  (print "At nextplay!:" turi)
   (prepause-spotify)
-  (play-worker `(play ,cmd ,on-exit )))
+  (player-nexttrack turi)
+  (setup-nexttrack-callback on-next))
 
 (define (play-follower-cmd uid-leader)
   (
@@ -252,6 +254,7 @@
 
 
 (define (play-command turi)
+  (print "At player:play-command:" turi)
   (let ((turi (if (uri? turi) turi (uri-reference turi))))
     (case (uri-scheme turi)
       ((tr) (play-command/tr turi))
@@ -276,6 +279,7 @@
 
 (define nexttrack-callback #f)
 (define monitor-thread #f)
+(define used-callback-position 0)
 
 (define (do-nexttrack-callback)
   (let ((cb nexttrack-callback))
@@ -289,8 +293,17 @@
   (let ((pos (player-pos)))
     (if (and pos (< pos 30000000))
       (let ((duration (player-duration)))
-        (if (< (- duration pos) 15)
-          (do-nexttrack-callback)))
+        (if (and (< pos used-callback-position)
+                 (< pos duration))
+          (set! used-callback-position 0))
+        (print "Monitor-body: " pos " - " duration " p "  used-callback-position )
+        (if (and (< (- duration pos) 15) 
+                 (< pos duration) 
+                 nexttrack-callback)
+          (if (equal? used-callback-position 0)
+            (begin
+              (set! used-callback-position pos)
+              (do-nexttrack-callback)))))
       (print "No player"))))
 
 (define (make-monitor-thread)
@@ -303,7 +316,9 @@
 
 (define (setup-nexttrack-callback on-next)
   (set! nexttrack-callback on-next)
-  (if (not monitor-thread)
-    (set! monitor-thread (make-monitor-thread))))
+  (if (or (not monitor-thread)
+          (not (thread? monitor-thread))
+          (equal? (thread-state monitor-thread) 'terminated ))
+      (set! monitor-thread (make-monitor-thread))))
 
 )
