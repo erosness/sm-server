@@ -181,7 +181,9 @@
                ;; this callback, however, will crash the server:
                (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
 				  (pq-play-next pq)))
-	       (lambda ()(print "At prenext")))
+	     (lambda ()
+               (handle-exceptions e (pp `(nexttrack warning ,(condition->list e)))
+               (pq-nexttrack-next pq))))
            (play! (play-command track)
             (lambda ()
                ;; try to play next song, if anything goes wrong, print

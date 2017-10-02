@@ -226,7 +226,8 @@
   (prepause-spotify)
   (pp "At leader-play!") ;; ?????
   (pp cmd) ;; ?????
-  (play-worker `(leader-play ,cmd ,on-exit)))
+  (play-worker `(leader-play ,cmd ,on-exit))
+  (setup-nexttrack-callback on-next))
 
 (define (leader-preplay! cmd on-exit on-next)
   (prepause-spotify)
