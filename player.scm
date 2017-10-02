@@ -319,7 +319,8 @@
   (set! nexttrack-callback on-next)
   (if (or (not monitor-thread)
           (not (thread? monitor-thread))
-          (equal? (thread-state monitor-thread) 'terminated ))
+          (equal? (thread-state monitor-thread) 'terminated )
+          (equal? (thread-state monitor-thread) 'dead ))
       (set! monitor-thread (make-monitor-thread))))
 
 )
