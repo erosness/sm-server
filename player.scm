@@ -16,7 +16,8 @@
 
 (module* player (cplay
                 play!
-                leader-play!
+                nextplay!
+                leader-nextplay!
                 follow!
                 player-pause
                 player-unpause
@@ -31,8 +32,10 @@
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client matchable
      srfi-1 posix
-     extras ;; <-- pp
-     clojurian-syntax medea)
+     extras)
+
+(use looper)
+(import clojurian-syntax medea)
 
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
@@ -50,19 +53,18 @@
         (lar (if ar (list "-ar" (number->string ar)) '())))
     (append '("cplay") lformat lar lsource)))
 
-(define (cplay_follower source)
+(define (cplay-follower source)
   (let ((lsource (list source "follower")))
-    (append '("cplay") lsource)
-    )
-  )
-
+    (append '("cplay") lsource)))
 
 (test-group
  "cplay"
  (test '("cplay" "filename") (cplay "filename"))
  (test '("cplay" "filename") (cplay (uri-reference "filename")))
  (test '("cplay" "-f" "alsa" "file") (cplay "file" format: "alsa"))
- (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100)))
+ (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100))
+ (test '("cplay" "filename" "follower") (cplay-follower "filename"))
+)
 
 ;; pos responses from cplay contain both pos and duration. return both
 ;; here too.
@@ -77,6 +79,10 @@
   (print "Response from gstplay: " resp))
 (define (parse-remove-response resp)
   (print "Response from gstplay: " resp))
+(define (parse-nexttrack?-response resp)
+  (print "Nexttrack? response from gstplay: " resp))
+(define (parse-nexttrack-response resp)
+  (print "Nexttrack set response from gstplay: " resp))
 
 (test-group
  "parse cplay pos"
@@ -125,55 +131,52 @@
        (cplay-cmd "quit")
        (print "starting player")
        (set! cplay-cmd
-             (process-cli
-              (car scommand)
-              (cdr scommand)
-              (lambda ()
-                ;; important: starting another thread for this is like
-                ;; "posting" this to be ran in the future. without
-                ;; this, we'd start nesting locks and things which we
-                ;; don't want.
-                (thread-start! on-exit)))))
+         (process-cli
+         (car scommand)
+         (cdr scommand)
+         (lambda ()
+           ;; important: starting another thread for this is like
+           ;; "posting" this to be ran in the future. without
+           ;; this, we'd start nesting locks and things which we
+           ;; don't want.
+           (thread-start! on-exit)))))
+
        (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (set! cplay-cmd
-             (process-cli
-              (car scommand)
-              (append (cdr scommand) '("leader"))
-              (lambda ()
-                ;; important: starting another thread for this is like
-                ;; "posting" this to be ran in the future. without
-                ;; this, we'd start nesting locks and things which we
-                ;; don't want.
-                (thread-start! on-exit)))))
+         (process-cli
+         (car scommand)
+         (append (cdr scommand) '("leader"))
+         (lambda ()
+           (thread-start! on-exit)))))
+
        (('follow scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (set! cplay-cmd
-             (process-cli
-              (car scommand)
-              (append (cdr scommand) '("follower"))
-              (lambda ()
-                ;; important: starting another thread for this is like
-                ;; "posting" this to be ran in the future. without
-                ;; this, we'd start nesting locks and things which we
-                ;; don't want.
-                (thread-start! on-exit)))))
-    (('pos)      (send-cmd "pos" parse-cplay-pos-response))
+         (process-cli
+         (car scommand)
+         (append (cdr scommand) '("follower"))
+         (lambda ()
+           (thread-start! on-exit)))))
+
+      (('pos)      (send-cmd "pos" parse-cplay-pos-response))
       (('duration)
-       (call-with-values ;; better way to do this?
-           (lambda () (send-cmd "pos" parse-cplay-pos-response))
-         (lambda (pos #!optional duration) duration)))
-      (('paused?)  (send-cmd "paused?" parse-cplay-paused?-response))
-      (('pause)    (send-cmd "pause"))
-      (('unpause)  (send-cmd "unpause"))
-      (('seek pos) (send-cmd (conc "seek " pos) parse-cplay-pos-response))
-      (('add uid)  (send-cmd (conc "add " uid) parse-add-response) )
-      (('remove uid) (send-cmd (conc "remove " uid) parse-remove-response) )
-      (('quit)     (send-cmd "quit"))
+        (call-with-values ;; better way to do this?
+        (lambda () (send-cmd "pos" parse-cplay-pos-response))
+          (lambda (pos #!optional duration) duration)))
+      (('paused?)       (send-cmd "paused?" parse-cplay-paused?-response))
+      (('pause)         (send-cmd "pause"))
+      (('unpause)       (send-cmd "unpause"))
+      (('seek pos)      (send-cmd (conc "seek " pos) parse-cplay-pos-response))
+      (('add uid)       (send-cmd (conc "add " uid) parse-add-response) )
+      (('remove uid)    (send-cmd (conc "remove " uid) parse-remove-response) )
+      (('nexttrack nxt) (send-cmd (conc "nexttrack " nxt) parse-nexttrack-response) )
+      (('nexttrack?)    (send-cmd "nexttrack?" parse-nexttrack?-response) )
+      (('quit)          (send-cmd "quit"))
       (else (print "Unknown command: " msg)))) )
 
 (define play-worker
@@ -185,37 +188,53 @@
   (thread-sleep! 0.1))
 
 ;; Control operations
-(define (player-pause)      (play-worker `(pause)))
-(define (player-unpause)    (prepause-spotify) (play-worker `(unpause)))
-(define (player-paused?)    (play-worker `(paused?)))
-(define (player-pos)        (play-worker `(pos)))
-(define (player-duration)   (play-worker `(duration)))
-(define (player-seek seek)  (prepause-spotify) (play-worker `(seek ,seek)))
-(define (player-quit)       (play-worker `(quit)))
-;; cplay runningn and not paused:
+(define (player-pause)           (play-worker `(pause)))
+(define (player-unpause)         (prepause-spotify) (play-worker `(unpause)))
+(define (player-paused?)         (play-worker `(paused?)))
+(define (player-pos)             (play-worker `(pos)))
+(define (player-duration)        (play-worker `(duration)))
+(define (player-seek seek)       (prepause-spotify) (play-worker `(seek ,seek)))
+(define (player-quit)            (play-worker `(quit)))
+;; cplay running and not paused:
 (define (playing?)   (and (not (eq? #f (play-worker `(pos))))
                           (not (player-paused?))))
+(define (player-nexttrack?) (play-worker `(nexttrack?)))
 
+(define (player-nexttrack turi)
+  (let ((nxt  (next-command turi)))
+    (play-worker `(nexttrack ,nxt))))
 
-
-(define (play! cmd on-exit)
+(define (play! cmd on-exit on-next)
   (prepause-spotify)
+  (setup-nexttrack-callback on-next)
   (play-worker `(play ,cmd ,on-exit)))
 
+(define (nextplay! turi on-next)
+  (print "At nextplay!:" turi)
+  (prepause-spotify)
+  (player-nexttrack turi)
+  (setup-nexttrack-callback on-next))
 
-
-(define (play-follower-cmd uid_leader)
+(define (play-follower-cmd uid-leader)
   (
    (play-worker `(quit))
-   (cplay_follower uid_leader)
+   (cplay-follower uid-leader)
    )
   )
 
-(define (leader-play! cmd on-exit)
+(define (leader-play! cmd on-exit on-next)
+  (prepause-spotify)
+  (pp "At leader-play!") ;; ?????
+  (pp cmd) ;; ?????
+  (play-worker `(leader-play ,cmd ,on-exit))
+  (setup-nexttrack-callback on-next))
+
+(define (leader-preplay! cmd on-exit on-next)
   (prepause-spotify)
   (pp "At leader-play!") ;; ?????
   (pp cmd) ;; ?????
   (play-worker `(leader-play ,cmd ,on-exit)))
+
 
 (define (follow! cmd on-exit)
   (prepause-spotify)
@@ -236,34 +255,72 @@
 
 
 (define (play-command turi)
-  (print "play command" turi)
+  (print "At player:play-command:" turi)
   (let ((turi (if (uri? turi) turi (uri-reference turi))))
     (case (uri-scheme turi)
       ((tr) (play-command/tr turi))
       (else (cplay turi)))))
+
+(define (next-command turi)
+  (car (cdr (play-command turi))))
 
 (define (play-addfollower uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
 
 (define (play-rmfollower uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (play-follower uid_leader)
-  (print "start following")
-  ;;  (print "Data: " play-follower-cmd uid_leader)
-  (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback")))
-;;  (play-worker `(play ("cplay" "192.168.42.3" "follower")   (print ";; ignoring callback")))
-  (print "finish following")
-  )
+  (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback"))))
 
-
-(test-group
- "play-command"
-
+(test-group "play-command"
  (test '("cplay" "file:///filename") (play-command "file:///filename"))
  (test '("cplay" "http://domain/file.mp3") (play-command "http://domain/file.mp3"))
-
  (test '("cplay" "filename") (play-command "filename"))
- (test-error (play-command "i l l e g a l")))
-)
+ (test-error (play-command "i l l e g a l"))
+ (test "filename" (next-command "filename")))
 
-;; (define player (play! (play-command "tr://localhost:5060/t2s?type=wimp&id=12345678")))
-;; (player "quit")
+(define nexttrack-callback #f)
+(define monitor-thread #f)
+(define used-callback-position 0)
+
+(define (do-nexttrack-callback)
+  (let ((cb nexttrack-callback))
+    (print "CB:" cb)
+    (if cb
+	(begin
+	  (set! nexttrack-callback #f)
+	  (cb)))))
+
+(define (monitor-body)
+  (let ((pos (player-pos)))
+    (if (and pos (< pos 30000000))
+      (let ((duration (player-duration)))
+        (if (and (< pos used-callback-position)
+                 (< pos duration))
+          (set! used-callback-position 0))
+        (print "Monitor-body: " pos " - " duration " p "  used-callback-position )
+        (if (and (< (- duration pos) 15) 
+                 (< pos duration) 
+                 nexttrack-callback)
+          (if (equal? used-callback-position 0)
+            (begin
+              (set! used-callback-position pos)
+              (do-nexttrack-callback)))))
+      (print "No player"))))
+
+(define (make-monitor-thread)
+  (thread-start! 
+    (->> 
+      monitor-body
+      (loop/interval 4)
+      (loop)
+      ((flip make-thread) "Monitor") )))
+
+(define (setup-nexttrack-callback on-next)
+  (set! nexttrack-callback on-next)
+  (if (or (not monitor-thread)
+          (not (thread? monitor-thread))
+          (equal? (thread-state monitor-thread) 'terminated )
+          (equal? (thread-state monitor-thread) 'dead ))
+      (set! monitor-thread (make-monitor-thread))))
+
+)
