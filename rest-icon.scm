@@ -51,5 +51,5 @@
                                      void)
                '((status . "ok")))
         (if (speaker-store)
-            (alist-cons 'uid_leader find_ip_leader 'uid mac (alist-delete 'uid (speaker-store)) )
+            (alist-cons 'uid_leader find_ip_leader (alist-cons 'uid mac (alist-delete 'uid (alist-delete 'uid (speaker-store)))))
             empty-value)))))
