@@ -263,7 +263,9 @@
          (if (eof-object? event)
              (thread-sleep! 10)
              (when (playing&active? event)
-               (player-pause)
+		   (print "Playing from spotify")
+		   (player-quit)
+		   (spotify-play "spotify")
                (spotify-notification event))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running

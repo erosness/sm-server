@@ -25,6 +25,7 @@
                 player-seek
                 player-quit
                 play-command
+		spotify-play
 		player-follower
 		player-addfollower
 		player-rmfollower)
@@ -130,6 +131,7 @@
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (print "starting player")
+       (print scommand)
        (set! cplay-cmd
          (process-cli
          (car scommand)
@@ -140,6 +142,8 @@
            ;; this, we'd start nesting locks and things which we
            ;; don't want.
            (thread-start! on-exit)))))
+
+
 
        (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
@@ -203,6 +207,8 @@
 (define (player-nexttrack turi)
   (let ((nxt  (next-command turi)))
     (play-worker `(nexttrack ,nxt))))
+
+
 
 (define (play! cmd on-exit on-next)
   (prepause-spotify)
@@ -270,6 +276,9 @@
 
 (define (play-follower uid_leader)
   (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback"))))
+
+(define (spotify-play parameter)
+  (play-worker `(play ("cplay" , "spotify") (print ";; ignoring callback"))))
 
 (test-group "play-command"
  (test '("cplay" "file:///filename") (play-command "file:///filename"))
