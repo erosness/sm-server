@@ -51,6 +51,11 @@
       ("bt"      #t)
       (else      #f))))
 
+(define (play-spotify? item)
+  (let ((type (alist-ref 'type item)))
+    (match type
+	   ("spotify" #t)
+	   (else #f))))
 
 ;; Note: [pq-play with #f]
 ;; in the player/current handler we update 'current' at the very end of any
@@ -224,6 +229,7 @@
 ;; send a pretend-current notification to our apps. should keep
 ;; player-pane in sync with what Spotify is doing.
 (define (spotify-notification event)
+  (print "spotify notification")
   (pq-current-set! *pq* `((title . ,(alist-ref 'track event))
                           (subtitle . ,(alist-ref 'artist event))
                           (image . ,(alist-ref 'image event))
@@ -262,9 +268,16 @@
          (pp `(info ,(current-thread) event ,event))
          (if (eof-object? event)
              (thread-sleep! 10)
-             (when (playing&active? event)
-               (player-pause)
-               (spotify-notification event))))))))
+;;	     (when (playing&active? event)
+	     ((print "Shall we start again?")
+	      (when (not (play-spotify? (pq-current *pq*)))
+		   (print "Playing from spotify")
+		   (player-quit)
+		   (spotify-play "spotify")
+		   (thread-sleep! 1)
+		   (print "Unpausing")
+		   (player-unpause)
+               (spotify-notification event)))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running
 ;; Note that the dynamic label is only broadcasted through the notify
