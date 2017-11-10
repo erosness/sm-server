@@ -308,25 +308,6 @@
 
 
 
-;; watch if spotify is playing. if it is, we pause our own cplay and
-;; we "sneak" spotify album-cover art and player state in there using
-;; spotify-notification.
-(begin
-  (handle-exceptions e (void) (thread-terminate! spotify-monitor-thread))
-  (define spotify-monitor-thread
-    (run-monitor-thread
-     "spotify-monitor"
-     (lambda ()
-       (let ((event (call-with-input-pipe
-                     "spotifyctl 7879 event"
-                     (o read make-nonblocking-input-port))))
-         (pp `(info ,(current-thread) event ,event))
-         (if (eof-object? event)
-             (thread-sleep! 10)
-             (when (playing&active? event)
-               (player-pause)
-               (spotify-notification event))))))))
-
 ;; Read and broadcast DAB dynamic label if dab is running
 ;; Note that the dynamic label is only broadcasted through the notify
 ;; socket, you won't get it from
