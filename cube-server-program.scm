@@ -27,6 +27,8 @@
    ;; bind our server port "globally" for everybody to use
    (rest-server-port port)
 
+   (define ixion-unit-type 'maestro)
+   
    (include "cube-server.scm")
 
    (print "started cube-server on http://localhost:" port)
