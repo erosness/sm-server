@@ -38,7 +38,7 @@
                       (name . "Maestro")
                       (uid  . ,mac)
                       (type . "M"))
-    `((uid_leader . "192.168.42.1")
+    `((uid_leader . ,find_ip_leader )
 		      (icon . 0)
                       (name . "")
                       (uid  . ,mac)
