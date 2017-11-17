@@ -52,10 +52,12 @@
       (else      #f))))
 
 (define (play-spotify? item)
-  (let ((type (alist-ref 'type item)))
-    (match type
-	   ("spotify" #t)
-	   (else #f))))
+  (if item
+    (let ((type (alist-ref 'type item)))
+      (match type
+        ("spotify" #t)
+        (else #f)))
+    #f))
 
 ;; Note: [pq-play with #f]
 ;; in the player/current handler we update 'current' at the very end of any
