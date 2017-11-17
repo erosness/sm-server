@@ -31,18 +31,21 @@
                                    (conc "speaker-icon" "-"
                                          (rest-server-port)))))
 
-(define empty-value
-  (if (symbol? 'ixion-unit-type)
+(cond-expand
+(android
+  (define empty-value
     `((uid_leader . "192.168.42.1")
-  		      (icon . 8)
-                      (name . "Maestro")
-                      (uid  . ,mac)
-                      (type . "M"))
-    `((uid_leader . ,find_ip_leader )
-		      (icon . 0)
-                      (name . "")
-                      (uid  . ,mac)
-                      (type . "S")) ))
+    (icon . 8)
+    (name . "Maestro")
+    (uid  . ,mac)
+    (type . "M"))))
+(else
+  (define empty-value
+     `((uid_leader . ,find_ip_leader )
+     (icon . 0)
+     (name . "")
+     (uid  . ,mac)
+     (type . "S")))))
 
 (define-handler /v1/player/icon
   (lambda ()
