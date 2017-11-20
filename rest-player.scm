@@ -11,7 +11,7 @@
         playqueue)
 (use test restlib clojurian-syntax ports
      srfi-18 extras posix srfi-1 srfi-13
-     medea matchable)
+     medea matchable irregex matchable)
 
 (import notify incubator)
 
@@ -22,6 +22,20 @@
 
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
+
+ 
+
+(define (local-ip)
+  (irregex-match-substring
+   (irregex-search
+    '(: "inet " (=> ip (or "192" "10") ;; assuming your LAN has this ip
+                    (= 1 "." (** 1 3 numeric))
+		    (= 1 ".42")
+		    (= 1 "." (** 1 3 numeric))
+		    		    ) )
+    (with-input-from-pipe "ip a|grep inet" read-string))
+   'ip))
+
 
 
 
@@ -38,7 +52,10 @@
 (define (player-information #!optional (current (pq-current *pq*)))
   (alist-merge current
                (player-pos-info)
-               `((loop . ,(pq-loop? *pq*)))))
+	       `((uid_leader . ,(local-ip)))
+               `((loop . ,(pq-loop? *pq*)))
+	       `((status . "Ok"))
+	       ))
 
 
 ;; Tracks that should not be added to the playqueue,
@@ -58,6 +75,51 @@
         ("spotify" #t)
         (else #f)))
     #f))
+
+(define-handler /v1/player/follower
+  ( lambda()
+    (if (current-json)
+	(let ((uid_leader (alist-ref 'uid_leader (current-json))))
+	  (play-follower uid_leader)
+	  (print "UID: " uid_leader)
+	  `((uid_follower . ,(local-ip))
+	    (status . "Ok")
+	    )
+	  )
+	`((uid_follower . ,(local-ip))
+	  (status . "Fail")
+	  )
+	)))
+
+
+
+(define-handler /v1/player/addfollower
+  ( lambda()
+    (if (current-json)
+	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
+	  (play-addfollower uid_follower)
+	  (print "UID: " uid_follower)
+	  (player-information)	  
+	  )
+	`((status . "Fail"))
+	)))
+
+(define-handler /v1/player/removefollower
+  (lambda()
+    (if (current-json)
+	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
+	  (play-rmfollower uid_follower)
+	  (player-information)
+	  )
+	`((status . "Fail"))
+	)))
+
+(define-handler /v1/player/quit
+  (lambda()
+    (player-quit)
+    (player-information)
+    ))
+
 
 ;; Note: [pq-play with #f]
 ;; in the player/current handler we update 'current' at the very end of any
