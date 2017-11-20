@@ -21,7 +21,7 @@
   (send-notification path newval))
 
 (pq-add-current-change-listener
- *pq* (change-callback "/v1/mplayer/current"))
+ *pq* (change-callback "/v1/player/current"))
 
  
 
