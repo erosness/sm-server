@@ -126,6 +126,7 @@
 (define-handler /v1/player/quit
   (lambda()
     (player-quit)
+    (pq-current-set! *pq* `())
     (player-information)
     ))
 
