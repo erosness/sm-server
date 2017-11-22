@@ -76,12 +76,21 @@
         (else #f)))
     #f))
 
+(define (follower-notification leader)
+  (pq-current-set! *pq*  
+    (if leader
+       `((type . "follower")(title . "Following Maestro")(id_leader . ,leader ))
+       `((type . "follower")(title . "Following Maestro")))))
+
+
 (define-handler /v1/player/follower
   ( lambda()
     (if (current-json)
-	(let ((uid_leader (alist-ref 'uid_leader (current-json))))
+	(let ((id_leader (alist-ref 'id_leader (current-json)))
+              (uid_leader (alist-ref 'uid_leader (current-json))))
 	  (play-follower uid_leader)
 	  (print "UID: " uid_leader)
+          (follower-notification id_leader)
 	  `((uid_follower . ,(local-ip))
 	    (status . "Ok")
 	    )
