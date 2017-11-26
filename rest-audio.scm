@@ -71,32 +71,28 @@
                      (lambda (eq) (amixer-eq eq))
                      (lambda (eq) `((value . ,(list->vector eq))))))
 
-(define-handler /v1/player/volume
-  (lambda ()
+;; HACK: use mock volume and eq on macosx
+(cond-expand
+ ((not arm)
+  (define-simple-wrapper /v1/player/volume volume    number?))
+ (else
+  (define-handler /v1/player/volume
+    (lambda ()
 ;; Note: cmixer can't handle more than 13 characters in the volume setting. Thus we truncate value into 1/10 settings.
-    (let ((volume-value (if (current-json)(/ (truncate (* 10. (alist-ref 'value (current-json)))) 10. ) #f )))
-      (if (current-json) 
-          (amixer-volume (max (min volume-value 100) 0)))
-      `((value . ,(amixer-volume))))))
+      (let ((volume-value (if (current-json)(/ (truncate (* 10. (alist-ref 'value (current-json)))) 10. ) #f )))
+        (if (current-json) (amixer-volume volume-value))
+        `((value . ,(amixer-volume))))))))
 
-(define-handler /v1/player/deltavolume
-  (lambda ()
-    (let* ((volume-value (if (current-json)
-                             (/ (truncate (* 10. (alist-ref 'value (current-json)))) 10. )
-                             #f ))
-           (new-volume-value (if volume-value 
-                                (max (min (+ (amixer-volume) volume-value) 100) 0)
-                                #f)))
-         (if new-volume-value
-             (amixer-volume new-volume-value))
-             `((value . ,(amixer-volume))))))
+(cond-expand
+ ((not arm)
+  (define-simple-wrapper /v1/player/eq     equalizer equalizer?))
 
-
-(define-handler /v1/player/eq
-  (lambda ()
-    (if (current-json)
-                  (amixer-eq/notify (vector->list (alist-ref 'value (current-json))))
-        (amixer-eq/notify))))
+ (else
+  (define-handler /v1/player/eq
+    (lambda ()
+      (if (current-json)
+                    (amixer-eq/notify (vector->list (alist-ref 'value (current-json))))
+          (amixer-eq/notify))))))
 
 
 ;; volume watchdog thread. if the volume is modified externally
