@@ -1,3 +1,4 @@
+
 (module rest-icon ()
 
 (import chicken scheme data-structures srfi-1)
@@ -61,5 +62,16 @@
                                      void)
                '((status . "ok")))
         (if (speaker-store)
-            (alist-cons 'uid_leader find_ip_leader (alist-cons 'uid mac (alist-delete 'uid_leader (alist-delete 'uid (speaker-store)))))
-            empty-value)))))
+            (let* ((%alist-raw ( alist-delete 'ip_audio (alist-delete 'uid_leader (alist-delete 'uid (speaker-store)))))
+		   (%alist-with-name (if (alist-ref 'name %alist-raw)
+                                         %alist-raw
+                                         (alist-cons 'name (alist-ref 'name empty-value) %alist-raw)))
+		   (%alist-name-icon (if (and (alist-ref 'icon %alist-with-name)
+					      (< 0 (alist-ref 'icon %alist-with-name)))
+					 %alist-with-name
+					 (alist-cons  'icon (alist-ref 'icon empty-value) (alist-delete 'icon %alist-with-name)))))
+	      (alist-cons 'ip_audio find_ip_leader
+			  (alist-cons 'uid_leader find_ip_leader
+				      (alist-cons 'uid mac %alist-name-icon))))
+            empty-value))))
+)
