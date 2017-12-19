@@ -11,7 +11,7 @@ DEPS = \
  http-client:0.7.1 \
  intarweb:1.3 \
  matchable:3.3 \
- medea:0.1.8 \
+ medea:2 \
  nanomsg:0.3 \
  nrepl:0.1 \
  openssl:1.6.4 \
