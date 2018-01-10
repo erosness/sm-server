@@ -343,15 +343,20 @@
          (if (eof-object? event)
              (thread-sleep! 10)
 ;;	     (when (playing&active? event)
-	     ((print "Shall we start again?")
-	      (when (not (play-spotify? (pq-current *pq*)))
-		   (print "Playing from spotify")
-		   (player-quit)
-		   (spotify-play "spotify")
+	     (begin
+               (print "Shall we start again?")
+	       (cond
+                 ((not (play-spotify? (pq-current *pq*)))
+                   (print "Playing from spotify")
+ 	           (player-quit)
+	           (spotify-play "spotify")
 		   (thread-sleep! 1)
 		   (print "Unpausing")
 		   (player-unpause)
-               (spotify-notification event)))))))))
+                   (spotify-notification event))
+                 (else  
+                   (print "Erik")
+                   (spotify-notification event))))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running
 ;; Note that the dynamic label is only broadcasted through the notify
