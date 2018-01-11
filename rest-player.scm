@@ -1,4 +1,4 @@
-(module rest-player (player-seek-thread
+(module* rest-player (player-seek-thread
                      player-information
                      spotify-monitor-thread
                      /v1/player/current
@@ -361,12 +361,13 @@
 		   (pq-current-set! *pq* `())
                    (player-information))
 		 ;; Maestro is playing and active. Process play/pause
-		 ((and (play-spotify? (pq-current *pq*))
-		       (spotify-active? event))
-		   (if (spotify-playing? event)
-		      (player-unpause)
-		      (player-pause))
-                   (spotify-notification event))))))))))
+;;		 ((and (play-spotify? (pq-current *pq*))
+;;		       (spotify-active? event))
+;;		   (if (spotify-playing? event)
+;;		      (player-unpause)
+;;		      (player-pause))
+		 ;;                   (spotify-notification event))
+		 ))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running
 ;; Note that the dynamic label is only broadcasted through the notify
