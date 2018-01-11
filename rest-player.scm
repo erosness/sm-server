@@ -293,13 +293,6 @@
                    (lambda () (char-ready? p))
                    (lambda () (close-input-port p))))
 
-
-
-(define (playing&active? event)
-  (and (alist-ref 'playing? event)
-       (alist-ref 'active? event)))
-
-
 ;; send a pretend-current notification to our apps. should keep
 ;; player-pane in sync with what Spotify is doing.
 (define (spotify-notification event)
@@ -310,8 +303,7 @@
                           (type . "spotify")
                           (pos . 0)
                           (duration . ,(* 0.001 (alist-ref 'duration_ms event)))
-                          (paused . ,(not (playing&active? event))))))
-
+                          (paused . ,(not (spotify-playing? event))))))
 
 
 (define (run-monitor-thread name body #!optional (interval 1))
@@ -326,6 +318,13 @@
         ((flip make-thread) name))))
 
 
+;; Spotify event helpers
+
+(define (spotify-playing? event)
+  (alist-ref 'playing? event))
+
+(define (spotify-active? event)
+  (alist-ref 'active? event))
 
 ;; watch if spotify is playing. if it is, we pause our own cplay and
 ;; we "sneak" spotify album-cover art and player state in there using
@@ -342,20 +341,31 @@
          (pp `(info ,(current-thread) event ,event))
          (if (eof-object? event)
              (thread-sleep! 10)
-;;	     (when (playing&active? event)
 	     (begin
                (print "Shall we start again?")
 	       (cond
-                 ((not (play-spotify? (pq-current *pq*)))
-                   (print "Playing from spotify")
+		;; Maestro does not play spotify, and receives input stream
+		((and (not (play-spotify? (pq-current *pq*)))
+		      (spotify-playing? event)
+                      (spotify-active? event))
  	           (player-quit)
 	           (spotify-play "spotify")
 		   (thread-sleep! 1)
-		   (print "Unpausing")
-		   (player-unpause)
-                   (spotify-notification event))
-                 (else  
-                   (print "Erik")
+                   (player-unpause)
+                   (spotify-notification event)
+		   (player-information))
+	        ;; Maestro is playin Spotify, but Spotify is no longer avtive on this unit
+		 ((and (play-spotify? (pq-current *pq*))
+                       (not (spotify-active? event)))
+                   (player-quit)
+		   (pq-current-set! *pq* `())
+                   (player-information))
+		 ;; Maestro is playing and active. Process play/pause
+		 ((and (play-spotify? (pq-current *pq*))
+		       (spotify-active? event))
+		   (if (spotify-playing? event)
+		      (player-unpause)
+		      (player-pause))
                    (spotify-notification event))))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running
