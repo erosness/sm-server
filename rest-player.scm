@@ -379,7 +379,7 @@
 		       (spotify-playing? event)
 		       (paused?  (pq-current *pq*)))
                    (dp "Unpause - NOOP")
-                   (player-unpause)
+                   (player-spotify-unpause)
                    (spotify-notification event))
 		 ;; Maestro is playing, process pause command
  		 ((and (play-spotify? (pq-current *pq*))
