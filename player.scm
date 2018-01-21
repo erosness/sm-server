@@ -20,6 +20,7 @@
                 leader-nextplay!
                 follow!
                 player-pause
+		player-spotify-unpause
                 player-unpause
                 player-pos
                 player-seek
@@ -194,6 +195,7 @@
 ;; Control operations
 (define (player-pause)           (play-worker `(pause)))
 (define (player-unpause)         (prepause-spotify) (play-worker `(unpause)))
+(define (player-spotify-unpause) (play-worker `(unpause)))
 (define (player-paused?)         (play-worker `(paused?)))
 (define (player-pos)             (play-worker `(pos)))
 (define (player-duration)        (play-worker `(duration)))
