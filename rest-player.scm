@@ -76,6 +76,14 @@
         (else #f)))
     #f))
 
+(define (paused? item)
+  (if item
+    (let ((type (alist-ref 'paused item)))
+      (match type
+        (#t #t)
+        (else #f)))
+    #f))
+
 (define (follower-notification leader)
   (pq-current-set! *pq*  
     (if leader
@@ -329,6 +337,9 @@
 ;; watch if spotify is playing. if it is, we pause our own cplay and
 ;; we "sneak" spotify album-cover art and player state in there using
 ;; spotify-notification.
+
+(define (dp s) (print (time->seconds  (current-time)) " - " s))
+
 (begin
   (handle-exceptions e (void) (thread-terminate! spotify-monitor-thread))
   (define spotify-monitor-thread
@@ -353,21 +364,36 @@
 		   (thread-sleep! 1)
                    (player-unpause)
                    (spotify-notification event)
+		   (dp "Quit-Start player")
 		   (player-information))
 	        ;; Maestro is playin Spotify, but Spotify is no longer avtive on this unit
 		 ((and (play-spotify? (pq-current *pq*))
                        (not (spotify-active? event)))
-                   (player-quit)
+		  (player-quit)
+		  (dp "Quit player")
 		   (pq-current-set! *pq* `())
                    (player-information))
-		 ;; Maestro is playing and active. Process play/pause
-;;		 ((and (play-spotify? (pq-current *pq*))
-;;		       (spotify-active? event))
-;;		   (if (spotify-playing? event)
-;;		      (player-unpause)
-;;		      (player-pause))
-		 ;;                   (spotify-notification event))
-		 ))))))))
+		 ;; Maestro is paused, process play command
+		 ((and (play-spotify? (pq-current *pq*))
+		       (spotify-active? event)
+		       (spotify-playing? event)
+		       (paused?  (pq-current *pq*)))
+                   (dp "Unpause - NOOP")
+                   (player-spotify-unpause)
+                   (spotify-notification event))
+		 ;; Maestro is playing, process pause command
+ 		 ((and (play-spotify? (pq-current *pq*))
+		       (spotify-active? event)
+		       (not (spotify-playing? event))
+		       (not (paused? (pq-current *pq*))))
+                   (dp "Pause-NOOP")
+                   (player-pause)
+                   (spotify-notification event))
+		 ;; Maestro is playing, and shall keep on playing
+ 		 ((and (play-spotify? (pq-current *pq*))
+		       (spotify-active? event))
+		  (dp "Playing - keep on")
+                   (spotify-notification event))))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running
 ;; Note that the dynamic label is only broadcasted through the notify
