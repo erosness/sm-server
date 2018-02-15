@@ -359,9 +359,9 @@
 		((and (not (play-spotify? (pq-current *pq*)))
 		      (spotify-playing? event)
                       (spotify-active? event))
-                   (spotify-notification event)
 	           (spotify-play "spotify")
 		   (dp "Quit-Start player")
+                   (spotify-notification event)
 		   (player-information))
 	        ;; Maestro is playin Spotify, but Spotify is no longer avtive on this unit
 		 ((and (play-spotify? (pq-current *pq*))
