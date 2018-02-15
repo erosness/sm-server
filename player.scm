@@ -192,7 +192,7 @@
 
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
-  (thread-sleep! 0.1))
+  (thread-sleep! 0.3))
 
 ;; Control operations
 (define (player-pause)           (play-worker `(pause)))
