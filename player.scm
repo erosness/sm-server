@@ -14,7 +14,7 @@
 ;;; and return a static DAB-url (like
 ;;; http://localhost:3345/ffmpeg/ALSA_1_DAB)
 
-(module player  (cplay
+(module player (cplay
                 play!
 		leader-play!
                 nextplay!
@@ -246,11 +246,11 @@
   (play-worker `(leader-play ,cmd ,on-exit)))
 
 
-(define (follow! cmd on-exit)
+(define (follow! ip_leader)
   (prepause-spotify)
-  (pp "At follow!") ;; ?????
-  (pp cmd) ;; ?????
-  (play-worker `(follow ,cmd)))
+  (pp "At follow!") 
+  (pp ip_leader)
+  (play-worker `(play ("cplay" ,ip_leader "follower")(print ";; TEST --XXXX") )))
 
 
 (define (play-command/tr turi)
@@ -277,9 +277,6 @@
 (define (play-addfollower! uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
 
 (define (play-rmfollower! uid_follower) (play-worker `(remove, uid_follower)))
-
-;;(define (play-follower uid_leader)
-;;  (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback"))))
 
 (define (spotify-play parameter)
   (play-worker `(play ("cplay" , "spotify") (print ";; ignoring callback"))))
