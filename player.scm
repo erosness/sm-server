@@ -14,22 +14,24 @@
 ;;; and return a static DAB-url (like
 ;;; http://localhost:3345/ffmpeg/ALSA_1_DAB)
 
-(module* player (cplay
+(module player (cplay
                 play!
+		leader-play!
                 nextplay!
-                leader-nextplay!
                 follow!
                 player-pause
 		player-spotify-unpause
                 player-unpause
+		player-paused?
                 player-pos
+		player-duration
                 player-seek
                 player-quit
                 play-command
 		spotify-play
-		player-follower
-		player-addfollower
-		player-rmfollower)
+		play-addfollower!
+		play-rmfollower!
+                playing?)
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 test http-client matchable
@@ -190,7 +192,7 @@
 
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
-  (thread-sleep! 0.1))
+  (thread-sleep! 0.3))
 
 ;; Control operations
 (define (player-pause)           (play-worker `(pause)))
@@ -244,11 +246,11 @@
   (play-worker `(leader-play ,cmd ,on-exit)))
 
 
-(define (follow! cmd on-exit)
+(define (follow! ip_leader)
   (prepause-spotify)
-  (pp "At follow!") ;; ?????
-  (pp cmd) ;; ?????
-  (play-worker `(follow ,cmd ,on-exit)))
+  (pp "At follow!") 
+  (pp ip_leader)
+  (play-worker `(play ("cplay" ,ip_leader "follower")(print ";; TEST --XXXX") )))
 
 
 (define (play-command/tr turi)
@@ -272,12 +274,9 @@
 (define (next-command turi)
   (car (cdr (play-command turi))))
 
-(define (play-addfollower uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
+(define (play-addfollower! uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
 
-(define (play-rmfollower uid_follower) (play-worker `(remove, uid_follower)))
-
-(define (play-follower uid_leader)
-  (play-worker `(play ("cplay" ,uid_leader "follower")   (print ";; ignoring callback"))))
+(define (play-rmfollower! uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (spotify-play parameter)
   (play-worker `(play ("cplay" , "spotify") (print ";; ignoring callback"))))

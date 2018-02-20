@@ -1,4 +1,4 @@
-(module* playqueue (pq-list
+(module playqueue (pq-list
                    pq-list-set!
                    pq-prev
                    pq-play-prev

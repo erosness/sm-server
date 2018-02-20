@@ -1,4 +1,4 @@
-(module* rest-player (player-seek-thread
+(module rest-player (player-seek-thread
                      player-information
                      spotify-monitor-thread
                      /v1/player/current
@@ -96,7 +96,7 @@
     (if (current-json)
 	(let ((id_leader (alist-ref 'id_leader (current-json)))
               (uid_leader (alist-ref 'uid_leader (current-json))))
-	  (play-follower uid_leader)
+	  (follow! uid_leader)
 	  (print "UID: " uid_leader)
           (follower-notification id_leader)
 	  `((uid_follower . ,(local-ip))
@@ -114,7 +114,7 @@
   ( lambda()
     (if (current-json)
 	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
-	  (play-addfollower uid_follower)
+	  (play-addfollower! uid_follower)
 	  (print "UID: " uid_follower)
 	  (player-information)	  
 	  )
@@ -125,7 +125,7 @@
   (lambda()
     (if (current-json)
 	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
-	  (play-rmfollower uid_follower)
+	  (play-rmfollower! uid_follower)
 	  (player-information)
 	  )
 	`((status . "Fail"))
@@ -359,12 +359,9 @@
 		((and (not (play-spotify? (pq-current *pq*)))
 		      (spotify-playing? event)
                       (spotify-active? event))
- 	           (player-quit)
 	           (spotify-play "spotify")
-		   (thread-sleep! 1)
-                   (player-unpause)
-                   (spotify-notification event)
 		   (dp "Quit-Start player")
+                   (spotify-notification event)
 		   (player-information))
 	        ;; Maestro is playin Spotify, but Spotify is no longer avtive on this unit
 		 ((and (play-spotify? (pq-current *pq*))
