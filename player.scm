@@ -1,3 +1,22 @@
+
+(define-syntax module*
+  (syntax-rules ()
+    ((module* name export body ...)
+     (begin (module name * body ...)
+            (import name)))))
+
+(define-syntax comment
+  (syntax-rules ()
+    ((comment body ...)
+     (void))))
+
+
+(define-syntax module**
+  (syntax-rules ()
+    ((module** name export body ... )
+     (begin body ...))))
+
+
 ;;; player: a simple wrapper around gstplay
 ;;;
 ;;; supports tr:// scheme so that PQ and cube-browser can be on
@@ -14,7 +33,7 @@
 ;;; and return a static DAB-url (like
 ;;; http://localhost:3345/ffmpeg/ALSA_1_DAB)
 
-(module player (cplay
+(module* player (cplay
                 play!
 		leader-play!
                 nextplay!
@@ -55,7 +74,7 @@
         (lsource (list (cond ((uri-reference? source) (uri->string source))
                              (else source))))
         (lar (if ar (list "-ar" (number->string ar)) '())))
-    (append '("cplay") lformat lar lsource)))
+    (append '("play") lformat lar lsource)))
 
 (define (cplay-follower source)
   (let ((lsource (list source "follower")))
@@ -129,16 +148,15 @@
 
   (lambda (msg)
     (match msg
-      (('play scommand on-exit)
-       ;; reset & kill old cplayer
+	   
+      (('start)
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (print "starting player")
-       (print scommand)
        (set! cplay-cmd
          (process-cli
-         (car scommand)
-         (cdr scommand)
+         "cplay"
+         '()
          (lambda ()
            ;; important: starting another thread for this is like
            ;; "posting" this to be ran in the future. without
@@ -146,7 +164,11 @@
            ;; don't want.
            (thread-start! on-exit)))))
 
-
+      (('play scommand on-exit)
+       (print "starting playback")
+       (conc scommand "\n")
+       (print scommand)
+       (cplay-cmd scommand))
 
        (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
@@ -332,5 +354,8 @@
           (equal? (thread-state monitor-thread) 'terminated )
           (equal? (thread-state monitor-thread) 'dead ))
       (set! monitor-thread (make-monitor-thread))))
+
+;; Start gstplayer
+(play-worker `(start))
 
 )
