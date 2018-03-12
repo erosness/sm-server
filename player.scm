@@ -172,7 +172,7 @@
            (thread-start! on-exit)))))
 
       (('play scommand on-exit)
-       (print "starting playback: " (cdr scommand))
+       (print "starting playback: " scommand)
        (send-cmd (conc "play " (cadr scommand))))
 ;;       (send-cmd "play http://edge01.media.positivityradio.world:8081/positively/70s128/icecast.audio"))
 
