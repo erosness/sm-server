@@ -16,6 +16,7 @@
     ((module** name export body ... )
      (begin body ...))))
 
+;; (play! "http://edge01.media.positivityradio.world:8081/positively/60s128/icecast.audio" #f #f)
 
 ;;; player: a simple wrapper around gstplay
 ;;;
@@ -165,10 +166,9 @@
            (thread-start! on-exit)))))
 
       (('play scommand on-exit)
-       (print "starting playback")
-       (conc scommand "\n")
-       (print scommand)
-       (cplay-cmd scommand))
+       (print "starting playback: " (cdr scommand))
+       (send-cmd (conc "play " (cadr scommand))))
+;;       (send-cmd "play http://edge01.media.positivityradio.world:8081/positively/70s128/icecast.audio"))
 
        (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
@@ -215,6 +215,7 @@
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
   (thread-sleep! 0.3))
+
 
 ;; Control operations
 (define (player-pause)           (play-worker `(pause)))
