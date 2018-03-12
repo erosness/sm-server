@@ -145,7 +145,13 @@
     (let ((response (cplay-cmd str)))
       (if (string? response)
           (parser response)
-          #f)))
+          ((set! cplay-cmd
+            (process-cli
+            "cplay"
+            '()
+            (lambda ()
+              (print "--------->> End of restarted gstplay"))))
+          #f))))
 
   (lambda (msg)
     (match msg
