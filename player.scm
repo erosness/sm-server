@@ -1,23 +1,3 @@
-
-(define-syntax module*
-  (syntax-rules ()
-    ((module* name export body ...)
-     (begin (module name * body ...)
-            (import name)))))
-
-(define-syntax comment
-  (syntax-rules ()
-    ((comment body ...)
-     (void))))
-
-
-(define-syntax module**
-  (syntax-rules ()
-    ((module** name export body ... )
-     (begin body ...))))
-
-;; (play! "http://edge01.media.positivityradio.world:8081/positively/60s128/icecast.audio" #f #f)
-
 ;;; player: a simple wrapper around gstplay
 ;;;
 ;;; supports tr:// scheme so that PQ and cube-browser can be on
@@ -34,7 +14,7 @@
 ;;; and return a static DAB-url (like
 ;;; http://localhost:3345/ffmpeg/ALSA_1_DAB)
 
-(module* player (cplay
+(module player (cplay
                 play!
 		leader-play!
                 nextplay!
@@ -74,8 +54,8 @@
   (let ((lformat (if format (list "-f" format) '()))
         (lsource (list (cond ((uri-reference? source) (uri->string source))
                              (else source))))
-        (lar (if ar (list "-ar" (number->string ar)) '())))
-    (append '("play") lformat lar lsource)))
+        (lar (if ar (list (number->string ar)) '())))
+    (append '(play) lformat lsource lar)))
 
 (define (cplay-follower source)
   (let ((lsource (list source "follower")))
@@ -88,6 +68,25 @@
  (test '("cplay" "-f" "alsa" "file") (cplay "file" format: "alsa"))
  (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100))
  (test '("cplay" "filename" "follower") (cplay-follower "filename"))
+)
+
+;; Convert mixed symbol/string lists to strings for use with cplay CLI interface
+(define (symbol-list->string cmd-list)
+  (let* ((token-raw (car cmd-list))
+         (token-str (if (symbol? token-raw)
+	    (symbol->string token-raw)
+            token-raw)))
+    (if (not (null? (cdr cmd-list)))
+      (string-append token-str " " (symbol-list->string (cdr cmd-list)))
+      token-str)))
+
+(test-group
+ "List decode"
+ (test "aa" (symbol-list->string '(aa)))
+ (test "aa bb" (symbol-list->string '(aa bb)))
+ (test "aa bb cc" (symbol-list->string '(aa bb "cc")))
+ (test "a b" (symbol-list->string '("a" b)))
+ (test "aa xx bb" (symbol-list->string '(aa "xx" bb)))
 )
 
 ;; pos responses from cplay contain both pos and duration. return both
@@ -172,9 +171,8 @@
            (thread-start! on-exit)))))
 
       (('play scommand on-exit)
-       (print "starting playback: " scommand)
-       (send-cmd (conc "play " (cadr scommand))))
-;;       (send-cmd "play http://edge01.media.positivityradio.world:8081/positively/70s128/icecast.audio"))
+         (print "Cmd to player:  " scommand)
+         (send-cmd (symbol-list->string scommand)))
 
        (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
@@ -308,7 +306,7 @@
 (define (play-rmfollower! uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (spotify-play parameter)
-  (play-worker `(play ("cplay" , "spotify") (print ";; ignoring callback"))))
+  (play-worker `(play ("play" , "spotify") (print ";; ignoring callback"))))
 
 (test-group "play-command"
  (test '("cplay" "file:///filename") (play-command "file:///filename"))
