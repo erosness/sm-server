@@ -11,8 +11,7 @@
 
 (define-turi-adapter alsa->turi "alsa"
   (lambda (params)
-    `((url . ,(alist-ref 'd params))
-      (format . "alsa"))))
+    `((url . ,(alist-ref 'd params)))))
 
 (define-handler /v1/catalog/line-in
   (lambda ()
