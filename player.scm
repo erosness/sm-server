@@ -54,8 +54,8 @@
   (let ((lformat (if format (list "-f" format) '()))
         (lsource (list (cond ((uri-reference? source) (uri->string source))
                              (else source))))
-        (lar (if ar (list "-ar" (number->string ar)) '())))
-    (append '("cplay") lformat lar lsource)))
+        (lar (if ar (list (number->string ar)) '())))
+    (append '(play) lformat lsource lar)))
 
 (define (cplay-follower source)
   (let ((lsource (list source "follower")))
@@ -68,6 +68,25 @@
  (test '("cplay" "-f" "alsa" "file") (cplay "file" format: "alsa"))
  (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100))
  (test '("cplay" "filename" "follower") (cplay-follower "filename"))
+)
+
+;; Convert mixed symbol/string lists to strings for use with cplay CLI interface
+(define (symbol-list->string cmd-list)
+  (let* ((token-raw (car cmd-list))
+         (token-str (if (symbol? token-raw)
+	    (symbol->string token-raw)
+            token-raw)))
+    (if (not (null? (cdr cmd-list)))
+      (string-append token-str " " (symbol-list->string (cdr cmd-list)))
+      token-str)))
+
+(test-group
+ "List decode"
+ (test "aa" (symbol-list->string '(aa)))
+ (test "aa bb" (symbol-list->string '(aa bb)))
+ (test "aa bb cc" (symbol-list->string '(aa bb "cc")))
+ (test "a b" (symbol-list->string '("a" b)))
+ (test "aa xx bb" (symbol-list->string '(aa "xx" bb)))
 )
 
 ;; pos responses from cplay contain both pos and duration. return both
@@ -125,20 +144,25 @@
     (let ((response (cplay-cmd str)))
       (if (string? response)
           (parser response)
-          #f)))
+          ((set! cplay-cmd
+            (process-cli
+            "cplay"
+            '()
+            (lambda ()
+              (print "--------->> End of restarted gstplay"))))
+          #f))))
 
   (lambda (msg)
     (match msg
-      (('play scommand on-exit)
-       ;; reset & kill old cplayer
+	   
+      (('start)
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (print "starting player")
-       (print scommand)
        (set! cplay-cmd
          (process-cli
-         (car scommand)
-         (cdr scommand)
+         "cplay"
+         '()
          (lambda ()
            ;; important: starting another thread for this is like
            ;; "posting" this to be ran in the future. without
@@ -146,7 +170,9 @@
            ;; don't want.
            (thread-start! on-exit)))))
 
-
+      (('play scommand on-exit)
+         (print "Cmd to player:  " scommand)
+         (send-cmd (symbol-list->string scommand)))
 
        (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
@@ -193,6 +219,7 @@
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
   (thread-sleep! 0.3))
+
 
 ;; Control operations
 (define (player-pause)           (play-worker `(pause)))
@@ -279,7 +306,7 @@
 (define (play-rmfollower! uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (spotify-play parameter)
-  (play-worker `(play ("cplay" , "spotify") (print ";; ignoring callback"))))
+  (play-worker `(play ("play" , "spotify") (print ";; ignoring callback"))))
 
 (test-group "play-command"
  (test '("cplay" "file:///filename") (play-command "file:///filename"))
@@ -332,5 +359,8 @@
           (equal? (thread-state monitor-thread) 'terminated )
           (equal? (thread-state monitor-thread) 'dead ))
       (set! monitor-thread (make-monitor-thread))))
+
+;; Start gstplayer
+(play-worker `(start))
 
 )

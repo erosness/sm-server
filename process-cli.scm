@@ -138,7 +138,7 @@
                 (send-command strings)
                 (mutex-unlock! read-mutex cvar 10.0) ;; <-- emergency timeout
                 (if last-line last-line
-                    (error "read-thread died or process hangs")))))
+                    ((error "read-thread died or process hangs") #f)))))
         ;; wait for signal by read-thread (unlock even on error)
         (lambda () (mutex-unlock! mutex #f 10.0))) ;;<-- emergency timeout
       )
