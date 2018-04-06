@@ -135,10 +135,14 @@
           (if (port-closed? pop) #f
               (begin
                 (set! last-line #f)
+		(print "At cmd: " strings)
                 (send-command strings)
-                (mutex-unlock! read-mutex cvar 1.0) ;; <-- emergency timeout
+                (if (not (mutex-unlock! read-mutex cvar 1.0))
+		    ((process-signal pid)
+		     (print "Timeout XXXX")));; <-- emergency timeout
                 (if last-line last-line
-                    ((error "read-thread died or process hangs") #f)))))
+                    (error "read-thread died or process hangs->")) #f)))
+	
         ;; wait for signal by read-thread (unlock even on error)
         (lambda () (mutex-unlock! mutex #f 1.0))) ;;<-- emergency timeout
       )
