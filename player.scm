@@ -1,3 +1,20 @@
+(define-syntax module*
+  (syntax-rules ()
+    ((module* name export body ...)
+     (begin (module name * body ...)
+            (import name)))))
+
+(define-syntax comment
+  (syntax-rules ()
+    ((comment body ...)
+     (void))))
+
+
+(define-syntax module**
+  (syntax-rules ()
+    ((module** name export body ... )
+     (begin body ...))))
+
 ;;; player: a simple wrapper around gstplay
 ;;;
 ;;; supports tr:// scheme so that PQ and cube-browser can be on
@@ -14,7 +31,7 @@
 ;;; and return a static DAB-url (like
 ;;; http://localhost:3345/ffmpeg/ALSA_1_DAB)
 
-(module player (cplay
+(module* player (cplay
                 play!
 		leader-play!
                 nextplay!
@@ -150,6 +167,7 @@
             '()
             (lambda ()
               (print "--------->> End of restarted gstplay"))))
+	  (print "Restart 1") 
           #f))))
 
   (lambda (msg)
@@ -174,7 +192,7 @@
          (print "Cmd to player:  " scommand)
          (send-cmd (symbol-list->string scommand)))
 
-       (('leader-play scommand on-exit)
+      (('leader-play scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
@@ -185,7 +203,7 @@
          (lambda ()
            (thread-start! on-exit)))))
 
-       (('follow scommand on-exit)
+      (('follow scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
