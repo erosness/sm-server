@@ -167,7 +167,7 @@
             '()
             (lambda ()
               (print "--------->> End of restarted gstplay"))))
-	  (print "Restart 1") 
+	  (thread-start! (make-thread (lambda()(print "Restart 1"))))
           #f))))
 
   (lambda (msg)
@@ -186,7 +186,9 @@
            ;; "posting" this to be ran in the future. without
            ;; this, we'd start nesting locks and things which we
            ;; don't want.
-           (thread-start! on-exit)))))
+	   ;;           (thread-start! on-exit)
+           (thread-start! (make-thread (lambda ()(print "End process-cli 1"))))
+	   ))))
 
       (('play scommand on-exit)
          (print "Cmd to player:  " scommand)
@@ -233,6 +235,9 @@
 (define play-worker
   (let ((mx (make-mutex)))
     (with-mutex-lock mx (make-play-worker))))
+
+;; Initial start of gstplayer
+(play-worker `(start))
 
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
@@ -377,8 +382,5 @@
           (equal? (thread-state monitor-thread) 'terminated )
           (equal? (thread-state monitor-thread) 'dead ))
       (set! monitor-thread (make-monitor-thread))))
-
-;; Start gstplayer
-(play-worker `(start))
 
 )
