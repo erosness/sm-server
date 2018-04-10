@@ -71,7 +71,7 @@
         (lsource (list (cond ((uri-reference? source) (uri->string source))
                              (else source))))
         (lar (if ar (list (number->string ar)) '())))
-    (append '(play) lformat lsource lar)))
+    (append '("play") lformat lsource lar)))
 
 (define (cplay-follower source)
   (let ((lsource (list source "follower")))
