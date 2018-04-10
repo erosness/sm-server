@@ -14,7 +14,6 @@
                    pq-loop?
                    pq-loop?-set!
                    pq-play
-                   pq-leader-play
                    make-pq
                    pq-drop-after
                    pq-add-current-change-listener)
@@ -158,52 +157,25 @@
 
 (define (pq-prev* pq) (pq-next/lst* pq (reverse (pq-list pq))))
 
-(define (pq-leader-play* pq item #!key (update-current #t)(is_leader #t))
-        (pq-play* pq item update-current: update-current is_leader: #t))
-
-(define (pq-play* pq item #!key (update-current #t) (is_leader #f))
+(define (pq-play* pq item #!key (update-current #t))
   (let* ((item (or (pq-ref* pq item)
                    (begin (print "playing item not in playqueue " item) item)))
          (track (alist-ref 'turi item)))
-         (if is_leader
-           (leader-play! (play-command track)
-             (lambda ()
-               ;; try to play next song, if anything goes wrong, print
-               ;; and exit. it's important we check for errors here,
-               ;; otherwise we get abandoned mutexes.
-               ;;
-               ;; the tricky part here is that this will catch errors
-               ;; inside pq-play* too because pq-play-next will call it.
-               ;; we only want to catch those errors, we do not want to
-               ;; catch the errors that were caused by a direct curl
-               ;; /v1/player/current because those errors are nicely
-               ;; propegated back to the REST response. the errors in
-               ;; this callback, however, will crash the server:
-               (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
-				  (pq-play-next pq)))
-	     (lambda ()
-               (handle-exceptions e (pp `(nexttrack warning ,(condition->list e)))
-               (pq-nexttrack-next pq))))
-           (play! (play-command track)
-            (lambda ()
-               ;; try to play next song, if anything goes wrong, print
-               ;; and exit. it's important we check for errors here,
-               ;; otherwise we get abandoned mutexes.
-               ;;
-               ;; the tricky part here is that this will catch errors
-               ;; inside pq-play* too because pq-play-next will call it.
-               ;; we only want to catch those errors, we do not want to
-               ;; catch the errors that were caused by a direct curl
-               ;; /v1/player/current because those errors are nicely
-               ;; propegated back to the REST response. the errors in
-               ;; this callback, however, will crash the server:
-               (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
-				  (pq-play-next pq)))
-	     (lambda ()
-               (handle-exceptions e (pp `(nexttrack warning ,(condition->list e)))
-               (pq-nexttrack-next pq)))))
-
-
+         (play! (play-command track)
+           (lambda ()
+             ;; try to play next song, if anything goes wrong, print
+             ;; and exit. it's important we check for errors here,
+             ;; otherwise we get abandoned mutexes.
+             ;;
+             ;; the tricky part here is that this will catch errors
+             ;; inside pq-play* too because pq-play-next will call it.
+             ;; we only want to catch those errors, we do not want to
+             ;; catch the errors that were caused by a direct curl
+             ;; /v1/player/current because those errors are nicely
+             ;; propegated back to the REST response. the errors in
+             ;; this callback, however, will crash the server:
+             (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
+		  (pq-play-next pq))))
     (print "playing " track)
     (if update-current
         (pq-current-set! pq item))))
@@ -278,7 +250,6 @@
 
   (define pq-play        (with-pq-mutex pq-play*))
   (define pq-nexttrack-next   (with-pq-mutex pq-nexttrack-next*))
-  (define pq-leader-play (with-pq-mutex pq-leader-play*))
   (define pq-play-next   (with-pq-mutex pq-play-next*))
   (define pq-play-prev   (with-pq-mutex pq-play-prev*))
   (define pq-drop-after  (with-pq-mutex pq-drop-after*)))
