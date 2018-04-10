@@ -360,14 +360,11 @@
 		      (spotify-playing? event)
                       (spotify-active? event))
 	           (spotify-play "spotify")
-		   (dp "Quit-Start player")
                    (spotify-notification event)
 		   (player-information))
 	        ;; Maestro is playin Spotify, but Spotify is no longer avtive on this unit
 		 ((and (play-spotify? (pq-current *pq*))
                        (not (spotify-active? event)))
-		  (player-quit)
-		  (dp "Quit player")
 		   (pq-current-set! *pq* `())
                    (player-information))
 		 ;; Maestro is paused, process play command
@@ -375,7 +372,6 @@
 		       (spotify-active? event)
 		       (spotify-playing? event)
 		       (paused?  (pq-current *pq*)))
-                   (dp "Unpause - NOOP")
                    (player-spotify-unpause)
                    (spotify-notification event))
 		 ;; Maestro is playing, process pause command
@@ -383,13 +379,11 @@
 		       (spotify-active? event)
 		       (not (spotify-playing? event))
 		       (not (paused? (pq-current *pq*))))
-                   (dp "Pause-NOOP")
                    (player-pause)
                    (spotify-notification event))
 		 ;; Maestro is playing, and shall keep on playing
  		 ((and (play-spotify? (pq-current *pq*))
 		       (spotify-active? event))
-		  (dp "Playing - keep on")
                    (spotify-notification event))))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running
