@@ -33,7 +33,6 @@
 
 (module* player (cplay
                 play!
-		leader-play!
                 nextplay!
                 follow!
                 player-pause
@@ -72,7 +71,7 @@
         (lsource (list (cond ((uri-reference? source) (uri->string source))
                              (else source))))
         (lar (if ar (list (number->string ar)) '())))
-    (append '("play") lformat lsource lar)))
+    (append '(play) lformat lsource lar)))
 
 (define (cplay-follower source)
   (let ((lsource (list source "follower")))
@@ -83,7 +82,6 @@
  (test '("play" "filename") (cplay "filename"))
  (test '("play" "filename") (cplay (uri-reference "filename")))
  (test '("play" "-f" "alsa" "file") (cplay "file" format: "alsa"))
-;; (test '("play" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100))
 ;; (test '("play" "filename" "follower") (cplay-follower "filename"))
 )
 
@@ -191,17 +189,6 @@
          (print "Cmd to player:  " scommand)
          (send-cmd (symbol-list->string scommand)))
 
-      (('leader-play scommand on-exit)
-       ;; reset & kill old cplayer
-       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
-       (cplay-cmd "quit")
-       (set! cplay-cmd
-         (process-cli
-         (car scommand)
-         (append (cdr scommand) '("leader"))
-         (lambda ()
-           (thread-start! on-exit)))))
-
       (('follow scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
@@ -275,20 +262,6 @@
    (cplay-follower uid-leader)
    )
   )
-
-(define (leader-play! cmd on-exit on-next)
-  (prepause-spotify)
-  (pp "At leader-play!") ;; ?????
-  (pp cmd) ;; ?????
-  (play-worker `(leader-play ,cmd ,on-exit))
-  (setup-nexttrack-callback on-next))
-
-(define (leader-preplay! cmd on-exit on-next)
-  (prepause-spotify)
-  (pp "At leader-play!") ;; ?????
-  (pp cmd) ;; ?????
-  (play-worker `(leader-play ,cmd ,on-exit)))
-
 
 (define (follow! ip_leader)
   (prepause-spotify)
