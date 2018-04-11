@@ -1,3 +1,20 @@
+(define-syntax module*
+  (syntax-rules ()
+    ((module* name export body ...)
+     (begin (module name * body ...)
+            (import name)))))
+
+(define-syntax comment
+  (syntax-rules ()
+    ((comment body ...)
+     (void))))
+
+
+(define-syntax module**
+  (syntax-rules ()
+    ((module** name export body ... )
+     (begin body ...))))
+
 ;;; player: a simple wrapper around gstplay
 ;;;
 ;;; supports tr:// scheme so that PQ and cube-browser can be on
@@ -14,9 +31,8 @@
 ;;; and return a static DAB-url (like
 ;;; http://localhost:3345/ffmpeg/ALSA_1_DAB)
 
-(module player (cplay
+(module* player (cplay
                 play!
-		leader-play!
                 nextplay!
                 follow!
                 player-pause
@@ -55,7 +71,7 @@
         (lsource (list (cond ((uri-reference? source) (uri->string source))
                              (else source))))
         (lar (if ar (list (number->string ar)) '())))
-    (append '(play) lformat lsource lar)))
+    (append '("play") lformat lsource lar)))
 
 (define (cplay-follower source)
   (let ((lsource (list source "follower")))
@@ -63,11 +79,10 @@
 
 (test-group
  "cplay"
- (test '("cplay" "filename") (cplay "filename"))
- (test '("cplay" "filename") (cplay (uri-reference "filename")))
- (test '("cplay" "-f" "alsa" "file") (cplay "file" format: "alsa"))
- (test '("cplay" "-f" "device" "-ar" "44100" "file") (cplay "file" format: "device" ar: 44100))
- (test '("cplay" "filename" "follower") (cplay-follower "filename"))
+ (test '("play" "filename") (cplay "filename"))
+ (test '("play" "filename") (cplay (uri-reference "filename")))
+ (test '("play" "-f" "alsa" "file") (cplay "file" format: "alsa"))
+;; (test '("play" "filename" "follower") (cplay-follower "filename"))
 )
 
 ;; Convert mixed symbol/string lists to strings for use with cplay CLI interface
@@ -132,7 +147,6 @@
  (test "more bad input" #f (parse-cplay-paused?-response "foo"))
  (test "empty input" #f    (parse-cplay-paused?-response "")))
 
-
 ;; create a worker which can process one message at a time
 ;; sequentially. this makes the world a simpler place. we should
 ;; probably introduce this model on all mutation to the player.
@@ -150,6 +164,7 @@
             '()
             (lambda ()
               (print "--------->> End of restarted gstplay"))))
+	  (print "Restart 1") 
           #f))))
 
   (lambda (msg)
@@ -174,18 +189,7 @@
          (print "Cmd to player:  " scommand)
          (send-cmd (symbol-list->string scommand)))
 
-       (('leader-play scommand on-exit)
-       ;; reset & kill old cplayer
-       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
-       (cplay-cmd "quit")
-       (set! cplay-cmd
-         (process-cli
-         (car scommand)
-         (append (cdr scommand) '("leader"))
-         (lambda ()
-           (thread-start! on-exit)))))
-
-       (('follow scommand on-exit)
+      (('follow scommand on-exit)
        ;; reset & kill old cplayer
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
@@ -259,20 +263,6 @@
    )
   )
 
-(define (leader-play! cmd on-exit on-next)
-  (prepause-spotify)
-  (pp "At leader-play!") ;; ?????
-  (pp cmd) ;; ?????
-  (play-worker `(leader-play ,cmd ,on-exit))
-  (setup-nexttrack-callback on-next))
-
-(define (leader-preplay! cmd on-exit on-next)
-  (prepause-spotify)
-  (pp "At leader-play!") ;; ?????
-  (pp cmd) ;; ?????
-  (play-worker `(leader-play ,cmd ,on-exit)))
-
-
 (define (follow! ip_leader)
   (prepause-spotify)
   (pp "At follow!") 
@@ -289,7 +279,6 @@
     (cplay (alist-ref 'url response)
            format: (alist-ref 'format response)
            ar: (alist-ref 'ar response))))
-
 
 (define (play-command turi)
   (print "At player:play-command:" turi)
@@ -309,9 +298,9 @@
   (play-worker `(play ("play" , "spotify") (print ";; ignoring callback"))))
 
 (test-group "play-command"
- (test '("cplay" "file:///filename") (play-command "file:///filename"))
- (test '("cplay" "http://domain/file.mp3") (play-command "http://domain/file.mp3"))
- (test '("cplay" "filename") (play-command "filename"))
+ (test '("play" "file:///filename") (play-command "file:///filename"))
+ (test '("play" "http://domain/file.mp3") (play-command "http://domain/file.mp3"))
+ (test '("play" "filename") (play-command "filename"))
  (test-error (play-command "i l l e g a l"))
  (test "filename" (next-command "filename")))
 
