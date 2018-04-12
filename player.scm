@@ -161,10 +161,10 @@
           ((set! cplay-cmd
             (process-cli
             "cplay"
-            '()
-            (lambda ()
-              (print "--------->> End of restarted gstplay"))))
-	  (print "Restart 1") 
+            '() #f))
+;;            (lambda ()
+;;              (thread-start! on-exit))))
+	  (print "Restart 1")
           #f))))
 
   (lambda (msg)
@@ -177,13 +177,13 @@
        (set! cplay-cmd
          (process-cli
          "cplay"
-         '()
-         (lambda ()
+         '() #f)))
+;;         (lambda ()
            ;; important: starting another thread for this is like
            ;; "posting" this to be ran in the future. without
            ;; this, we'd start nesting locks and things which we
            ;; don't want.
-           (thread-start! on-exit)))))
+;;           (thread-start! on-exit)))))
 
       (('play scommand on-exit)
          (print "Cmd to player:  " scommand)
