@@ -119,7 +119,7 @@
                      (print ";; waiting for " pid)
                      ;; wait and detach from child
                      (process-wait pid)
-                     (and on-exit (on-exit))
+                     (and on-exit ( begin (print "-------->> Test")(on-exit)(print "-------->> Test")))
                      (print ";; read-thread " (current-thread) " done )"))
                    (conc "(ms" (current-milliseconds) ")")))
 
@@ -138,7 +138,7 @@
                 (send-command strings)
                 (mutex-unlock! read-mutex cvar 1.0) ;; <-- emergency timeout
                 (if last-line last-line
-                    ((error "read-thread died or process hangs") #f)))))
+                    ((print-call-chain)(error "read-thread died or process hangs") #f)))))
         ;; wait for signal by read-thread (unlock even on error)
         (lambda () (mutex-unlock! mutex #f 1.0))) ;;<-- emergency timeout
       )
