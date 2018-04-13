@@ -135,12 +135,26 @@
           (if (port-closed? pop) #f
               (begin
                 (set! last-line #f)
+		(print "cmd: " strings)
                 (send-command strings)
-                (mutex-unlock! read-mutex cvar 1.0) ;; <-- emergency timeout
-                (if last-line last-line
-                    ((print-call-chain)(error "read-thread died or process hangs") #f)))))
+                (mutex-unlock! read-mutex cvar 4.0) ;; <-- emergency timeout
+                (if last-line
+		   last-line
+                   (begin
+		    (print "mutex     : " (mutex-state mutex))
+		    (print "read-mutex: " (mutex-state read-mutex))
+		    (print "read-thread?: " (thread? read-thread))
+		    (print "read-thread: " (thread-state read-thread))
+		    (if pid
+			((print "Terminate gstplay: " pid)
+			 (process-signal (+ pid 1))
+			 (set! pid #f)))
+		    (if (thread? read-thread)
+			((print "Terminate! pid=" pid )
+                        (thread-terminate! read-thread)))
+		    #f)))))
         ;; wait for signal by read-thread (unlock even on error)
-        (lambda () (mutex-unlock! mutex #f 1.0))) ;;<-- emergency timeout
+        (lambda ()  (mutex-unlock! mutex #f 10.0))) ;;<-- emergency timeout
       )
 
     (lambda (command . args)
