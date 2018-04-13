@@ -156,28 +156,34 @@
 
   (define (send-cmd str #!optional (parser values))
     (let ((response (cplay-cmd str)))
-      (if (string? response)
-          (parser response)
-          ((set! cplay-cmd
+      (print "Resp: " response)
+      (if (string? response) (parser response)
+          ((print "Player, no parse return 2")
+	   (set! cplay-cmd
             (process-cli
             "cplay"
-            '() #f))
+            '()
+            (lambda () (print "Player ret2"))
+	    ))
 ;;            (lambda ()
 ;;              (thread-start! on-exit))))
-	  (print "Restart 1")
+	  (print "Restart 2")
           #f))))
 
   (lambda (msg)
     (match msg
 	   
       (('start)
-       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
+;;       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
        (print "starting player")
        (set! cplay-cmd
          (process-cli
          "cplay"
-         '() #f)))
+         '()
+         (lambda () (print "Player ret1"))))
+;;	 #f))
+         (print "Restart 1"))
 ;;         (lambda ()
            ;; important: starting another thread for this is like
            ;; "posting" this to be ran in the future. without
@@ -338,6 +344,8 @@
     (->> 
       monitor-body
       (loop/interval 4)
+      (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
+                                           ,(condition->list e))) #t))
       (loop)
       ((flip make-thread) "Monitor") )))
 
