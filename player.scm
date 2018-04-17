@@ -156,34 +156,35 @@
 
   (define (send-cmd str #!optional (parser values))
     (let ((response (cplay-cmd str)))
-      (if (string? response)
-          (parser response)
-          ((set! cplay-cmd
+      (if (string? response) (parser response)
+          (begin
+	   (set! cplay-cmd
             (process-cli
             "cplay"
             '()
-            (lambda ()
-              (print "--------->> End of restarted gstplay"))))
-	  (print "Restart 1") 
+            (lambda () (print "Player ret2")) ;; No on-exit yet.
+	    ))
           #f))))
 
+  
   (lambda (msg)
     (match msg
 	   
       (('start)
        (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
-       (print "starting player")
        (set! cplay-cmd
          (process-cli
          "cplay"
          '()
-         (lambda ()
+         (lambda () (print "Player ret1")))) ;; No on-exit yet.
+	 #f)
+;;         (lambda ()
            ;; important: starting another thread for this is like
            ;; "posting" this to be ran in the future. without
            ;; this, we'd start nesting locks and things which we
            ;; don't want.
-           (thread-start! on-exit)))))
+;;           (thread-start! on-exit)))))
 
       (('play scommand on-exit)
          (print "Cmd to player:  " scommand)
@@ -338,6 +339,8 @@
     (->> 
       monitor-body
       (loop/interval 4)
+      (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
+                                           ,(condition->list e))) #t))
       (loop)
       ((flip make-thread) "Monitor") )))
 
