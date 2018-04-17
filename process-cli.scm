@@ -119,7 +119,7 @@
                      (print ";; waiting for " pid)
                      ;; wait and detach from child
                      (process-wait pid)
-                     (and on-exit ( begin (print "-------->> Test")(on-exit)(print "-------->> Test")))
+                     (and on-exit (on-exit))
                      (print ";; read-thread " (current-thread) " done )"))
                    (conc "(ms" (current-milliseconds) ")")))
 
@@ -135,27 +135,19 @@
           (if (port-closed? pop) #f
               (begin
                 (set! last-line #f)
-		(print "cmd: " strings)
                 (send-command strings)
                 (mutex-unlock! read-mutex cvar 4.0) ;; <-- emergency timeout
                 (if last-line
 		   last-line
                    (begin
-		    (print "mutex     : " (mutex-state mutex))
-		    (print "read-mutex: " (mutex-state read-mutex))
-		    (print "read-thread?: " (thread? read-thread))
-		    (print "read-thread: " (thread-state read-thread))
-		    (if pid
-			((print "Terminate gstplay: " pid)
-			 (process-signal (+ pid 1))
-			 (set! pid #f)))
-		    (if (thread? read-thread)
-			((print "Terminate! pid=" pid )
-                        (thread-terminate! read-thread)))
-		    #f)))))
+                     (if pid
+			 (process-signal pid)
+			 (set! pid #f))
+		     (if (thread? read-thread)
+                        (thread-terminate! read-thread))
+		     #f)))))
         ;; wait for signal by read-thread (unlock even on error)
-        (lambda ()  (mutex-unlock! mutex #f 10.0))) ;;<-- emergency timeout
-      )
+        (lambda ()  (mutex-unlock! mutex #f 10.0)))) ;;<-- emergency timeout
 
     (lambda (command . args)
       (case command
