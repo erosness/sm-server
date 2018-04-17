@@ -156,34 +156,29 @@
 
   (define (send-cmd str #!optional (parser values))
     (let ((response (cplay-cmd str)))
-      (print "Resp: " response)
       (if (string? response) (parser response)
-          ((print "Player, no parse return 2")
+          (begin
 	   (set! cplay-cmd
             (process-cli
             "cplay"
             '()
-            (lambda () (print "Player ret2"))
+            (lambda () (print "Player ret2")) ;; No on-exit yet.
 	    ))
-;;            (lambda ()
-;;              (thread-start! on-exit))))
-	  (print "Restart 2")
           #f))))
 
+  
   (lambda (msg)
     (match msg
 	   
       (('start)
-;;       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
+       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
        (cplay-cmd "quit")
-       (print "starting player")
        (set! cplay-cmd
          (process-cli
          "cplay"
          '()
-         (lambda () (print "Player ret1"))))
-;;	 #f))
-         (print "Restart 1"))
+         (lambda () (print "Player ret1")))) ;; No on-exit yet.
+	 #f)
 ;;         (lambda ()
            ;; important: starting another thread for this is like
            ;; "posting" this to be ran in the future. without
