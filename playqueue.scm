@@ -176,11 +176,9 @@
              ;; this callback, however, will crash the server:
              (handle-exceptions e (pp `(play-next warning ,(condition->list e)))
 				(pq-play-next pq)))
-             (lambda ()
-;;                 (handle-exceptions e (pp `(nexttrack warning ,(condition->list e)))
-                 (handle-exceptions e (pp "---------> Except" )
-				    (print "--------- > Recover"))))
-	 
+           (lambda ()
+              (handle-exceptions e (pp `(nexttrack warning ,(condition->list e)))
+				    (pq-nexttrack-next* pq))))
     (print "playing " track)
     (if update-current
         (pq-current-set! pq item))))
