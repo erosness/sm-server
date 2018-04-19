@@ -204,7 +204,8 @@
                      ;; Don't allow seek on infinite streams
                      ((>= current-duration 0)))
             (print "seeking track to position " (cdr pos))
-            (player-seek (cdr pos)))
+;;            (player-seek (cdr pos))
+	    )
 
           ;; Change paused?
           (and-let* ((pause (assoc 'paused json-request)))
