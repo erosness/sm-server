@@ -1,8 +1,10 @@
-(module rest-player (player-seek-thread
-                     player-information
-                     spotify-monitor-thread
-                     /v1/player/current
-                     *pq*)
+(module rest-player 
+		(
+			     player-seek-thread
+	                   player-information
+	                 spotify-monitor-thread
+	               /v1/player/current
+	              *pq*)
 
 (import chicken scheme data-structures)
 
@@ -16,6 +18,9 @@
 (import notify incubator)
 
 (define *pq* (make-pq))
+
+(define seek_delay 2)
+(define seek_target 0)
 
 (define ((change-callback path) oldval newval)
   (send-notification path newval))
@@ -41,12 +46,28 @@
 
 ;; alist of position, duration, paused etc (or '() if nothing is
 ;; playing)
-(define (player-pos-info)
+(define (player-pos-info-old)
+
   (if (player-pos) ;; <- active cplay?
       `((pos .      ,(player-pos))
-        (duration . ,(player-duration))
-        (paused .   ,(player-paused?)))
-      '()))
+	(duration . ,(player-duration))
+	(paused .   ,(player-paused?)))
+      '()
+      ))
+
+
+(define (player-pos-info) 
+  (if (> seek_delay 0)
+      
+      `((pos .      ,seek_target)
+	(duration . ,(player-duration))
+	(paused .   ,(player-paused?)))      
+      ;; else seek_delay     
+      `((pos .      ,(player-pos))
+	(duration . ,(player-duration))
+	(paused .   ,(player-paused?)))
+      )
+  )
 
 
 (define (player-information #!optional (current (pq-current *pq*)))
@@ -203,8 +224,10 @@
 					 (current-duration (alist-ref 'duration current))
                      ;; Don't allow seek on infinite streams
                      ((>= current-duration 0)))
-            (print "seeking track to position " (cdr pos))
-;;            (player-seek (cdr pos))
+		    (print "seeking track to position " (cdr pos))
+		    (set! seek_delay 2)
+		    (set! seek_target (cdr pos))
+            (player-seek (cdr pos))
 	    )
 
           ;; Change paused?
@@ -218,7 +241,11 @@
           ;; Set and NOTIFY new current value
           (let ((new-current (player-information current)))
             (pq-current-set! *pq* new-current)
-            new-current))
+	    (print "player/current: leaving")
+	    (print new-current)
+            new-current
+	    )
+	  )
         ;;else
         (player-information))))
 
@@ -272,10 +299,15 @@
 
 
 ;; do this on every player hearbeat interval
-(define (player-thread-iteration)
-  (if (playing?) ;; running and not paused?
-      (send-notification "/v1/player/pos"
-                         (player-pos-info))))
+(define (player-thread-iteration) 
+  (if (> seek_delay 0)
+      (
+       print "**************************************"
+       display seek_delay
+       (set! seek_delay (sub1 seek_delay))
+       )
+      (if (playing?) ;; running and not paused?
+	  (send-notification "/v1/player/pos" (player-pos-info)))))
 
 (define player-seek-thread
   (thread-start!
@@ -406,6 +438,5 @@
          (send-notification "/v1/player/current" content))
        #t) ; <-- keep going
      )))
-
 )
 
