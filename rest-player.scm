@@ -1,10 +1,10 @@
-(module rest-player *
-;;	(*
-;;		     player-seek-thread
-  ;;                   player-information
-    ;;                 spotify-monitor-thread
-      ;;               /v1/player/current
-       ;;              *pq*)
+(module rest-player 
+		(
+			     player-seek-thread
+	                   player-information
+	                 spotify-monitor-thread
+	               /v1/player/current
+	              *pq*)
 
 (import chicken scheme data-structures)
 
@@ -19,7 +19,7 @@
 
 (define *pq* (make-pq))
 
-(define seek_delay 4)
+(define seek_delay 2)
 (define seek_target 0)
 
 (define ((change-callback path) oldval newval)
@@ -225,7 +225,7 @@
                      ;; Don't allow seek on infinite streams
                      ((>= current-duration 0)))
 		    (print "seeking track to position " (cdr pos))
-		    (set! seek_delay 4)
+		    (set! seek_delay 2)
 		    (set! seek_target (cdr pos))
             (player-seek (cdr pos))
 	    )
