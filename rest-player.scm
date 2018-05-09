@@ -314,6 +314,18 @@
                           (duration . ,(* 0.001 (alist-ref 'duration_ms event)))
                           (paused . ,(not (spotify-playing? event))))))
 
+(define (fm-pq)
+  (print "New FM station")
+  (pq-current-set! *pq* `((title . , (fm-radio-ps))
+			  (subtitle . , (fm-radio-text))
+			  (tye . "fm")
+			  (pos . 0)
+			  (duration . -1)
+			  (paused . , #f)
+			  (frequency . (fm-frequency))
+			  )
+				    
+			     
 
 (define (run-monitor-thread name body #!optional (interval 1))
   (thread-start!
