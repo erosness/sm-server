@@ -50,7 +50,7 @@
 (define (fm-get-state)
   (let* ((freq (fm-frequency))
          (turi-alist `((hz . ,freq))))
-    `((title . ,(hz-pretty-print freq))
+    `((title . ,(fm-radio-ps))     
       (type . "fm")
       (frequency . ,freq)
       (tuneStatus . ,(symbol->string (fm-tunestatus)))
@@ -127,6 +127,7 @@
                      (fm-search-with-notify 'idle)
                      (fm-frequency hz)
 
+		     (fm-pq)
                      `((status . "ok"))))))
                '(hz #t)))
 
