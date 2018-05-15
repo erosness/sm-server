@@ -104,6 +104,8 @@
   (if (not (fm-notify-alive?))
       (*fm-notify-thread* (notify-fm-search-state 1))))
 
+(import rest-player)
+
 (define-handler /v1/catalog/fm/seek
   (argumentize (lambda (hz)
                  (ensure-fm-on)
@@ -127,7 +129,8 @@
                      (fm-search-with-notify 'idle)
                      (fm-frequency hz)
 
-		     (fm-pq)
+		     (fm-pq hz)
                      `((status . "ok"))))))
                '(hz #t)))
+
 
