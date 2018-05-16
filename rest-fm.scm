@@ -77,7 +77,7 @@
                          (alist-delete 'turi state)
                          (getter-with-setter (lambda () *catalog-notify-connections*)
                                              (lambda (new) (set! *catalog-notify-connections* new))))
-      (fm-pq 1000)
+      (fm-pq)
       ;; Keep looping?
       searching?)))
 
@@ -131,7 +131,7 @@
                      (fm-search-with-notify 'idle)
                      (fm-frequency hz)
 
-		     (fm-pq hz)
+		     (fm-pq)
                      `((status . "ok"))))))
                '(hz #t)))
 
