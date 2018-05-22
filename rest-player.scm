@@ -420,16 +420,18 @@
 
 
 
-(define (fm-pq set_freq)
+(define (fm-pq)
   (pq-current-set! *pq* `((title . , (conc (fm-radio-ps) (pp-hz (fm-frequency))))
 			  (subtitle . , (fm-radio-text))
 			  (type . "fm")
 			  (pos . 0)
 			  (duration . -1)
 			  (paused . , #f)
-			  (frequency . , set_freq)
+			  (frequency . , (fm-frequency))
 			  )
-		   ))
+		   )
+
+  )
 				    
 
 
