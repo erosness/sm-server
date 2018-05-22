@@ -2,6 +2,7 @@
                      player-information
                      spotify-monitor-thread
                      /v1/player/current
+		     fm-pq
                      *pq*)
 
 (import chicken scheme data-structures)
@@ -12,6 +13,7 @@
 (use test restlib clojurian-syntax ports
      srfi-18 extras posix srfi-1 srfi-13
      medea matchable irregex matchable)
+
 
 (import notify incubator)
 
@@ -403,24 +405,33 @@
                               ("dab" (dab-dls))
                               ("fm"  (fm-radio-text))
                               (else #f)))
+		  (title (match (alist-ref 'type (pq-current *pq*))
+				("fm"  (fm-radio-ps))
+				(else 'title (pq-current *pq*))))
+		  
                   (content (alist-merge (player-information) `((subtitle . ,subtitle)))))
          (send-notification "/v1/player/current" content))
        #t) ; <-- keep going
      )))
 
 
+(use fmt dab)
+(define (pp-hz hz) (fmt #f (num (/ hz 1000) 10 2) "Mhz"))
+
+
 
 (define (fm-pq)
-  (print "New FM station")
-  (pq-current-set! *pq* `((title . , (fm-radio-ps))
+  (pq-current-set! *pq* `((title . , (conc (fm-radio-ps) (pp-hz (fm-frequency))))
 			  (subtitle . , (fm-radio-text))
-			  (tye . "fm")
+			  (type . "fm")
 			  (pos . 0)
 			  (duration . -1)
 			  (paused . , #f)
-			  (frequency . (fm-frequency))
+			  (frequency . , (fm-frequency))
 			  )
-		   ))
+		   )
+
+  )
 				    
 
 

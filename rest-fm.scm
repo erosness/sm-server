@@ -5,6 +5,7 @@
 (use test restlib clojurian-syntax looper fmt)
 (import rest notify turi incubator)
 
+(import rest-player)
 ;; ==================== fm (catalog) notifications ====================
 (define *catalog-notify-connections* '())
 
@@ -76,6 +77,7 @@
                          (alist-delete 'turi state)
                          (getter-with-setter (lambda () *catalog-notify-connections*)
                                              (lambda (new) (set! *catalog-notify-connections* new))))
+      (fm-pq)
       ;; Keep looping?
       searching?)))
 
@@ -104,6 +106,8 @@
   (if (not (fm-notify-alive?))
       (*fm-notify-thread* (notify-fm-search-state 1))))
 
+
+
 (define-handler /v1/catalog/fm/seek
   (argumentize (lambda (hz)
                  (ensure-fm-on)
@@ -130,4 +134,5 @@
 		     (fm-pq)
                      `((status . "ok"))))))
                '(hz #t)))
+
 
