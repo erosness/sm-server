@@ -393,6 +393,9 @@
 ;; Read and broadcast DAB dynamic label if dab is running
 ;; Note that the dynamic label is only broadcasted through the notify
 ;; socket, you won't get it from
+;;
+;; we introduced a field 'stationname' for FM stations, mainly for debugging purposes
+;; the 'title' field already gives the stationname
 (begin
   (use dab)
   (handle-exceptions e (void) (thread-terminate! dab/fm-notifier))
@@ -407,9 +410,13 @@
                               (else #f)))
 		  (title (match (alist-ref 'type (pq-current *pq*))
 				("fm"  (fm-radio-ps))
-				(else 'title (pq-current *pq*))))
+				(else #f)))
+		  (station (match (alist-ref 'type (pq-current *pq*))
+				("fm"  (fm-radio-ps))
+				(else #f)))
+
 		  
-                  (content (alist-merge (player-information) `((subtitle . ,subtitle)))))
+                  (content (alist-merge (player-information) `((subtitle . ,subtitle)) `((stationname . ,station)) `((title . ,title)) )))
          (send-notification "/v1/player/current" content))
        #t) ; <-- keep going
      )))
