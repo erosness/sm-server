@@ -268,7 +268,7 @@
   (prepause-spotify)
   (pp "At follow!") 
   (pp ip_leader)
-  (play-worker `(play ("cplay" ,ip_leader "follower")(print ";; TEST --XXXX") )))
+  (play-worker `(play ("play follower " ,ip_leader ))))
 
 
 (define (play-command/tr turi)
