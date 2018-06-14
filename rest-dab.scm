@@ -84,3 +84,5 @@
     (dab-reset)
     (dab-command (audio.buzzer.state 'on))
     (dab-command (audio.buzzer.frequency 440))))
+
+(define-handler /v1/version/dab (lambda()  `((dab . ,(radio-version)))))

@@ -297,5 +297,10 @@
   (parse-dab.tuneStatus (dab-command (fm.tuneStatus))))
 
 
+(define (radio-version)
+  (parse-fm.rds.radioText
+   (dab-command (radio.version))))
+
+
 
 )
