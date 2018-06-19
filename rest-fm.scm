@@ -2,7 +2,7 @@
  ((and arm) (use dab))
  (else))
 
-(use test restlib clojurian-syntax looper fmt)
+(use test restlib clojurian-syntax looper fmt bitstring matchable)
 (import rest notify turi incubator)
 
 (import rest-player)
@@ -95,16 +95,98 @@
 
 ;; Thread safety
 (define *fm-notify-thread* (make-atom #f))
+
 (define (fm-notify-alive?)
   (and (thread? (*fm-notify-thread*))
        (not (eq? (thread-state (*fm-notify-thread*))
                  'dead))))
 
+;; FM scan
+(define fm-scan-iteration
+  (lambda ()
+;;      (fm-pq)
+    ;; Keep looping?
+    (fm-step-scan 100)
+    (let ((fq (fm-finished-scan?)))
+      (print "fq=" fq)
+      (if fq
+        (begin
+	  (fm-frequency fq)
+	  #f)
+        #t))))
+
+
+(define (fm-scan-worker step)
+  (define fm-scan-thread (make-thread
+                         (->> fm-scan-iteration
+                              (loop/interval 1) ;; 1s to let power indicator stab.
+                              (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
+                                                                   ,(condition->list e)))
+                                                  ;; halt on exceptions
+                                                  #f))
+                              (loop))
+                         "fm-scan-thread"))
+  (thread-start! fm-scan-thread))
+
+(define *fm-scan-thread* (make-atom #f))
+
+
+(define (next-target-frequency current-frequency step)
+  (+ current-frequency step))
+
+(define search-vector '())
+(define frequency-scan-step-up    100)
+(define frequency-scan-step-down -100)
+
+(define (fm-finished-scan?)
+  (let ((s1 (cdr (car (cddddr search-vector))))
+	(s2 (cdr (car (cdddr search-vector))))
+        (s3 (cdr (car (cddr search-vector))))
+        (s4 (cdr (car (cdr search-vector))))
+	(s5 (cdr (car search-vector))))
+    (let* ((avg-side (/ (+ s1 s5) 2))
+	   (avg-mid (/ (+ s2 s3 s4) 3))
+	   (delta (- avg-side avg-mid))
+	   (threshold -7))
+      (if (< delta threshold)
+	  (car (car ( cddr search-vector)))
+	  #f))))
+	  
+
+(define (fm-avg-signal-strength)
+  ( /
+    ( +
+      (fm-signal-strength)
+      (fm-signal-strength)
+      (fm-signal-strength))
+    3))
+
+(define (fm-step-scan step)
+  (let* ((current-strength (fm-avg-signal-strength))
+	 (current-frequency (fm-frequency))
+         (target-frequency (next-target-frequency current-frequency step)))
+    (set! search-vector (cons (cons current-frequency current-strength) search-vector))
+    (fm-frequency target-frequency)))
+    
+(define (fm-start-scan step)
+  (let* ((start-frequency (fm-frequency))
+ 	 (start-vector (cons start-frequency (fm-avg-signal-strength)))
+	 (target-frequency (next-target-frequency start-frequency step))
+	 (noise (fm-avg-signal-strength)))
+    (print noise)
+    (set! search-vector (list start-vector
+			      '(0 . -70)
+			      '(0 . -70)
+			      '(0 . -70)
+			      '(0 . -70)))
+    (fm-frequency target-frequency)
+    (sleep 1)))
+       
+	   
 ;; Start searching
-(define (fm-search-with-notify direction)
-  (fm-search direction)
-  (if (not (fm-notify-alive?))
-      (*fm-notify-thread* (notify-fm-search-state 1))))
+(define (fm-scan step)
+  (fm-start-scan step)
+  (*fm-scan-thread* (fm-scan-worker 1)))
 
 
 
