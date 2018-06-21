@@ -107,15 +107,11 @@
   (lambda ()
     (fm-pq)
     ;; Keep looping?
-;;    (if fm-current-initial-frequency
-    ;;      (fm-step-scan fm-current-initial-frequency) ;; )
     (fm-step-scan fm-current-step)
     (let ((fq (fm-scan-end?)))
       (if fq
 	(begin
-          (print "fq=" fq)
 	  (fm-frequency (car fq))
-	  (print "Fset=" (fm-frequency))
 	  #f)
         #t))))
 
@@ -138,7 +134,6 @@
 (define (next-target-frequency current-frequency step)
   (let ((fm-first-frequency 87500)
 	(fm-last-frequency 108000))
-    (print "Step=" fm-current-step)
     (cond
      ((and (> step 0) (= current-frequency fm-last-frequency))
 	  (fm-frequency fm-first-frequency)
@@ -169,7 +164,7 @@
 
 (define (fm-detect-signal?)
   (let ((fm-detection-threshold -7)
-	(fm-signal-strength-threshold -58)
+	(fm-signal-strength-threshold -63)
 	(s1 (cdr (car (cddddr fm-search-vector))))
 	(s2 (cdr (car (cdddr fm-search-vector))))
         (s3 (cdr (car (cddr fm-search-vector))))
@@ -186,9 +181,9 @@
 
 (define (fm-scan-reached-initial? frequency)
   (cond
-   (not fm-current-initial-frequency => #f)
-   (= frequency fm-current-initial-frequency => #t)
-   (else => #f)))
+   ((not fm-current-initial-frequency) #t)
+   ((<= (abs (- frequency fm-current-initial-frequency)) 100) #t)
+   (else #f)))
 
 ;; To get rid of noise each reading of signal strength is done
 ;; three times and the average is presented.
@@ -207,21 +202,24 @@
  	 (start-vector (cons start-frequency (fm-avg-signal-strength)))
 	 (target-frequency (next-target-frequency start-frequency step))
 	 (noise (fm-avg-signal-strength)))
-    (print noise)
-    (set! fm-current-initial-frequecy (fm-frequency))
-    (set! fm-current-step step)
     (set! fm-search-vector
       (list start-vector '(0 . -70) '(0 . -70) '(0 . -70) '(0 . -70)))
     (fm-frequency target-frequency)
     (sleep 1)))
 
 (define (fm-scan-end?)
-  (fm-detect-signal?))
+  (if (fm-scan-reached-initial? (fm-frequency))
+    (cons (fm-frequency) (fm-avg-signal-strength))
+    (fm-detect-signal?)))
 	   
 ;; Start searching
 (define (fm-scan step)
-  (fm-start-scan step)
-  (*fm-scan-thread* (fm-scan-worker 1)))
+  (if (= step 0)
+    (set!  fm-current-initial-frequency #f)
+    ((set! fm-current-initial-frequency (fm-frequency))
+     (set! fm-current-step step)
+     (fm-start-scan step)
+     (*fm-scan-thread* (fm-scan-worker 1)))))
 
 ;; REST interface
 
@@ -245,7 +243,7 @@
                      ;; stop any ongoing searches, this also has the
                      ;; nice side-effect of notifying clients that the
                      ;; frequency has changed
-                     (fm-search-with-notify 'idle)
+                     (fm-scan 0)
                      (fm-frequency hz)
 
 		     (fm-pq)
