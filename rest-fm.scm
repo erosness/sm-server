@@ -164,7 +164,7 @@
 
 (define (fm-detect-signal?)
   (let ((fm-detection-threshold -7)
-	(fm-signal-strength-threshold -63)
+	(fm-signal-strength-threshold -65)
 	(s1 (cdr (car (cddddr fm-search-vector))))
 	(s2 (cdr (car (cdddr fm-search-vector))))
         (s3 (cdr (car (cddr fm-search-vector))))
