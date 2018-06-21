@@ -107,11 +107,12 @@
 ;;      (fm-pq)
     ;; Keep looping?
     (fm-step-scan 100)
-    (let ((fq (fm-finished-scan?)))
-      (print "fq=" fq)
+    (let ((fq (fm-scan-end?)))
       (if fq
         (begin
-	  (fm-frequency fq)
+          (print "fq=" fq)
+	  (fm-frequency (car fq))
+	  (print "Fset=" (fm-frequency))
 	  #f)
         #t))))
 
@@ -134,38 +135,44 @@
 (define (next-target-frequency current-frequency step)
   (+ current-frequency step))
 
-(define search-vector '())
-(define frequency-scan-step-up    100)
-(define frequency-scan-step-down -100)
+(define fm-search-vector '())
+(define fm-scan-step-up    100)
+(define fm-scan-step-down -100)
+(define fm-detection-threshold -7)
 
-(define (fm-finished-scan?)
-  (let ((s1 (cdr (car (cddddr search-vector))))
-	(s2 (cdr (car (cdddr search-vector))))
-        (s3 (cdr (car (cddr search-vector))))
-        (s4 (cdr (car (cdr search-vector))))
-	(s5 (cdr (car search-vector))))
+;; Detecting a station: The FM signal energy from av station occupies
+;; about 3 frequency bins. Thus a station is detected by 5 samples, where
+;; average level of the 3 mid samples are stronger than the average of the
+;; two side samples. Returns frequency/strength-pair, or #f if no station.
+;;
+;; Note that this code works on the collected list only, and does not
+;; even access the module. During intended use the module is tuned two steps 
+;; off the frequency when the procedure is run, and must be set by the calling
+;; code.
+(define (fm-detect-signal?)
+  (let ((s1 (cdr (car (cddddr fm-search-vector))))
+	(s2 (cdr (car (cdddr fm-search-vector))))
+        (s3 (cdr (car (cddr fm-search-vector))))
+        (s4 (cdr (car (cdr fm-search-vector))))
+	(s5 (cdr (car fm-search-vector))))
     (let* ((avg-side (/ (+ s1 s5) 2))
 	   (avg-mid (/ (+ s2 s3 s4) 3))
-	   (delta (- avg-side avg-mid))
-	   (threshold -7))
-      (if (< delta threshold)
-	  (car (car ( cddr search-vector)))
+	   (delta (- avg-side avg-mid)))
+(print "D=" delta)
+      (if (< delta fm-detection-threshold)
+	  (car ( cddr fm-search-vector))
 	  #f))))
 	  
-
+;; To get rid of noise each reading of signal strength is done
+;; three times and the average is presented.
 (define (fm-avg-signal-strength)
-  ( /
-    ( +
-      (fm-signal-strength)
-      (fm-signal-strength)
-      (fm-signal-strength))
-    3))
+  (/ (+ (fm-signal-strength) (fm-signal-strength) (fm-signal-strength)) 3))
 
 (define (fm-step-scan step)
   (let* ((current-strength (fm-avg-signal-strength))
 	 (current-frequency (fm-frequency))
          (target-frequency (next-target-frequency current-frequency step)))
-    (set! search-vector (cons (cons current-frequency current-strength) search-vector))
+    (set! fm-search-vector (cons (cons current-frequency current-strength) fm-search-vector))
     (fm-frequency target-frequency)))
     
 (define (fm-start-scan step)
@@ -174,21 +181,20 @@
 	 (target-frequency (next-target-frequency start-frequency step))
 	 (noise (fm-avg-signal-strength)))
     (print noise)
-    (set! search-vector (list start-vector
-			      '(0 . -70)
-			      '(0 . -70)
-			      '(0 . -70)
-			      '(0 . -70)))
+    (set! fm-search-vector
+      (list start-vector '(0 . -70) '(0 . -70) '(0 . -70) '(0 . -70)))
     (fm-frequency target-frequency)
     (sleep 1)))
-       
+
+(define (fm-scan-end?)
+  (fm-detect-signal?))
 	   
 ;; Start searching
 (define (fm-scan step)
   (fm-start-scan step)
   (*fm-scan-thread* (fm-scan-worker 1)))
 
-
+;; REST interface
 
 (define-handler /v1/catalog/fm/seek
   (argumentize (lambda (hz)
