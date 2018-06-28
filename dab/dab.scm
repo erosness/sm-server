@@ -273,7 +273,11 @@
   (parse-fm.frequency
    (dab-command (fm.frequency))))
 
+;;
+;; when searching we need to set search level to strong
+;;
 (define (fm-search . direction)
+  (dab-command (fm.searchLevel 'strong))
   (parse-fm.search
    (dab-command (match direction
                   ('() (fm.search))
