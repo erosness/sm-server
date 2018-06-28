@@ -19,6 +19,9 @@
 ;;                                  (lambda () *catalog-notify-connections*)
 ;;                                  (lambda (new) (set! *catalog-notify-connections* new))))
 
+
+(define dab-version "V5.1.7.52015-2")
+
 (define (ensure-fm-on)
   (dab-abort-if-scanning)
   (if (not (fm-on?)) (fm-turn-on)))
@@ -221,6 +224,12 @@
      (fm-start-scan step)
      (*fm-scan-thread* (fm-scan-worker 1)))))
 
+
+(define (fm-search-with-notify direction)
+  (fm-search direction)
+  (if (not (fm-notify-alive?))
+      (*fm-notify-thread* (notify-fm-search-state 1))))
+
 ;; REST interface
 
 (define-handler /v1/catalog/fm/seek
@@ -231,11 +240,18 @@
                    (fm-get-state))
 
                   ((equal? "up" hz)
-                   (fm-scan fm-scan-step-up)
+		   (if (string-contains (radio-version) dab-version)
+		     
+		       (fm-search-with-notify 'up)
+		       (fm-scan fm-scan-step-up)
+		       )
                    `((status . "ok")))
 
                   ((equal? "down" hz)
-                   (fm-scan fm-scan-step-down)
+		   (if (string-contains (radio-version) dab-version)
+		       (fm-search-with-notify 'up)
+		       (fm-scan fm-scan-step-down)
+		       )
                    `((status . "ok")))
 
                   ((string->number hz) =>
@@ -243,7 +259,10 @@
                      ;; stop any ongoing searches, this also has the
                      ;; nice side-effect of notifying clients that the
                      ;; frequency has changed
-                     (fm-scan 0)
+		     (if (string-contains (radio-version) dab-version)
+			 (fm-search-with-notify 'idle)
+			 (fm-scan 0)
+			 )
                      (fm-frequency hz)
 
 		     (fm-pq)
