@@ -136,7 +136,7 @@
               (begin
                 (set! last-line #f)
                 (send-command strings)
-                (mutex-unlock! read-mutex cvar 4.0) ;; <-- emergency timeout
+                (mutex-unlock! read-mutex cvar 15.0) ;; <-- emergency timeout
                 (if last-line
 		   last-line
                    (begin
@@ -147,7 +147,7 @@
                         (thread-terminate! read-thread))
 		     #f)))))
         ;; wait for signal by read-thread (unlock even on error)
-        (lambda ()  (mutex-unlock! mutex #f 10.0)))) ;;<-- emergency timeout
+        (lambda ()  (mutex-unlock! mutex #f 15.0)))) ;;<-- emergency timeout
 
     (lambda (command . args)
       (case command
