@@ -2,16 +2,17 @@
 
 (import rest process-cli)
 
+;; Initial position is set to 0. Maybe pull-up should be set to weak pull down?
 (define %switch 0)
 
 (define (switch! setting)
     (set! %switch setting)
-    (print "Value=" setting))
+    (if (= 1 setting)
+      (process-cli "sh" '("-c" "solo-switch-on.sh") (lambda () (print "xyzzy")))
+      (process-cli "sh" '("-c" "solo-switch-off.sh") (lambda () (print "xyzzy")))))
 
-(define (switch?)
-  (print "Switch getting")
-  %switch)
-
+;; This is just a local readback, mo real pin reading
+(define (switch?) %switch)
 
 (define-handler /v1/switch
   (lambda ()
