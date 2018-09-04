@@ -295,7 +295,7 @@
                           (wrap-errors)
                           (log-handler)))
 
-     (vhost-map `((".*" . ,(lambda (continue) (handler)))))
+     (vhost-map `((".*" . ,(lambda (continue) (with-headers `((access-control-allow-origin "*")) handler)))))
      (start-server))))
 
 ;; ==================== test utils ====================
