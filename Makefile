@@ -24,6 +24,7 @@ DEPS = \
  udp:1.18 \
  uri-common:1.4 \
  uuid:0.1 \
+ spiffy-cgi-handlers:0.5 \
 
 
 # install for tradio:
