@@ -119,9 +119,7 @@
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
-
-
-(define log? #t)
+(define log? #f)
 (define (log-handler thunk)
   (lambda () (if log? (print ";; request: " (uri->string (request-uri (current-request)))))
      (thunk)))

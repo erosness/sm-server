@@ -324,7 +324,7 @@
         (if (and (< pos used-callback-position)
                  (< pos duration))
           (set! used-callback-position 0))
-        (print "Monitor-body: " pos " - " duration " p "  used-callback-position )
+;;        (print "Monitor-body: " pos " - " duration " p "  used-callback-position )
         (if (and (< (- duration pos) 15) 
                  (< pos duration) 
                  nexttrack-callback)
