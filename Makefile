@@ -25,6 +25,7 @@ DEPS = \
  uri-common:1.4 \
  uuid:0.1 \
  spiffy-cgi-handlers:0.5 \
+ feature-test:0.1 \
 
 
 # install for tradio:
@@ -42,7 +43,7 @@ modules: blobbery looper pefat multicast tone-generator dab i2c restlib wimp tun
 dlna:
 	cd dlna ; $(ci) $(ciflags)
 
-deps:
+deps: socket
 	$(ci) $(ciflags) $(DEPS)
 
 blobbery:
