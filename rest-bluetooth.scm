@@ -90,7 +90,6 @@
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
     `((url . "default:CARD=imxaudiobtm720")
-      (format . "alsa")
       ,@(if bt-notifier-ar `((ar . ,bt-notifier-ar)) `()))))
 
 (define-handler /v1/catalog/bt

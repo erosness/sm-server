@@ -30,8 +30,7 @@
       (match (dab-command (dab.sl.station chidx))
         ('(item-set-response FS_OK)
          ;; TODO: find IP so zones can reach DAB
-         `((url . "default:CARD=imxaudiovenice9")
-           (format . "alsa")))
+         `((url . "default:CARD=imxaudiovenice9")))
         (anything (error (conc "cannot set channel " chidxstr) anything))))))
 
 (define-handler /v1/catalog/dab/stations
@@ -85,3 +84,5 @@
     (dab-reset)
     (dab-command (audio.buzzer.state 'on))
     (dab-command (audio.buzzer.frequency 440))))
+
+(define-handler /v1/version/dab (lambda()  `((dab . ,(radio-version)))))

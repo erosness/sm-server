@@ -11,7 +11,7 @@ DEPS = \
  http-client:0.7.1 \
  intarweb:1.3 \
  matchable:3.3 \
- medea:0.1.8 \
+ medea:2 \
  nanomsg:0.3 \
  nrepl:0.1 \
  openssl:1.6.4 \
@@ -24,6 +24,8 @@ DEPS = \
  udp:1.18 \
  uri-common:1.4 \
  uuid:0.1 \
+ spiffy-cgi-handlers:0.5 \
+ feature-test:0.1 \
 
 
 # install for tradio:
@@ -41,7 +43,7 @@ modules: blobbery looper pefat multicast tone-generator dab i2c restlib wimp tun
 dlna:
 	cd dlna ; $(ci) $(ciflags)
 
-deps:
+deps: socket
 	$(ci) $(ciflags) $(DEPS)
 
 blobbery:

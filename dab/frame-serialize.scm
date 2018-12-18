@@ -122,6 +122,15 @@
                            (0 8)
                            (0 8))))
 
+
+;; radio
+(define radio.power        (nt:e8  "\x01\x01\x00\x00"))
+(define radio.version      (nt:c8  "\x01\x03\x00\x00"))
+
+;; update functions, note that FSAPI is not implemented in our version of firmware
+(define radio.update.state (nt:e8  "\x01\x04\x01\x00" application update))
+(define radio.update.version (nt:e8 "\x01\x04\x03\x00"))
+
 ;; dab
 (define dab.state         (nt:e8  "\x02\x01\x00\x00" off on))
 (define dab.sl.station    (nt:u32 "\x02\x10\x01\x00"))
@@ -134,7 +143,7 @@
 ;; dab plus
 (define dab.dlplus.available (nt:e8 "\x02\x12\x04\x00" stopped running))
 
-;; fm
+;; fm, note that search is not working in our version of firmware
 (define fm.state           (nt:e8  "\x03\x01\x00\x00" off on))
 (define fm.search          (nt:e8  "\x03\x04\x00\x00" idle up down))
 (define fm.signalStrength  (nt:u8  "\x03\x06\x00\x00"))

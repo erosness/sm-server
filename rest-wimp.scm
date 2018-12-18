@@ -190,6 +190,7 @@
   ;; extras should be an alist
   (define (make-wimp-login-error #!optional (extras '()))
     (values `((service . "wimp")
+	      
               (url . ,(return-url "/catalog/wimp/login"))
               (_debug . ((session . ,(current-session-params))))
               ,@extras)
@@ -254,7 +255,8 @@
     (lambda (username limit offset)
       (parameterize ((current-wimp-user username)
                      (current-session-params (wimp-get-session username)))
-        (let ((result (search (current-session-userid))))
+		    (let ((result (search (current-session-userid)
+					  `((limit . ,limit ) (offset . ,offset )) )))
           (make-search-result limit offset
                               (alist-ref 'totalNumberOfItems result)
                               (map converter (map (lambda (x) (alist-ref 'item x))

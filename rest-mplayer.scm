@@ -1,9 +1,8 @@
-(module rest-player (player-seek-thread
-                     player-information
-                     spotify-monitor-thread
-                     /v1/player/current
-		     fm-pq
-                     *pq*)
+(module rest-mplayer (;; player-seek-thread
+;;                     player-information
+;;                     spotify-monitor-thread
+                     /v1/mplayer/current
+                     *mpq*)
 
 (import chicken scheme data-structures)
 
@@ -15,17 +14,13 @@
      medea matchable irregex matchable)
 
 (import notify incubator)
-
-(define *pq* (make-pq))
-
-(define seek_delay 2)
-(define seek_target 0)
+(define *mpq* (make-pq)) ;; Multiroom play queue.
 
 (define ((change-callback path) oldval newval)
   (send-notification path newval))
 
 (pq-add-current-change-listener
- *pq* (change-callback "/v1/player/current"))
+ *mpq* (change-callback "/v1/mplayer/current"))
 
  
 
@@ -45,35 +40,19 @@
 
 ;; alist of position, duration, paused etc (or '() if nothing is
 ;; playing)
-(define (player-pos-info-old)
-
+(define (player-pos-info)
   (if (player-pos) ;; <- active cplay?
       `((pos .      ,(player-pos))
-	(duration . ,(player-duration))
-	(paused .   ,(player-paused?)))
-      '()
-      ))
+        (duration . ,(player-duration))
+        (paused .   ,(player-paused?)))
+      '()))
 
 
-(define (player-pos-info) 
-  (if (> seek_delay 0)
-      
-      `((pos .      ,seek_target)
-	(duration . ,(player-duration))
-	(paused .   ,(player-paused?)))      
-      ;; else seek_delay     
-      `((pos .      ,(player-pos))
-	(duration . ,(player-duration))
-	(paused .   ,(player-paused?)))
-      )
-  )
-
-
-(define (player-information #!optional (current (pq-current *pq*)))
+(define (player-information #!optional (current (pq-current *mpq*)))
   (alist-merge current
                (player-pos-info)
 	       `((uid_leader . ,(local-ip)))
-               `((loop . ,(pq-loop? *pq*)))
+               `((loop . ,(pq-loop? *mpq*)))
 	       `((status . "Ok"))
 	       ))
 
@@ -88,37 +67,13 @@
       ("bt"      #t)
       (else      #f))))
 
-(define (play-spotify? item)
-  (if item
-    (let ((type (alist-ref 'type item)))
-      (match type
-        ("spotify" #t)
-        (else #f)))
-    #f))
 
-(define (paused? item)
-  (if item
-    (let ((type (alist-ref 'paused item)))
-      (match type
-        (#t #t)
-        (else #f)))
-    #f))
-
-(define (follower-notification leader)
-  (pq-current-set! *pq*  
-    (if leader
-       `((type . "follower")(title . "Following Maestro")(id_leader . ,leader ))
-       `((type . "follower")(title . "Following Maestro")))))
-
-
-(define-handler /v1/player/follower
+(define-handler /v1/mplayer/follower
   ( lambda()
     (if (current-json)
-	(let ((id_leader (alist-ref 'id_leader (current-json)))
-              (uid_leader (alist-ref 'uid_leader (current-json))))
+	(let ((uid_leader (alist-ref 'uid_leader (current-json))))
 	  (follow! uid_leader)
 	  (print "UID: " uid_leader)
-          (follower-notification id_leader)
 	  `((uid_follower . ,(local-ip))
 	    (status . "Ok")
 	    )
@@ -130,7 +85,7 @@
 
 
 
-(define-handler /v1/player/addfollower
+(define-handler /v1/mplayer/addfollower
   ( lambda()
     (if (current-json)
 	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
@@ -141,7 +96,7 @@
 	`((status . "Fail"))
 	)))
 
-(define-handler /v1/player/removefollower
+(define-handler /v1/mplayer/removefollower
   (lambda()
     (if (current-json)
 	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
@@ -151,10 +106,9 @@
 	`((status . "Fail"))
 	)))
 
-(define-handler /v1/player/quit
+(define-handler /v1/mplayer/quit
   (lambda()
     (player-quit)
-    (pq-current-set! *pq* `())
     (player-information)
     ))
 
@@ -173,17 +127,17 @@
 ;; If loop is present, toggles loop state of pq
 ;; Returns: new value of current
 ;; GET: returns value of current with updated pos.
-(define-handler /v1/player/current
+(define-handler /v1/mplayer/current
   (lambda ()
     (if (current-json)
         (let* ((json-request (current-json))
                ;; returns the first track with the same id as json
                ;; request or #f if none
-               (existing (pq-ref *pq* json-request))
+               (existing (pq-ref *mpq* json-request))
                ;; the currently playing track or #f if none
-               (current (pq-current *pq*)))
+               (current (pq-current *mpq*)))
 
-		  (print "player/current incoming request")
+		  (print "mplayer/current incoming request")
 		  (pp (current-json))
 
           ;; Change track?
@@ -192,29 +146,29 @@
               (if existing
                   ;; if the requested track is already in the queue, start playing it
                   (begin
-                    (print "pq: playing track which already exists in pq")
-                    (pq-play *pq* existing #f) ;; - see [pq-play with #f]
+                    (print "mpq: playing track which already exists in mpq")
+                    (pq-leader-play *mpq* existing #f) ;; - see [pq-play with #f]
                     (set! current existing))
                   (or
                    ;; Should this track be played without being added
                    ;; to the playqueue?
                    (and-let* (((play-direct? json-request)))
-                     (pq-play *pq* json-request #f)
+                     (pq-leader-play *mpq* json-request #f)
                      (set! current json-request))
 
                    (begin
                      ;; if the requested track is _not_ already in the
                      ;; queue, delete all tracks following it, add requested and
                      ;; play it.
-                     (and-let* ((played (pq-drop-after *pq* current))
-                                ((pq-list-set! *pq* played))
-                                (requested (pq-add *pq* json-request)))
-                       (pq-play *pq* requested #f) ;; - see [pq-play with #f]
+                     (and-let* ((played (pq-drop-after *mpq* current))
+                                ((pq-list-set! *mpq* played))
+                                (requested (pq-add *mpq* json-request)))
+                       (pq-leader-play *mpq* requested #f) ;; - see [pq-play with #f]
                        (set! current requested)))
 
                    ;; no current, add requested and play it
-                   (let ((requested (pq-add *pq* json-request)))
-                     (pq-play *pq* requested #f) ;; - see [pq-play with #f]
+                   (let ((requested (pq-add *mpq* json-request)))
+                     (pq-leader-play *mpq* requested #f) ;; - see [pq-play with #f]
                      (set! current requested)))))
 
           ;; Change pos?
@@ -223,11 +177,8 @@
 					 (current-duration (alist-ref 'duration current))
                      ;; Don't allow seek on infinite streams
                      ((>= current-duration 0)))
-		    (print "seeking track to position " (cdr pos))
-		    (set! seek_delay 2)
-		    (set! seek_target (cdr pos))
-            (player-seek (cdr pos))
-	    )
+            (print "seeking track to position " (cdr pos))
+            (player-seek (cdr pos)))
 
           ;; Change paused?
           (and-let* ((pause (assoc 'paused json-request)))
@@ -235,22 +186,18 @@
 
           ;; Change loop?
           (and-let* ((loop (assoc 'loop json-request)))
-            (pq-loop?-set! *pq* (cdr loop)))
+            (pq-loop?-set! *mpq* (cdr loop)))
 
           ;; Set and NOTIFY new current value
           (let ((new-current (player-information current)))
-            (pq-current-set! *pq* new-current)
-	    (print "player/current: leaving")
-	    (print new-current)
-            new-current
-	    )
-	  )
+            (pq-current-set! *mpq* new-current)
+            new-current))
         ;;else
         (player-information))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
-(define-handler /v1/player/pq/add
+(define-handler /v1/mplayer/pq/add
   (lambda ()
     (let* ((json (current-json))
            ;; either add a single track or a list of tracks
@@ -258,7 +205,7 @@
                       (if (vector? json)
                           json
                           (vector json)))))
-      (list->vector (pq-add-list *pq*
+      (list->vector (pq-add-list *mpq*
                                  ;; HACK: delete loop cause it belongs
                                  ;; to pq's not tracks. see #99.
                                  (map (cut alist-delete 'loop <>) jsonlist))))))
@@ -266,30 +213,30 @@
 
 ;; Removes and item referenced by id from the playqueue
 ;; Does nothing if id is not found in playqueue
-(define-handler /v1/player/pq/del
+(define-handler /v1/mplayer/pq/del
   (lambda () (and-let* ((json (current-json))
                    ((alist-ref 'id json)))
-          (pq-del *pq* json)
+          (pq-del *mpq* json)
           `((status . "ok")))))
 
 
 ;; Removes every item from the playqueue
-(define-handler /v1/player/pq/clear
-  (lambda () (pq-clear *pq*)
+(define-handler /v1/mplayer/pq/clear
+  (lambda () (pq-clear *mpq*)
      `((status . "ok"))))
 
 
 ;; Returns the playqueue
-(define-handler /v1/player/pq (lambda () (list->vector (pq-list *pq*))))
+(define-handler /v1/mplayer/pq (lambda () (list->vector (pq-list *mpq*))))
 
-(define-handler /v1/player/next
+(define-handler /v1/mplayer/next
   (lambda ()
-    (pq-play-next *pq* #t)
+    (pq-play-next *mpq* #t)
     (player-information)))
 
-(define-handler /v1/player/prev
+(define-handler /v1/mplayer/prev
   (lambda ()
-    (pq-play-prev *pq*)
+    (pq-play-prev *mpq*)
     (player-information)))
 
 ;; ==================== seek position hearbeat ====================
@@ -298,15 +245,10 @@
 
 
 ;; do this on every player hearbeat interval
-(define (player-thread-iteration) 
-  (if (> seek_delay 0)
-      (
-       print "**************************************"
-       display seek_delay
-       (set! seek_delay (sub1 seek_delay))
-       )
-      (if (playing?) ;; running and not paused?
-	  (send-notification "/v1/player/pos" (player-pos-info)))))
+(define (player-thread-iteration)
+  (if (playing?) ;; running and not paused?
+      (send-notification "/v1/mplayer/pos"
+                         (player-pos-info))))
 
 (define player-seek-thread
   (thread-start!
@@ -316,7 +258,7 @@
          (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
                                               ,(condition->list e))) #t))
          (loop))
-    "player-seek-thread")))
+    "mplayer-seek-thread")))
 
 ;; (thread-terminate! player-thread)
 ;; (thread-state player-thread)
@@ -333,17 +275,24 @@
                    (lambda () (char-ready? p))
                    (lambda () (close-input-port p))))
 
+
+
+(define (playing&active? event)
+  (and (alist-ref 'playing? event)
+       (alist-ref 'active? event)))
+
+
 ;; send a pretend-current notification to our apps. should keep
 ;; player-pane in sync with what Spotify is doing.
 (define (spotify-notification event)
-  (print "spotify notification")
-  (pq-current-set! *pq* `((title . ,(alist-ref 'track event))
-                          (subtitle . ,(alist-ref 'artist event))
-                          (image . ,(alist-ref 'image event))
-                          (type . "spotify")
-                          (pos . 0)
-                          (duration . ,(* 0.001 (alist-ref 'duration_ms event)))
-                          (paused . ,(not (spotify-playing? event))))))
+  (pq-current-set! *mpq* `((title . ,(alist-ref 'track event))
+                           (subtitle . ,(alist-ref 'artist event))
+                           (image . ,(alist-ref 'image event))
+                           (type . "spotify")
+                           (pos . 0)
+                           (duration . ,(* 0.001 (alist-ref 'duration_ms event)))
+                           (paused . ,(not (playing&active? event))))))
+
 
 
 (define (run-monitor-thread name body #!optional (interval 1))
@@ -358,72 +307,10 @@
         ((flip make-thread) name))))
 
 
-;; Spotify event helpers
-
-(define (spotify-playing? event)
-  (alist-ref 'playing? event))
-
-(define (spotify-active? event)
-  (alist-ref 'active? event))
-
-;; watch if spotify is playing. if it is, we pause our own cplay and
-;; we "sneak" spotify album-cover art and player state in there using
-;; spotify-notification.
-
-(define (dp s) (print (time->seconds  (current-time)) " - " s))
-
-(begin
-  (handle-exceptions e (void) (thread-terminate! spotify-monitor-thread))
-  (define spotify-monitor-thread
-    (run-monitor-thread
-     "spotify-monitor"
-     (lambda ()
-       (let ((event (call-with-input-pipe
-                     "spotifyctl 7879 event"
-                     (o read make-nonblocking-input-port))))
-         (pp `(info ,(current-thread) event ,event))
-         (if (eof-object? event)
-             (thread-sleep! 10)
-	     (begin
-               (print "Shall we start again?")
-	       (cond
-		;; Maestro does not play spotify, and receives input stream
-		((and (not (play-spotify? (pq-current *pq*)))
-		      (spotify-playing? event)
-                      (spotify-active? event))
-	           (spotify-play "spotify")
-                   (spotify-notification event)
-		   (player-information))
-	        ;; Maestro is playin Spotify, but Spotify is no longer avtive on this unit
-		 ((and (play-spotify? (pq-current *pq*))
-                       (not (spotify-active? event)))
-		   (pq-current-set! *pq* `())
-                   (player-information))
-		 ;; Maestro is paused, process play command
-		 ((and (play-spotify? (pq-current *pq*))
-		       (spotify-active? event)
-		       (spotify-playing? event)
-		       (paused?  (pq-current *pq*)))
-                   (player-spotify-unpause)
-                   (spotify-notification event))
-		 ;; Maestro is playing, process pause command
- 		 ((and (play-spotify? (pq-current *pq*))
-		       (spotify-active? event)
-		       (not (spotify-playing? event))
-		       (not (paused? (pq-current *pq*))))
-                   (player-pause)
-                   (spotify-notification event))
-		 ;; Maestro is playing, and shall keep on playing
- 		 ((and (play-spotify? (pq-current *pq*))
-		       (spotify-active? event))
-                   (spotify-notification event))))))))))
 
 ;; Read and broadcast DAB dynamic label if dab is running
 ;; Note that the dynamic label is only broadcasted through the notify
 ;; socket, you won't get it from
-;;
-;; we introduced a field 'stationname' for FM stations, mainly for debugging purposes
-;; the 'title' field already gives the stationname
 (begin
   (use dab)
   (handle-exceptions e (void) (thread-terminate! dab/fm-notifier))
@@ -431,43 +318,14 @@
     (run-monitor-thread
      "dab/fm-notifier"
      (lambda ()
-       (and-let* (((pq-current *pq*))
-                  (subtitle (match (alist-ref 'type (pq-current *pq*))
+       (and-let* (((pq-current *mpq*))
+                  (subtitle (match (alist-ref 'type (pq-current *mpq*))
                               ("dab" (dab-dls))
                               ("fm"  (fm-radio-text))
                               (else #f)))
-		  (title (match (alist-ref 'type (pq-current *pq*))
-				("fm"  (fm-radio-ps))
-				(else #f)))
-		  (station (match (alist-ref 'type (pq-current *pq*))
-				("fm"  (fm-radio-ps))
-				(else #f)))
-
-		  
-                  (content (alist-merge (player-information) `((subtitle . ,subtitle)) `((stationname . ,station)) `((title . ,title)) )))
-         (send-notification "/v1/player/current" content))
+                  (content (alist-merge (player-information) `((subtitle . ,subtitle)))))
+         (send-notification "/v1/mplayer/current" content))
        #t) ; <-- keep going
      )))
-
-
-(use fmt dab)
-(define (pp-hz hz) (fmt #f (num (/ hz 1000) 10 2) "Mhz"))
-
-
-
-(define (fm-pq)
-  (pq-current-set! *pq* `((title . , (conc (fm-radio-ps) (pp-hz (fm-frequency))))
-			  (subtitle . , (fm-radio-text))
-			  (type . "fm")
-			  (pos . 0)
-			  (duration . -1)
-			  (paused . , #f)
-			  (frequency . , (fm-frequency))
-			  )
-		   )
-
-  )
-				    
-
 
 )
