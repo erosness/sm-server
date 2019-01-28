@@ -26,6 +26,7 @@ DEPS = \
  uuid:0.1 \
  spiffy-cgi-handlers:0.5 \
  feature-test:0.1 \
+ websockets:0.1.6
 
 
 # install for tradio:
