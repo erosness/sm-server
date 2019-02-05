@@ -2,6 +2,7 @@
 
 (use clojurian-syntax           ;; util
      spiffy intarweb uri-common ;; web
+     websockets
      medea                      ;; json
      test                       ;; well.. guess
      irregex                    ;; quess again!
@@ -119,10 +120,21 @@
 (define (find-accessor uri #!optional (uris *uris*))
   (hash-table-ref/default uris uri #f))
 
-(define log? #f)
+(define log? #t)
 (define (log-handler thunk)
-  (lambda () (if log? (print ";; request: " (uri->string (request-uri (current-request)))))
+  (lambda () (if log? (begin
+			(print ";; request: " (uri->string (request-uri (current-request))))
+		        (print ";; Erik: "( uri-scheme (request-uri (current-request))))
+		       ))
      (thunk)))
+
+(define (log-wshandler thunk)
+  (lambda () (if log? (begin
+			(print ";; wsrequest: " (uri->string (request-uri (current-request))))
+		        (print ";; wdErik: "( uri-scheme (request-uri (current-request))))
+		       ))
+     (thunk)))
+
 
 (define (json-handler)
   (let ((uri (uri->string (make-uri path: (uri-path (request-uri (current-request)))))))
@@ -293,7 +305,33 @@
                           (wrap-errors)
                           (log-handler)))
 
-     (vhost-map `((".*" . ,(lambda (continue) (with-headers '((access-control-allow-origin "*")) handler)))))
+     (define wshandler
+       (lambda ()
+	 (with-websocket
+	  (lambda()
+	    (begin
+	     (print "Websocket!")
+             (send-message (string-append "You saidddd: " (receive-message))))))))
+     
+     (define select-handler
+       (lambda ()
+	 (let* ((path* (uri-path (request-uri (current-request))))
+	        (path (cadr path*)))
+           (print "Before if " path " eqv?: " (equal? "ws" path ))
+           (if (equal? "ws" path)
+	     (wshandler)
+	     (handler))
+           (print "after if"))))
+     
+;;     (handle-not-found
+;;      (lambda(path)
+;;       (print "Not found received")
+;;     (with-websocket
+;;	(lambda()
+;;	  (send-message (string-append "You saidddd: " (receive-message)))))))
+
+       (vhost-map `((".*" . ,(lambda (continue)
+			       (with-headers '((access-control-allow-origin "*")) select-handler)))))
      (start-server))))
 
 ;; ==================== test utils ====================
