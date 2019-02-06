@@ -122,17 +122,13 @@
 
 (define log? #t)
 (define (log-handler thunk)
-  (lambda () (if log? (begin
-			(print ";; request: " (uri->string (request-uri (current-request))))
-		        (print ";; Erik: "( uri-scheme (request-uri (current-request))))
-		       ))
+  (lambda () (if log?
+			(print ";; HTTP request: " (uri->string (request-uri (current-request)))))
      (thunk)))
 
 (define (log-wshandler thunk)
-  (lambda () (if log? (begin
-			(print ";; wsrequest: " (uri->string (request-uri (current-request))))
-		        (print ";; wdErik: "( uri-scheme (request-uri (current-request))))
-		       ))
+  (lambda () (if log?
+			(print ";; websocket: "))
      (thunk)))
 
 
@@ -289,6 +285,10 @@
   (lambda (query)
     (filter (lambda (item) (irregex-search query (conc item))) data)))
 
+;; ==================== websockets ====================
+
+(define (websocket-handler)
+  (send-message (string-append "Maestro. You said: " (receive-message))))
 
 ;; ==================== server ====================
 
@@ -307,30 +307,19 @@
 
      (define wshandler
        (lambda ()
-	 (with-websocket
-	  (lambda()
-	    (begin
-	     (print "Websocket!")
-             (send-message (string-append "You saidddd: " (receive-message))))))))
-     
+         (with-websocket
+           (log-wshandler
+  	         websocket-handler))))
+
      (define select-handler
        (lambda ()
-	 (let* ((path* (uri-path (request-uri (current-request))))
-	        (path (cadr path*)))
-           (print "Before if " path " eqv?: " (equal? "ws" path ))
-           (if (equal? "ws" path)
-	     (wshandler)
-	     (handler))
-           (print "after if"))))
-     
-;;     (handle-not-found
-;;      (lambda(path)
-;;       (print "Not found received")
-;;     (with-websocket
-;;	(lambda()
-;;	  (send-message (string-append "You saidddd: " (receive-message)))))))
+	       (let ((path* (uri-path (request-uri (current-request)))))
+	         (let ((path (cadr path*)))
+             (if (equal? "ws" path)
+	             (wshandler)
+	             (handler))))))
 
-       (vhost-map `((".*" . ,(lambda (continue)
+     (vhost-map `((".*" . ,(lambda (continue)
 			       (with-headers '((access-control-allow-origin "*")) select-handler)))))
      (start-server))))
 
@@ -345,5 +334,3 @@
        body ...))
 
     ((_ uri body ...) (with-request (uri '()) body ...))))
-
-
