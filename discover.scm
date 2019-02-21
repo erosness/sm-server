@@ -54,7 +54,7 @@
     (make-thread
           (->> (lambda () (discover-announce*))
           (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
-						     ,(condition->list e)))
+                                                   ,(condition->list e)))
 					#f))
 	  (discover-check-response)
 	  (loop/interval 4)
