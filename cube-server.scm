@@ -16,6 +16,8 @@
 (include "rest-alsa-capture.scm")
 ;; (include "rest-group.scm")
 
+(include "discover.scm")
+
 (cond-expand
  ((not arm)
   (include "rest-dummy-dab.scm")
