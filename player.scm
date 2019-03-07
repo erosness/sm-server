@@ -158,27 +158,19 @@
     (let ((response (cplay-cmd str)))
       (if (string? response) (parser response)
           (begin
-	   (set! cplay-cmd
-            (process-cli
-            "cplay"
-            '()
-            (lambda () (print "Player ret2")) ;; No on-exit yet.
-	    ))
+	          (set! cplay-cmd (process-cli "cplay" '()
+              (lambda () (print "Player ret2")))) ;; No on-exit yet.
           #f))))
 
-  
   (lambda (msg)
     (match msg
-	   
+
       (('start)
-       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
+       (cplay-cmd #:on-exit (lambda () (print " # ignoring callback")))
        (cplay-cmd "quit")
-       (set! cplay-cmd
-         (process-cli
-         "cplay"
-         '()
+       (set! cplay-cmd (process-cli "cplay" '()
          (lambda () (print "Player ret1")))) ;; No on-exit yet.
-	 #f)
+	     #f)
 ;;         (lambda ()
            ;; important: starting another thread for this is like
            ;; "posting" this to be ran in the future. without
@@ -192,7 +184,7 @@
 
       (('follow scommand on-exit)
        ;; reset & kill old cplayer
-       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
+       (cplay-cmd #:on-exit (lambda () (print "# ignoring callback")))
        (cplay-cmd "quit")
        (set! cplay-cmd
          (process-cli
@@ -224,7 +216,6 @@
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
   (thread-sleep! 0.3))
-
 
 ;; Control operations
 (define (player-pause)           (play-worker `(pause)))
@@ -266,9 +257,9 @@
 
 (define (follow! ip_leader)
   (prepause-spotify)
-  (pp "At follow!") 
+  (pp "At follow!")
   (pp ip_leader)
-  (play-worker `(play ("play follower " ,ip_leader )(print ";; ignoring callback"))))
+  (play-worker `(play ("play follower " ,ip_leader )(print "# ignoring callback"))))
 
 
 (define (play-command/tr turi)
@@ -296,7 +287,7 @@
 (define (play-rmfollower! uid_follower) (play-worker `(remove, uid_follower)))
 
 (define (spotify-play parameter)
-  (play-worker `(play ("play" , "spotify") (print ";; ignoring callback"))))
+  (play-worker `(play ("play" , "spotify") (print "# ignoring callback"))))
 
 (test-group "play-command"
  (test '("play" "file:///filename") (play-command "file:///filename"))
@@ -325,8 +316,8 @@
                  (< pos duration))
           (set! used-callback-position 0))
 ;;        (print "Monitor-body: " pos " - " duration " p "  used-callback-position )
-        (if (and (< (- duration pos) 15) 
-                 (< pos duration) 
+        (if (and (< (- duration pos) 15)
+                 (< pos duration)
                  nexttrack-callback)
           (if (equal? used-callback-position 0)
             (begin
@@ -335,8 +326,8 @@
       (print "No player"))))
 
 (define (make-monitor-thread)
-  (thread-start! 
-    (->> 
+  (thread-start!
+    (->>
       monitor-body
       (loop/interval 4)
       (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
