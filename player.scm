@@ -50,7 +50,7 @@
                 playing?)
 
 (import chicken scheme data-structures)
-(use fmt test uri-common srfi-18 test http-client matchable
+(use fmt test uri-common srfi-18 srfi-13 test http-client matchable
      srfi-1 posix
      extras)
 
@@ -60,7 +60,7 @@
 ;; (include "process-cli.scm")
 ;; (include "concurrent-utils.scm")
 (import closing-http-client process-cli concurrent-utils)
-
+(use nanomsg)
 
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
@@ -147,71 +147,35 @@
  (test "more bad input" #f (parse-cplay-paused?-response "foo"))
  (test "empty input" #f    (parse-cplay-paused?-response "")))
 
-;; create a worker which can process one message at a time
-;; sequentially. this makes the world a simpler place. we should
-;; probably introduce this model on all mutation to the player.
-(define (make-play-worker)
-  (print "entering playworker")
-  (define cplay-cmd (lambda a #f))
 
-  (define (send-cmd str #!optional (parser values))
-    (let ((response (cplay-cmd str)))
-      (if (string? response) (parser response)
-          (begin
-	          (set! cplay-cmd (process-cli "cplay" '()
-              (lambda () (print "Player ret2")))) ;; No on-exit yet.
-          #f))))
+(define nnsock-gst
+  (let ((nnsock-gst (nn-socket 'pair)))
+    (nn-connect nnsock-gst "ipc:///data/nanomessage/playmonitor.pair")
+    (nn-send nnsock-gst "print_mib\n")
+    (print "Before nn-recv on nnsock-gst")
+    (print (nn-recv nnsock-gst))
+    (print "After nn-recv on nnsock-gst")
+    nnsock-gst))
 
-  (lambda (msg)
-    (match msg
+(define (gstplay-cli cmd #!optional (parser values))
+  (print "At gstplay-cli:" cmd)
+  (nn-send nnsock-gst cmd)
+  (let ((response (nn-recv nnsock-gst)))
+    (print "Response: " response)
+    (if parser
+      (parser response))))
 
-      (('start)
-       (cplay-cmd #:on-exit (lambda () (print " # ignoring callback")))
-       (cplay-cmd "quit")
-       (set! cplay-cmd (process-cli "cplay" '()
-         (lambda () (print "Player ret1")))) ;; No on-exit yet.
-	     #f)
-;;         (lambda ()
-           ;; important: starting another thread for this is like
-           ;; "posting" this to be ran in the future. without
-           ;; this, we'd start nesting locks and things which we
-           ;; don't want.
-;;           (thread-start! on-exit)))))
+(define (play-worker msg)
+  (match msg
+    (('pos) (gstplay-cli "pos" parse-cplay-pos-response))
+    (('duration)
+      (call-with-values ;; better way to do this?
+      (lambda () (gstplay-cli "pos" parse-cplay-pos-response))
+        (lambda (pos #!optional duration) duration)))
 
-      (('play scommand on-exit)
-         (print "Cmd to player:  " scommand)
-         (send-cmd (symbol-list->string scommand)))
-
-      (('follow scommand on-exit)
-       ;; reset & kill old cplayer
-       (cplay-cmd #:on-exit (lambda () (print "# ignoring callback")))
-       (cplay-cmd "quit")
-       (set! cplay-cmd
-         (process-cli
-         (car scommand)
-         (append (cdr scommand) '("follower"))
-         (lambda ()
-           (thread-start! on-exit)))))
-
-      (('pos)      (send-cmd "pos" parse-cplay-pos-response))
-      (('duration)
-        (call-with-values ;; better way to do this?
-        (lambda () (send-cmd "pos" parse-cplay-pos-response))
-          (lambda (pos #!optional duration) duration)))
-      (('paused?)       (send-cmd "paused?" parse-cplay-paused?-response))
-      (('pause)         (send-cmd "pause"))
-      (('unpause)       (send-cmd "unpause"))
-      (('seek pos)      (send-cmd (conc "seek " pos) parse-cplay-pos-response))
-      (('add uid)       (send-cmd (conc "add " uid) parse-add-response) )
-      (('remove uid)    (send-cmd (conc "remove " uid) parse-remove-response) )
-      (('nexttrack nxt) (send-cmd (conc "nexttrack " nxt) parse-nexttrack-response) )
-      (('nexttrack?)    (send-cmd "nexttrack?" parse-nexttrack?-response) )
-      (('quit)          (send-cmd "quit"))
-      (else (print "Unknown command: " msg)))) )
-
-(define play-worker
-  (let ((mx (make-mutex)))
-    (with-mutex-lock mx (make-play-worker))))
+    (('paused?) (gstplay-cli "paused?" parse-cplay-paused?-response))
+    (('play pcommand on-exit) (gstplay-cli '("play" pcommand)))
+    (else (print "-----At playworker " msg))))
 
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
