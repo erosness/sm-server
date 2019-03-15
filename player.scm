@@ -51,16 +51,8 @@
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 srfi-13 test http-client matchable
-     srfi-1 posix
-     extras)
-
-(use looper)
-(import clojurian-syntax medea)
-
-;; (include "process-cli.scm")
-;; (include "concurrent-utils.scm")
-(import closing-http-client process-cli concurrent-utils)
-(use nanomsg)
+     srfi-1 posix extras looper nanomsg)
+(import clojurian-syntax medea closing-http-client process-cli concurrent-utils)
 
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
@@ -103,11 +95,8 @@
  (test "a b" (symbol-list->string '("a" b)))
  (test "aa xx bb" (symbol-list->string '(aa "xx" bb)))
 )
-
-
-
-
 ;; Begin general nano partitions
+;; TODO: move section to separate file.
 
 (define (make-nano-socket addr)
   (let ((nnsock (nn-socket 'pair)))
@@ -146,11 +135,8 @@
 (define (get-msg rec)
   (let ((sock (get-socket rec)))
     (nn-recv* sock nn/dontwait)))
-
 ;; end general nano part
-
 ;; begin parsers
-
 (define (parse-add-response resp)
   (print "Response from gstplay: " resp))
 (define (parse-remove-response resp)
@@ -159,7 +145,6 @@
   (print "Nexttrack? response from gstplay: " resp))
 (define (parse-nexttrack-response resp)
   (print "Nexttrack set response from gstplay: " resp))
-
 
 (define (parse-cplay-pos-response resp)
   (match (string-split resp " #\x0a;#\x00;")
@@ -175,19 +160,15 @@
  (test "parse cplay pos - success"
        '(23.2341 42.43)
        (receive (parse-cplay-pos-response "ok 23.2341 42.43")))
-
   (test "parse cplay pos - success with tail"
        '(93.2341 45.23)
        (receive (parse-cplay-pos-response "ok 93.2341 45.23\n#\x00;")))
-
  (test "parse cplay pos - success with huge number and tail"
       '(1298129893.2341 45.23)
       (receive (parse-cplay-pos-response "ok 1298129893.2341 45.23\n#\x00;")))
-
  (test "parse cplay pos - success, report 0 for number garbage"
        '(0 45.23)
        (receive (parse-cplay-pos-response "ok per 45.23\n#\x00;")))
-
  (test "parse cplay pos - failure"
        '(0 0)
        (receive (parse-cplay-pos-response "some garbage 1234"))))
@@ -211,24 +192,11 @@
         '(#f)
         (receive (parse-cplay-paused?-response "ok false per"))))
 
-         ;; end parsers
-
-
-;;(define (play-worker msg)
-;;  (match msg
-;;    (('paused?) (gst-request gstplayer "paused?" parse-cplay-paused?-response))
-;;    (('play pcommand on-exit) (gst-request gstplayer '("play" pcommand)))
-;;    (else (print "-----At playworker " msg))))
+ ;; end parsers
 
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
   (thread-sleep! 0.3))
-
-(define (player-nexttrack turi)
-  (let ((nxt  (next-command turi)))
-    (gst-request gstplayer `(nexttrack ,nxt))))
-
-(define gstplayer (make-gst "ipc:///data/nanomessage/playcmd.pair"))
 
 ;; Control operations
 (define (player-pause)           (gst-request gstplayer `(pause)))
@@ -249,12 +217,11 @@
   (setup-nexttrack-callback on-next)
   (prepause-spotify)
   (gst-request gstplayer pcommand))
-;;  (setup-nexttrack-callback on-next)
-;;  (play-worker `(play ,pcommand on-exit)))
-
+(define (player-nexttrack turi)
+  (let ((nxt  (next-command turi)))
+    (gst-request gstplayer `(nexttrack ,nxt))))
 
 (define (nextplay! turi on-next)
-  (print "At nextplay!:" turi)
   (prepause-spotify)
   (player-nexttrack turi)
   (setup-nexttrack-callback on-next))
@@ -354,7 +321,7 @@
           (equal? (thread-state monitor-thread) 'dead ))
       (set! monitor-thread (make-monitor-thread))))
 
-;; Start gstplayer
-;;(play-worker `(start))
+;; Start gstplayer interface
+(define gstplayer (make-gst "ipc:///data/nanomessage/playcmd.pair"))
 
 )
