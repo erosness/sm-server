@@ -14,7 +14,7 @@
 (define-record-type gp (%make-gst socket gst-mutex handlers response)
   gp?
   (socket get-socket make-socket)
-  (gst-mutex get-mutex set-mutex)
+  (gst-mutex get-mutex)
   (handlers get-handlers set-handler)
   (response get-r set-r))
 
@@ -29,11 +29,19 @@
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
 
+(define (nn-send* rec msg)
+  (let ((sock (get-socket rec))
+        (mtx  (get-mutex rec) ))
+    (dynamic-wind
+      (lambda () (mutex-lock! mtx))
+      (lambda () (nn-send sock msg))
+      (lambda () (mutex-unlock! mtx)))))
+
 (define (gst-request rec msg #!optional (parser #f))
   (let* ((sock (get-socket rec))
         (cmd-string* (symbol-list->string msg))
         (cmd-string (string-append cmd-string* "\n")))
-          (nn-send sock cmd-string)
+          (nn-send* rec cmd-string)
           (let ((response (nn-recv sock)))
             (if parser
               (parser response)
@@ -45,7 +53,6 @@
 
 ;; end general nano part
 ;; parsers
-
 
 (define (parse-cplay-pos-response resp)
   (match (string-split resp " #\x0a;#\x00;")
@@ -89,16 +96,11 @@
                 token-str)))
 
 (define (parse-cplay-paused?-response resp)
-  (print "resp=<" (string->hex resp) ">")
-  (and-let* ((value (string-split resp " #\x0a;#\x00;"))
-             ((print "A:" value))
-             ((print "B"))
-             ((equal? (length value) 2))
-             ((print "A"))
-             ((print "B"))
-             (value (cadr value))
-             ((or (equal? value "false") (equal? value "true"))))
-    (equal? value "true")))
+ (and-let* ((value (string-split resp " #\x0a;#\x00;"))
+            ((equal? (length value) 2))
+            (value (cadr value))
+            ((or (equal? value "false") (equal? value "true"))))
+   (equal? value "true")))
 
 (test-group
  "parse cplay paused?"
@@ -118,24 +120,6 @@
 ;; end parsers
 ;; player part
 
-(define gstplayer (make-gst "ipc:///data/nanomessage/playcmd.pair"))
-
-(define (play-worker msg)
-  (print "MSG=" msg)
-  (match msg
-    (('pause) gst-request gstplayer '(pause))
-    (('unpause) gst-request gstplayer '(unpause))
-    (('paused?) (gst-request gstplayer '(paused?) parse-cplay-paused?-response))
-    (('pos) (gst-request gstplayer '(pos) parse-cplay-pos-response))
-    (('duration)
-      (call-with-values ;; better way to do this?
-        (lambda () (gstplay-cli "pos\n" parse-cplay-pos-response))
-        (lambda (pos #!optional duration) duration)))
-
-    (('play pcommand on-exit) (gst-request gstplayer `(play ,pcommand)))
-    (else (print "-----At playworker " msg))))
-
-
 
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
@@ -153,61 +137,59 @@
                                    duration))
 
 
-(define (player-seek seek)       (prepause-spotify) (play-worker `(seek ,seek)))
+(define (player-seek seek)       (prepause-spotify) (gst-request gstplayer `(seek ,seek)))
 (define (player-quit)            (gst-request gstplayer  `(quit)))
 ;; cplay running and not paused:
 (define (playing?)   (and (not (eq? #f (gst-request gstplayer `(pos))))
                           (not (player-paused?))))
 (define (player-nexttrack?) (gst-request gstplayer  `(nexttrack?)))
-
-;;(define (player-nexttrack turi)
-;;  (let ((nxt  (next-command turi)))
-;;    (play-worker `(nexttrack ,nxt))))
-
 (define (play! pcommand on-exit on-next)
-  (prepause-spotify)
 ;;  (setup-nexttrack-callback on-next)
-  (play-worker `(play ,pcommand on-exit)))
+  (prepause-spotify)
+  (gst-request gstplayer pcommand))
 
+(define gstplayer (make-gst "ipc:///data/nanomessage/playcmd.pair"))
 
 ;; Test part
 ;;(define gst-socket (make-nano "ipc:///data/nanomessage/playcmd.pair"))
 
 
-  (print (player-pos))
-  (sleep 1)
-  (print (player-pos))
+(print (player-pos))
+(sleep 1)
+(print (player-pos))
 
 
 
-  (sleep 1)
-  (print ": " (get-msg gstplayer))
-  (sleep 1)
-  (play! "http://listen.181fm.com/181-70s_128k.mp3?noPreRoll=true" (lambda () (print "At A")) (lambda () (print "At B")) )
-  (print "Paused?: "(player-paused?))
-  (sleep 1)
-  (print "Paused?: "(player-paused?))
-  (print ": " (get-msg gstplayer))
-  (sleep 1)
-  (print (player-pos))
-  (print ": " (get-msg gstplayer))
-  (player-pause)
-  (sleep 1)
-  (print "Paused?: "(player-paused?))
-  (print "Duration?: "(player-duration))
-  (sleep 1)
-  (print ": " (get-msg gstplayer))
-  (print (player-pos))
-  (player-unpause)
-  (sleep 1)
-  (print "Paused?: "(player-paused?))
-  (print ": " (get-msg gstplayer))
-  (sleep 1)
-  (player-quit)
-  (print ": " (get-msg gstplayer))
+(sleep 1)
+(print ": " (get-msg gstplayer))
+(sleep 1)
+(print "Play:" (play! `("play" "http://listen.181fm.com/181-70s_128k.mp3?noPreRoll=true") (lambda () (print "At A")) (lambda () (print "At B")) ))
+
+(print "Paused?: "(player-paused?))
+(sleep 1)
+(print "Paused?: "(player-paused?))
+(print ": " (get-msg gstplayer))
+(sleep 1)
+(print (player-pos))
+(print ": " (get-msg gstplayer))
+(player-pause)
+(sleep 1)
+(print "Paused?: "(player-paused?))
+(print "Duration?: "(player-duration))
+(sleep 1)
+(print ": " (get-msg gstplayer))
+(print (player-pos))
+(player-unpause)
+(sleep 1)
+(print "Paused?: "(player-paused?))
+(print ": " (get-msg gstplayer))
+(sleep 1)
+(print ": " (get-msg gstplayer))
 ;;  (print (player-pos))
-  (sleep 1)
-  (print ": " (get-msg gstplayer))
-  (sleep 1)
+(sleep 1)
+(print (player-pos))
+(print ": " (get-msg gstplayer))
+(sleep 1)
+(print (player-pos))
 
 (exit)
