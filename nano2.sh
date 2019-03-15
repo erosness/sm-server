@@ -11,12 +11,13 @@
     nnsock))
 
 ;; Record type to handle communication with gstplay.
-(define-record-type gp (%make-gst socket gst-mutex handlers response)
+(define-record-type gp (%make-gst response handlers socket gst-mutex read-thread)
   gp?
+  (response get-response set-response)
+  (handlers get-handlers set-handler)
   (socket get-socket make-socket)
   (gst-mutex get-mutex)
-  (handlers get-handlers set-handler)
-  (response get-r set-r))
+  (read-thread get-thread))
 
 (define-record-printer gp
   (lambda (rec out)
@@ -24,7 +25,10 @@
                   (if (get-handlers rec) "Has handler" "No handler"))))
 
 (define (make-gst addr)
-  (%make-gst (make-nano-socket addr) (make-mutex) #f #f))
+  (let* ((socket (make-nano-socket addr))
+        (mtx (make-mutex))
+        (response #f))
+    (%make-gst #f #f socket (make-mutex) #f)))
 
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
@@ -36,6 +40,21 @@
       (lambda () (mutex-lock! mtx))
       (lambda () (nn-send sock msg))
       (lambda () (mutex-unlock! mtx)))))
+
+;; Add blocking thread to fetch meesages over nanomsg connection.
+;; Currently only strict requst-respnse messages. TODO: out-of-band
+;; push messages for tag update and status change (typically end-of-track)
+(define (make-nano-read-thread socket response)
+  (let ((response (get-response rec))
+        (sock (get-socket rec)))
+    (thread-start!
+      (lambda ()
+        (print "Make thread A")
+        (-->
+          (lambda () (print "Run thread"))
+          (loop/interval 1)
+          (loop)
+          ((flip make-thread) "NanoReadThread"))))))
 
 (define (gst-request rec msg #!optional (parser #f))
   (let* ((sock (get-socket rec))
