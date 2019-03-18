@@ -3,7 +3,7 @@
 
 ;; Begin general nano partitions
 
-(use posix nanomsg matchable test string-utils)
+(use posix nanomsg matchable test string-utils clojurian-syntax looper)
 
 (define (make-nano-socket addr)
   (let ((nnsock (nn-socket 'pair)))
@@ -11,64 +11,73 @@
     nnsock))
 
 ;; Record type to handle communication with gstplay.
-(define-record-type gp (%make-gst response handlers socket gst-mutex read-thread)
+(define-record-type gp (%make-gst  response handlers socket gst-mutex)
   gp?
   (response get-response set-response)
   (handlers get-handlers set-handler)
   (socket get-socket make-socket)
-  (gst-mutex get-mutex)
-  (read-thread get-thread))
+  (gst-mutex get-mutex))
 
 (define-record-printer gp
   (lambda (rec out)
     (fprintf out "gp handlers: ~S responses:"
                   (if (get-handlers rec) "Has handler" "No handler"))))
 
-(define (make-gst addr)
+(define (make-gst-interface addr)
   (let* ((socket (make-nano-socket addr))
         (mtx (make-mutex))
-        (response #f))
-    (%make-gst #f #f socket (make-mutex) #f)))
+        (rec (%make-gst #f #f socket mtx)))
+        (print "Record:" rec)
+        rec))
 
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
 
 (define (nn-send* rec msg)
-  (let ((sock (get-socket rec))
-        (mtx  (get-mutex rec) ))
-    (dynamic-wind
-      (lambda () (mutex-lock! mtx))
-      (lambda () (nn-send sock msg))
-      (lambda () (mutex-unlock! mtx)))))
+  (let ((sock (get-socket rec)))
+    (nn-send sock msg)))
 
 ;; Add blocking thread to fetch meesages over nanomsg connection.
 ;; Currently only strict requst-respnse messages. TODO: out-of-band
 ;; push messages for tag update and status change (typically end-of-track)
-(define (make-nano-read-thread socket response)
-  (let ((response (get-response rec))
-        (sock (get-socket rec)))
-    (thread-start!
-      (lambda ()
-        (print "Make thread A")
-        (-->
-          (lambda () (print "Run thread"))
-          (loop/interval 1)
-          (loop)
-          ((flip make-thread) "NanoReadThread"))))))
+(define (make-nano-read-thread rec)
+;; Read all messages in a blocking loop. Sort messages as response and
+;; push messages based on grammar.
+  (define (read-nanomsg)
+    (let* ((socket (get-socket rec))
+          (handlers (get-handlers rec))
+          (response (get-response rec)))
+      (gst-request rec `(pos))
+      (print "XX" socket " - " handlers " - " response " - ")))
+
+  (thread-start!
+    (->>
+      read-nanomsg
+      (loop/interval 0.01)
+      (loop)
+      ((flip make-thread) "NanoReadThread"))))
+
 
 (define (gst-request rec msg #!optional (parser #f))
-  (let* ((sock (get-socket rec))
-        (cmd-string* (symbol-list->string msg))
-        (cmd-string (string-append cmd-string* "\n")))
+  (let ((sock (get-socket rec))
+        (mtx  (get-mutex rec) ))
+    (dynamic-wind
+      (lambda () (mutex-lock! mtx))
+      (lambda ()
+        (let* ((sock (get-socket rec))
+              (cmd-string* (symbol-list->string msg))
+              (cmd-string (string-append cmd-string* "\n")))
           (nn-send* rec cmd-string)
           (let ((response (nn-recv sock)))
             (if parser
               (parser response)
               response))))
+      (lambda () (mutex-unlock! mtx)))))
 
 (define (get-msg rec)
   (let ((sock (get-socket rec)))
-    (nn-recv* sock nn/dontwait)))
+;;    (nn-recv* sock nn/dontwait)))
+    (nn-recv sock)))
 
 ;; end general nano part
 ;; parsers
@@ -167,8 +176,14 @@
   (prepause-spotify)
   (gst-request gstplayer pcommand))
 
-(define gstplayer (make-gst "ipc:///data/nanomessage/playcmd.pair"))
+(define gstplayer (make-gst-interface "ipc:///data/nanomessage/playcmd.pair"))
 
+(define thread1 (make-nano-read-thread gstplayer))
+(define thread2 (make-nano-read-thread gstplayer))
+(define thread3 (make-nano-read-thread gstplayer))
+(define thread4 (make-nano-read-thread gstplayer))
+(define thread5 (make-nano-read-thread gstplayer))
+(define thread6 (make-nano-read-thread gstplayer))
 ;; Test part
 ;;(define gst-socket (make-nano "ipc:///data/nanomessage/playcmd.pair"))
 
@@ -180,35 +195,35 @@
 
 
 (sleep 1)
-(print ": " (get-msg gstplayer))
+;;(print ": " (get-msg gstplayer))
 (sleep 1)
 (print "Play:" (play! `("play" "http://listen.181fm.com/181-70s_128k.mp3?noPreRoll=true") (lambda () (print "At A")) (lambda () (print "At B")) ))
 
 (print "Paused?: "(player-paused?))
-(sleep 1)
+(sleep 3)
 (print "Paused?: "(player-paused?))
-(print ": " (get-msg gstplayer))
-(sleep 1)
+;;(print ": " (get-msg gstplayer))
+(sleep 3)
 (print (player-pos))
-(print ": " (get-msg gstplayer))
+;;(print ": " (get-msg gstplayer))
 (player-pause)
-(sleep 1)
+(sleep 3)
 (print "Paused?: "(player-paused?))
 (print "Duration?: "(player-duration))
-(sleep 1)
-(print ": " (get-msg gstplayer))
+(sleep 3)
+;;(print ": " (get-msg gstplayer))
 (print (player-pos))
 (player-unpause)
-(sleep 1)
+(sleep 3)
 (print "Paused?: "(player-paused?))
-(print ": " (get-msg gstplayer))
-(sleep 1)
-(print ": " (get-msg gstplayer))
+;;(print ": " (get-msg gstplayer))
+(sleep 3)
+;;(print ": " (get-msg gstplayer))
 ;;  (print (player-pos))
-(sleep 1)
+(sleep 3)
 (print (player-pos))
-(print ": " (get-msg gstplayer))
-(sleep 1)
+;;(print ": " (get-msg gstplayer))
+(sleep 3)
 (print (player-pos))
 
 (exit)
