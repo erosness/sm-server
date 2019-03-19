@@ -122,15 +122,27 @@
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
 
+  (define (nn-send* rec msg)
+    (let ((sock (get-socket rec)))
+      (nn-send sock msg)))
+
 (define (gst-request rec msg #!optional (parser #f))
-  (let* ((sock (get-socket rec))
-        (cmd-string* (symbol-list->string msg))
-        (cmd-string (string-append cmd-string* "\n")))
-          (nn-send sock cmd-string)
-          (let ((response (nn-recv sock)))
-            (if parser
-              (parser response)
-              response))))
+(let ((sock (get-socket rec))
+      (mtx  (get-mutex rec) ))
+  (dynamic-wind
+    (lambda () (mutex-lock! mtx))
+    (lambda ()
+      (let* ((sock (get-socket rec))
+            (cmd-string* (symbol-list->string msg))
+            (cmd-string (string-append cmd-string* "\n")))
+        (nn-send* rec cmd-string)
+        (let ((response (nn-recv sock)))
+          (if parser
+            (begin
+              (print "Response:" response "P:" parser)
+              (parser response))
+            response))))
+    (lambda () (mutex-unlock! mtx)))))
 
 (define (get-msg rec)
   (let ((sock (get-socket rec)))
@@ -237,7 +249,7 @@
   (prepause-spotify)
   (pp "At follow!")
   (pp ip_leader)
-  (gst-request gstplayer `(play ("play follower " ,ip_leader )(print "# ignoring callback"))))
+  (gst-request gstplayer `(play ("play follower " ,ip_leader )(print "# ignoring ip_leader callback"))))
 
 
 (define (play-command/tr turi)
@@ -265,7 +277,8 @@
 (define (play-rmfollower! uid_follower) (gst-request gstplayer `(remove, uid_follower)))
 
 (define (spotify-play parameter)
-  (gst-request gstplayer `(play , "spotify") (print "# ignoring callback")))
+  (print "At spotify-play: " parameter)
+  (gst-request gstplayer `(play , "spotify") (print "# ignoring Spotify callback")))
 
 (test-group "play-command"
  (test '("play" "file:///filename") (play-command "file:///filename"))
