@@ -50,17 +50,9 @@
                 playing?)
 
 (import chicken scheme data-structures)
-(use fmt test uri-common srfi-18 test http-client matchable
-     srfi-1 posix
-     extras)
-
-(use looper)
-(import clojurian-syntax medea)
-
-;; (include "process-cli.scm")
-;; (include "concurrent-utils.scm")
-(import closing-http-client process-cli concurrent-utils)
-
+(use fmt test uri-common srfi-18 srfi-13 test http-client matchable
+     srfi-1 posix extras looper nanomsg)
+(import clojurian-syntax medea closing-http-client process-cli concurrent-utils)
 
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
@@ -103,16 +95,60 @@
  (test "a b" (symbol-list->string '("a" b)))
  (test "aa xx bb" (symbol-list->string '(aa "xx" bb)))
 )
+;; Begin general nano partitions
+;; TODO: move section to separate file.
 
-;; pos responses from cplay contain both pos and duration. return both
-;; here too.
-(define (parse-cplay-pos-response resp)
-  (match (string-split resp)
-    (("ok" pos duration)
-     (values (string->number pos)
-             (string->number duration)))
-    (else (values 0 0))))
+(define (make-nano-socket addr)
+  (let ((nnsock (nn-socket 'pair)))
+    (nn-connect nnsock addr)
+    nnsock))
 
+;; Record type to handle communication with gstplay.
+(define-record-type gp (%make-gst socket gst-mutex handlers response)
+  gp?
+  (socket get-socket make-socket)
+  (gst-mutex get-mutex set-mutex)
+  (handlers get-handlers set-handler)
+  (response get-r set-r))
+
+(define-record-printer gp
+  (lambda (rec out)
+    (fprintf out "gp handlers: ~S responses:"
+                  (if (get-handlers rec) "Has handler" "No handler"))))
+
+(define (make-gst addr)
+  (%make-gst (make-nano-socket addr) (make-mutex) #f #f))
+
+(define (parse-response resp)
+  (print "Response from gstplay: " resp))
+
+  (define (nn-send* rec msg)
+    (let ((sock (get-socket rec)))
+      (nn-send sock msg)))
+
+(define (gst-request rec msg #!optional (parser #f))
+(let ((sock (get-socket rec))
+      (mtx  (get-mutex rec) ))
+  (dynamic-wind
+    (lambda () (mutex-lock! mtx))
+    (lambda ()
+      (let* ((sock (get-socket rec))
+            (cmd-string* (symbol-list->string msg))
+            (cmd-string (string-append cmd-string* "\n")))
+        (nn-send* rec cmd-string)
+        (let ((response (nn-recv sock)))
+          (if parser
+            (begin
+              (print "Response:" response "P:" parser)
+              (parser response))
+            response))))
+    (lambda () (mutex-unlock! mtx)))))
+
+(define (get-msg rec)
+  (let ((sock (get-socket rec)))
+    (nn-recv* sock nn/dontwait)))
+;; end general nano part
+;; begin parsers
 (define (parse-add-response resp)
   (print "Response from gstplay: " resp))
 (define (parse-remove-response resp)
@@ -122,153 +158,98 @@
 (define (parse-nexttrack-response resp)
   (print "Nexttrack set response from gstplay: " resp))
 
+(define (parse-cplay-pos-response resp)
+  (match (string-split resp " #\x0a;#\x00;")
+    (("ok" pos duration)
+      (let ((pos-number (string->number pos))
+            (duration-number (string->number duration)))
+        (values (if pos-number pos-number 0)
+                (if duration-number duration-number 0))))
+    (else (values 0 0))))
+
 (test-group
  "parse cplay pos"
  (test "parse cplay pos - success"
-       '(23.2341 45.23)
-       (receive (parse-cplay-pos-response "ok 23.2341 45.23")))
-
+       '(23.2341 42.43)
+       (receive (parse-cplay-pos-response "ok 23.2341 42.43")))
+  (test "parse cplay pos - success with tail"
+       '(93.2341 45.23)
+       (receive (parse-cplay-pos-response "ok 93.2341 45.23\n#\x00;")))
+ (test "parse cplay pos - success with huge number and tail"
+      '(1298129893.2341 45.23)
+      (receive (parse-cplay-pos-response "ok 1298129893.2341 45.23\n#\x00;")))
+ (test "parse cplay pos - success, report 0 for number garbage"
+       '(0 45.23)
+       (receive (parse-cplay-pos-response "ok per 45.23\n#\x00;")))
  (test "parse cplay pos - failure"
        '(0 0)
        (receive (parse-cplay-pos-response "some garbage 1234"))))
 
 (define (parse-cplay-paused?-response resp)
-  (and-let* ((value (string-split resp))
-             ((equal? (length value) 2))
-             (value (cadr value))
-             ((or (equal? value "false") (equal? value "true"))))
-    (equal? value "true")))
+ (and-let* ((value (string-split resp " #\x0a;#\x00;"))
+            ((equal? (length value) 2))
+            (value (cadr value))
+            ((or (equal? value "false") (equal? value "true"))))
+   (equal? value "true")))
 
 (test-group
- "parse-cplay-paused?"
- (test "truthy" #t         (parse-cplay-paused?-response "ok true"))
- (test "falsy"  #f         (parse-cplay-paused?-response "ok false"))
- (test "bad input" #f      (parse-cplay-paused?-response "ok asdf"))
- (test "more bad input" #f (parse-cplay-paused?-response "foo"))
- (test "empty input" #f    (parse-cplay-paused?-response "")))
+  "parse cplay paused?"
+  (test "parse cplay pos - success, paused"
+        '(#t)
+        (receive (parse-cplay-paused?-response "ok true")))
+  (test "parse cplay pos - success, not paused"
+        '(#f)
+        (receive (parse-cplay-paused?-response "ok false")))
+  (test "parse cplay pos - fail, not paused"
+        '(#f)
+        (receive (parse-cplay-paused?-response "ok false per"))))
 
-;; create a worker which can process one message at a time
-;; sequentially. this makes the world a simpler place. we should
-;; probably introduce this model on all mutation to the player.
-(define (make-play-worker)
-  (print "entering playworker")
-  (define cplay-cmd (lambda a #f))
-
-  (define (send-cmd str #!optional (parser values))
-    (let ((response (cplay-cmd str)))
-      (if (string? response) (parser response)
-          (begin
-	   (set! cplay-cmd
-            (process-cli
-            "cplay"
-            '()
-            (lambda () (print "Player ret2")) ;; No on-exit yet.
-	    ))
-          #f))))
-
-  
-  (lambda (msg)
-    (match msg
-	   
-      (('start)
-       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
-       (cplay-cmd "quit")
-       (set! cplay-cmd
-         (process-cli
-         "cplay"
-         '()
-         (lambda () (print "Player ret1")))) ;; No on-exit yet.
-	 #f)
-;;         (lambda ()
-           ;; important: starting another thread for this is like
-           ;; "posting" this to be ran in the future. without
-           ;; this, we'd start nesting locks and things which we
-           ;; don't want.
-;;           (thread-start! on-exit)))))
-
-      (('play scommand on-exit)
-         (print "Cmd to player:  " scommand)
-         (send-cmd (symbol-list->string scommand)))
-
-      (('follow scommand on-exit)
-       ;; reset & kill old cplayer
-       (cplay-cmd #:on-exit (lambda () (print ";; ignoring callback")))
-       (cplay-cmd "quit")
-       (set! cplay-cmd
-         (process-cli
-         (car scommand)
-         (append (cdr scommand) '("follower"))
-         (lambda ()
-           (thread-start! on-exit)))))
-
-      (('pos)      (send-cmd "pos" parse-cplay-pos-response))
-      (('duration)
-        (call-with-values ;; better way to do this?
-        (lambda () (send-cmd "pos" parse-cplay-pos-response))
-          (lambda (pos #!optional duration) duration)))
-      (('paused?)       (send-cmd "paused?" parse-cplay-paused?-response))
-      (('pause)         (send-cmd "pause"))
-      (('unpause)       (send-cmd "unpause"))
-      (('seek pos)      (send-cmd (conc "seek " pos) parse-cplay-pos-response))
-      (('add uid)       (send-cmd (conc "add " uid) parse-add-response) )
-      (('remove uid)    (send-cmd (conc "remove " uid) parse-remove-response) )
-      (('nexttrack nxt) (send-cmd (conc "nexttrack " nxt) parse-nexttrack-response) )
-      (('nexttrack?)    (send-cmd "nexttrack?" parse-nexttrack?-response) )
-      (('quit)          (send-cmd "quit"))
-      (else (print "Unknown command: " msg)))) )
-
-(define play-worker
-  (let ((mx (make-mutex)))
-    (with-mutex-lock mx (make-play-worker))))
+ ;; end parsers
 
 (define (prepause-spotify)
   (with-input-from-pipe "spotifyctl 7879 pause" void)
   (thread-sleep! 0.3))
 
-
 ;; Control operations
-(define (player-pause)           (play-worker `(pause)))
-(define (player-unpause)         (prepause-spotify) (play-worker `(unpause)))
-(define (player-spotify-unpause) (play-worker `(unpause)))
-(define (player-paused?)         (play-worker `(paused?)))
-(define (player-pos)             (play-worker `(pos)))
-(define (player-duration)        (play-worker `(duration)))
-(define (player-seek seek)       (prepause-spotify) (play-worker `(seek ,seek)))
-(define (player-quit)            (play-worker `(quit)))
+(define (player-pause)           (gst-request gstplayer `(pause)))
+(define (player-unpause)         (prepause-spotify) (gst-request gstplayer `(unpause)))
+(define (player-spotify-unpause) (gst-request gstplayer  `(unpause)))
+(define (player-paused?)         (gst-request gstplayer `(paused?) parse-cplay-paused?-response))
+(define (player-pos)             (gst-request gstplayer `(pos) parse-cplay-pos-response))
+(define (player-duration)        (receive (pos duration)
+                                   (gst-request gstplayer `(pos) parse-cplay-pos-response)
+                                   duration))
+(define (player-seek seek)       (prepause-spotify) (gst-request gstplayer `(seek ,seek)))
+(define (player-quit)            (gst-request gstplayer  `(quit)))
 ;; cplay running and not paused:
-(define (playing?)   (and (not (eq? #f (play-worker `(pos))))
+(define (playing?)   (and (not (eq? #f (gst-request gstplayer `(pos))))
                           (not (player-paused?))))
-(define (player-nexttrack?) (play-worker `(nexttrack?)))
-
+(define (player-nexttrack?) (gst-request gstplayer  `(nexttrack?)))
+(define (play! pcommand on-exit on-next)
+  (setup-nexttrack-callback on-next)
+  (prepause-spotify)
+  (gst-request gstplayer pcommand))
 (define (player-nexttrack turi)
   (let ((nxt  (next-command turi)))
-    (play-worker `(nexttrack ,nxt))))
-
-
-
-(define (play! cmd on-exit on-next)
-  (prepause-spotify)
-  (setup-nexttrack-callback on-next)
-  (play-worker `(play ,cmd ,on-exit)))
+    (gst-request gstplayer `(nexttrack ,nxt))))
 
 (define (nextplay! turi on-next)
-  (print "At nextplay!:" turi)
   (prepause-spotify)
   (player-nexttrack turi)
   (setup-nexttrack-callback on-next))
 
 (define (play-follower-cmd uid-leader)
   (
-   (play-worker `(quit))
+;;   (play-worker `(quit))
    (cplay-follower uid-leader)
    )
   )
 
 (define (follow! ip_leader)
   (prepause-spotify)
-  (pp "At follow!") 
+  (pp "At follow!")
   (pp ip_leader)
-  (play-worker `(play ("play follower " ,ip_leader )(print ";; ignoring callback"))))
+  (gst-request gstplayer `(play ("play follower " ,ip_leader )(print "# ignoring ip_leader callback"))))
 
 
 (define (play-command/tr turi)
@@ -291,12 +272,13 @@
 (define (next-command turi)
   (car (cdr (play-command turi))))
 
-(define (play-addfollower! uid_follower)    (print "in call") (play-worker `(add , uid_follower)) (print "after call"))
+(define (play-addfollower! uid_follower)    (print "in call") (gst-request gstplayer `(add , uid_follower)) (print "after call"))
 
-(define (play-rmfollower! uid_follower) (play-worker `(remove, uid_follower)))
+(define (play-rmfollower! uid_follower) (gst-request gstplayer `(remove, uid_follower)))
 
 (define (spotify-play parameter)
-  (play-worker `(play ("play" , "spotify") (print ";; ignoring callback"))))
+  (print "At spotify-play: " parameter)
+  (gst-request gstplayer `(play , "spotify") (print "# ignoring Spotify callback")))
 
 (test-group "play-command"
  (test '("play" "file:///filename") (play-command "file:///filename"))
@@ -325,8 +307,8 @@
                  (< pos duration))
           (set! used-callback-position 0))
 ;;        (print "Monitor-body: " pos " - " duration " p "  used-callback-position )
-        (if (and (< (- duration pos) 15) 
-                 (< pos duration) 
+        (if (and (< (- duration pos) 15)
+                 (< pos duration)
                  nexttrack-callback)
           (if (equal? used-callback-position 0)
             (begin
@@ -335,8 +317,8 @@
       (print "No player"))))
 
 (define (make-monitor-thread)
-  (thread-start! 
-    (->> 
+  (thread-start!
+    (->>
       monitor-body
       (loop/interval 4)
       (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
@@ -352,7 +334,7 @@
           (equal? (thread-state monitor-thread) 'dead ))
       (set! monitor-thread (make-monitor-thread))))
 
-;; Start gstplayer
-(play-worker `(start))
+;; Start gstplayer interface
+(define gstplayer (make-gst "ipc:///data/nanomessage/playcmd.pair"))
 
 )
