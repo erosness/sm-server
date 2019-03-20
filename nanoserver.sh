@@ -65,6 +65,6 @@
 
 
 (thread-sleep! 1)
-(nn-send push-sock str)
+(nn-send push-sock (make-str))
 (print "end")
 (exit)
