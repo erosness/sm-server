@@ -7,7 +7,7 @@
 
 (define (make-nano-socket addr)
   (let ((nnsock (nn-socket 'pair)))
-    (print "Connect: " (nn-connect nnsock addr))
+    (nn-connect nnsock addr)
     nnsock))
 
 ;; Record type to handle communication with gstplay.
@@ -178,7 +178,7 @@
   (prepause-spotify)
   (nano-if-request gstplayer pcommand))
 
-(define gstplayer (make-nano-if "ipc:///data/nanomessage/test.pair"))
+;;(define gstplayer (make-nano-if "ipc:///data/nanomessage/test.pair"))
 (define pull-thread (make-nano-pull-thread))
 
 ;; (define thread1 (make-nano-read-thread gstplayer))
@@ -186,42 +186,10 @@
 ;;(define gst-socket (make-nano "ipc:///data/nanomessage/playcmd.pair"))
 
 
-(print (player-pos))
+;;(print (player-pos))
 (thread-sleep! 1)
-(print (player-pos))
+;;(print (player-pos))
 
-
-
-(thread-sleep! 1)
-;;(print ": " (get-msg gstplayer))
-(thread-sleep! 1)
-(print "Play:" (play! `("play" "http://listen.181fm.com/181-70s_128k.mp3?noPreRoll=true") (lambda () (print "At A")) (lambda () (print "At B")) ))
-
-(print "Paused?: "(player-paused?))
-(thread-sleep! 3)
-(print "Paused?: "(player-paused?))
-;;(print ": " (get-msg gstplayer))
-(thread-sleep! 3)
-(print (player-pos))
-;;(print ": " (get-msg gstplayer))
-(player-pause)
-(thread-sleep! 3)
-(print "Paused?: "(player-paused?))
-(print "Duration?: "(player-duration))
-(thread-sleep! 3)
-;;(print ": " (get-msg gstplayer))
-(print (player-pos))
-(player-unpause)
-(thread-sleep! 3)
-(print "Paused?: "(player-paused?))
-;;(print ": " (get-msg gstplayer))
-(thread-sleep! 3)
-;;(print ": " (get-msg gstplayer))
-;;  (print (player-pos))
-(thread-sleep! 3)
-(print (player-pos))
-;;(print ": " (get-msg gstplayer))
-(thread-sleep! 3)
-(print (player-pos))
+(thread-sleep! 100)
 
 (exit)
