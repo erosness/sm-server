@@ -5,57 +5,6 @@
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
 
-(define (nn-send* rec msg)
-  (let ((sock (get-socket rec)))
-    (nn-send sock msg)))
-
-;; Add blocking thread to fetch meesages over nanomsg connection.
-;; Currently only strict requst-respnse messages. TODO: out-of-band
-;; push messages for tag update and status change (typically end-of-track)
-(define (make-nano-pull-thread)
-;; Read all messages in a blocking loop. Sort messages as response and
-;; push messages based on grammar.
-  (define (make-pull-socket)
-     (let ((pull-sock (nn-socket 'sub)))
-        (nn-connect pull-sock  "ipc:///data/nanomessage/test.pub")
-        (nn-subscribe pull-sock "")
-        pull-sock))
-
-  (define (read-nanomsg)
-    (let* ((pull-socket (make-pull-socket)))
-;;      (nano-if-request rec `(pos))
-      (print "Before... in " (thread-name (current-thread)))
-      (let ((msg (nn-recv pull-socket)))
-        (print "XX" pull-socket " - " msg))))
-
-  (thread-start!
-    (->>
-      read-nanomsg
-      (loop/interval 0.01)
-      (loop)
-      ((flip make-thread) "NanoReadThread"))))
-
-
-(define (nano-if-request rec msg #!optional (parser #f))
-  (let ((sock (get-socket rec))
-        (mtx  (get-mutex rec) ))
-    (dynamic-wind
-      (lambda () (mutex-lock! mtx))
-      (lambda ()
-        (let* ((cmd-string* (symbol-list->string msg))
-              (cmd-string (string-append cmd-string* "\n")))
-          (nn-send* rec cmd-string)
-          (let ((response (nn-recv sock)))
-            (if parser
-              (parser response)
-              response))))
-      (lambda () (mutex-unlock! mtx)))))
-
-(define (get-msg rec)
-  (let ((sock (get-socket rec)))
-;;    (nn-recv* sock nn/dontwait)))
-    (nn-recv sock)))
-
 ;; end general nano part
 ;; parsers
 
@@ -89,16 +38,6 @@
  (test "parse cplay pos - failure"
        '(0 0)
        (receive (parse-cplay-pos-response "some garbage 1234"))))
-
-
-    (define (symbol-list->string cmd-list)
-      (let* ((token-raw (car cmd-list))
-            (token-str (if (symbol? token-raw)
-           	                (symbol->string token-raw)
-                            token-raw)))
-              (if (not (null? (cdr cmd-list)))
-                (string-append token-str " " (symbol-list->string (cdr cmd-list)))
-                token-str)))
 
 (define (parse-cplay-paused?-response resp)
  (and-let* ((value (string-split resp " #\x0a;#\x00;"))
