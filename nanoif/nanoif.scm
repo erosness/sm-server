@@ -1,9 +1,8 @@
 ;; Nano interface module. Establish interface according to IXION standard (see
 ;; TS1001 for details). Consists of one request-response connection based
 ;; on the pair protocol and one subscribe channel for metadata etc.
-(module nanoif * ;; (make-nano-if
-;;                nano-if-request
-;;                )
+(module nanoif ( make-nano-if
+                 nano-if-request)
 
 (import extras chicken scheme srfi-1)
 (use nanomsg clojurian-syntax looper srfi-18 data-structures)
@@ -17,15 +16,26 @@
             (string-append token-str " " (symbol-list->string (cdr cmd-list)))
             token-str)))
 
-(define (make-nano-socket addr)
+(define (make-req-socket addr)
   (let ((nnsock (nn-socket 'pair)))
     (nn-connect nnsock addr)
     nnsock))
 
+  (define (make-pub-socket addr)
+    (let ((nnsock (nn-socket 'sub)))
+      (nn-connect nnsock addr)
+      (nn-subscribe nnsock "") ;; Subscribe to eveything.
+      nnsock))
+
 ;; Record type to handle communication with gstplay.
-(define-record-type nano-if (%make-nano-if socket req-mutex handlers response)
+(define-record-type nano-if (%make-nano-if req-socket
+                                           pub-socket
+                                           req-mutex
+                                           pubhandlers
+                                           response)
   nano-if?
-  (socket get-socket make-socket)
+  (req-socket get-req)
+  (pub-socket get-pub)
   (req-mutex get-mutex)
   (handlers get-handlers set-handler)
   (response get-response set-response))
@@ -35,13 +45,14 @@
     (fprintf out "nano-if handlers: ~S responses:"
                   (if (get-handlers rec) "Has handler" "No handler"))))
 
-(define (make-nano-if addr)
+(define (make-nano-if req-addr pub-addr)
   (print "Begin make-nano-if")
-  (%make-nano-if (make-nano-socket addr) (make-mutex) #f #f))
-
-(define (nn-send* rec msg)
-  (let ((sock (get-socket rec)))
-    (nn-send sock msg)))
+  (%make-nano-if
+    (make-req-socket req-addr)
+    (make-pub-socket pub-addr)
+    (make-mutex)
+    #f
+    #f))
 
 ;; Add blocking thread to fetch meesages over nanomsg connection.
 ;; Currently only strict requst-respnse messages. TODO: out-of-band
@@ -52,7 +63,6 @@
   (define (make-pull-socket)
      (let ((pull-sock (nn-socket 'sub)))
         (nn-connect pull-sock  "ipc:///data/nanomessage/test.pub")
-        (nn-subscribe pull-sock "")
         pull-sock))
 
   (define (read-nanomsg)
@@ -71,22 +81,18 @@
 
 
 (define (nano-if-request rec msg #!optional (parser #f))
-  (let ((sock (get-socket rec))
+  (let ((sock (get-req rec))
         (mtx  (get-mutex rec) ))
     (dynamic-wind
       (lambda () (mutex-lock! mtx))
       (lambda ()
         (let* ((cmd-string* (symbol-list->string msg))
               (cmd-string (string-append cmd-string* "\n")))
-          (nn-send* rec cmd-string)
+          (nn-send sock cmd-string)
           (let ((response (nn-recv sock)))
             (if parser
               (parser response)
               response))))
       (lambda () (mutex-unlock! mtx)))))
 
-(define (get-msg rec)
-  (let ((sock (get-socket rec)))
-;;    (nn-recv* sock nn/dontwait)))
-    (nn-recv sock)))
-    ) ;; module nanoif ends
+) ;; module nanoif ends
