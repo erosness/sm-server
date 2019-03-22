@@ -14,7 +14,8 @@
 
 (define req-sock (make-nano-req-server-socket "ipc:///data/nanomessage/test.pair"))
 (define push-sock (make-nano-push-server-socket "ipc:///data/nanomessage/test.pub"))
-(print "Got socket")
+
+(print "Begin")
 
 (define (nano-req)
     (let ((msg (nn-recv req-sock)))
@@ -22,49 +23,43 @@
 ;;      (nn-send req-sock (string-concatenate `("ok " msg)))))
       (nn-send req-sock  "ok tullball!" )))
 
-(thread-start!
-  (->>
-    nano-req
-;;    (loop/interval 0.01)
-    (loop)
-    ((flip make-thread) "NanoReqThread")))
+(define req-thread
+  (thread-start!
+    (->>
+      nano-req
+      (loop)
+      ((flip make-thread) "NanoReqThread"))))
 
-(print "begin")
+(print "Made thread:" req-thread " - " (thread-name req-thread))
 
-(define (make-str)
+(define (make-response-string)
   (string-concatenate `("Dette er en test...."
     ,(number->string
       (time->seconds
         (current-time))))))
 
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
-(thread-sleep! 10)
-(nn-send push-sock (make-str))
-(print "ping")
+(define (nano-push)
+      (print "Sending push message")
+      (nn-send push-sock  "ok tullball!" ))
 
+(define push-thread
+  (thread-start!
+    (->>
+      nano-push
+      (loop/interval 2.0)
+      (loop)
+      ((flip make-thread) "NanoPushThread"))))
 
+(print "Made thread:" push-thread " - " (thread-name push-thread))
 
-(thread-sleep! 1)
-(nn-send push-sock (make-str))
-(print "end")
+(define (make-push-string)
+  (string-concatenate
+    `( "Dette er en test...."
+      ,(number->string
+        (time->seconds
+          (current-time))))))
+
+(thread-join! req-thread)
+(thread-join! push-thread)
+
 (exit)
