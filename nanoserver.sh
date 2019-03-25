@@ -1,6 +1,6 @@
 #!/bin/csi
 
-(use posix srfi-18 nanomsg matchable test string-utils clojurian-syntax looper)
+(use posix srfi-18 nanomsg matchable test string-utils clojurian-syntax looper medea)
 
 (define (make-nano-req-server-socket addr)
   (let ((req-sock (nn-socket 'pair)))
@@ -40,7 +40,7 @@
 
 (define (nano-push)
       (print "Sending push message")
-      (nn-send push-sock  "ok tullball!" ))
+      (nn-send push-sock  (json->string `(( xx ( one . 11) ( two . 22))))))
 
 (define push-thread
   (thread-start!
