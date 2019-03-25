@@ -34,19 +34,21 @@
 ;; ==== Request interface starts here
 ;; Create suitable socket
 (define (make-req-socket addr)
-  (nn-socket 'pair))
+  (let ((socket (nn-socket 'pair)))
+    (nn-connect socket addr)
+    socket ))
 
 ;; Record type to handle communication with gstplay.
 (define-record-type req-if (%make-req-if req-socket
                                            req-mutex
                                            response)
   req-if?
-  (req-socket get-req)
+  (req-socket get-req-socket)
   (req-mutex get-mutex)
   (response get-response set-response))
 
-  (define (make-req-if req-addr pub-addr)
-    (print "Begin make-nano-if")
+  (define (make-req-if req-addr)
+    (print "Begin make-req-if")
     (let ((rec (%make-req-if
               (make-req-socket req-addr)
               (make-mutex)
@@ -65,20 +67,18 @@
   ;; Record type to handle communication with gstplay.
 (define-record-type sub-if (%make-sub-if sub-socket handlers)
   sub-if?
-  (pub-socket get-sub)
-  (req-mutex get-mutex)
+  (pub-socket get-sub-socket)
   (handlers get-handlers set-handler))
 
-(define-record-printer nano-if
+(define-record-printer sub-if
   (lambda (rec out)
     (fprintf out "nano-if handlers: ~S responses:"
                   (if (get-handlers rec) "Has handler" "No handler"))))
 
-(define (make-sub-if req-addr pub-addr)
-  (print "Begin make-nano-if")
+(define (make-sub-if pub-addr)
+  (print "Begin make-sub-if")
   (let ((rec (%make-sub-if
             (make-sub-socket pub-addr)
-            (make-mutex)
             #f)))
     rec))
 
@@ -106,15 +106,20 @@
 
 
 (define (nano-if-request rec msg #!optional (parser #f))
-  (let ((sock (get-req rec))
-        (mtx  (get-mutex rec) ))
+  (let* ((req-rec (get-req rec))
+        (sock (get-req-socket req-rec))
+        (mtx  (get-mutex req-rec)))
     (dynamic-wind
       (lambda () (mutex-lock! mtx))
       (lambda ()
+        (print "Begin req")
         (let* ((cmd-string* (symbol-list->string msg))
               (cmd-string (string-append cmd-string* "\n")))
+          (print "Before send")
           (nn-send sock cmd-string)
+          (print "After send")
           (let ((response (nn-recv sock)))
+            (print "Got resp:" response)
             (if parser
               (parser response)
               response))))
