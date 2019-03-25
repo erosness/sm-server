@@ -5,7 +5,7 @@
                  nano-if-request)
 
 (import extras chicken scheme srfi-1)
-(use nanomsg clojurian-syntax looper srfi-18 data-structures)
+(use nanomsg clojurian-syntax looper srfi-18 data-structures medea)
 
 ;; Helper function used to prepare message payload
 (define (symbol-list->string cmd-list)
@@ -48,7 +48,6 @@
   (response get-response set-response))
 
   (define (make-req-if req-addr)
-    (print "Begin make-req-if")
     (let ((rec (%make-req-if
               (make-req-socket req-addr)
               (make-mutex)
@@ -77,7 +76,6 @@
                   (if (get-handlers rec) "Has handler" "No handler"))))
 
 (define (make-sub-if pub-addr)
-  (print "Begin make-sub-if")
   (let* ((socket (make-sub-socket pub-addr))
         (rec (%make-sub-if
             socket
@@ -93,11 +91,9 @@
 ;; Read all messages in a blocking loop. Sort messages as response and
 ;; push messages based on grammar.
   (define (read-nanomsg)
-    (let* ((pull-socket socket))
-;;      (nano-if-request rec `(pos))
-      (print "Before... in " (thread-name (current-thread)))
-      (let ((msg (nn-recv pull-socket)))
-        (print "XX" pull-socket " - " msg))))
+    (let* ((pull-socket socket)
+           (msg (nn-recv pull-socket)))
+      (print "Received push message: " msg " = " (read-json msg))))
 
   (thread-start!
     (->>
