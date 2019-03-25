@@ -65,10 +65,11 @@
 
 
   ;; Record type to handle communication with gstplay.
-(define-record-type sub-if (%make-sub-if sub-socket handlers)
+(define-record-type sub-if (%make-sub-if sub-socket handlers sub-thread)
   sub-if?
   (pub-socket get-sub-socket)
-  (handlers get-handlers set-handler))
+  (handlers get-handlers set-handler)
+  (sub-thread get-sub-thread set-sub-thread))
 
 (define-record-printer sub-if
   (lambda (rec out)
@@ -77,21 +78,22 @@
 
 (define (make-sub-if pub-addr)
   (print "Begin make-sub-if")
-  (let ((rec (%make-sub-if
-            (make-sub-socket pub-addr)
+  (let* ((socket (make-sub-socket pub-addr))
+        (rec (%make-sub-if
+            socket
+            #f
             #f)))
+    (set-sub-thread rec (make-sub-thread socket #f))
     rec))
 
-;; Add blocking thread to fetch meesages over nanomsg connection.
+;; Blocking thread to fetch meesages over nanomsg connection.
 ;; Currently only strict requst-respnse messages. TODO: out-of-band
 ;; push messages for tag update and status change (typically end-of-track)
-(define (make-nano-sub-thread rec)
+(define (make-sub-thread socket handlers)
 ;; Read all messages in a blocking loop. Sort messages as response and
 ;; push messages based on grammar.
-  (let ((if-rec rec ))
-
   (define (read-nanomsg)
-    (let* ((pull-socket (make-sub-socket)))
+    (let* ((pull-socket socket))
 ;;      (nano-if-request rec `(pos))
       (print "Before... in " (thread-name (current-thread)))
       (let ((msg (nn-recv pull-socket)))
@@ -100,10 +102,23 @@
   (thread-start!
     (->>
       read-nanomsg
-      (loop/interval 0.01)
+      (loop/interval 0.1)
       (loop)
-      ((flip make-thread) "NanoReadThread")))))
+      ((flip make-thread) "NanoReadThread"))))
 
+(define (nano-if-request* sock msg)
+  (nn-send sock msg)
+  (nn-recv sock))
+
+(define (nano-if-request/timeout sock msg)
+  (let ((nano-thread
+          (make-thread
+            (lambda () (nano-if-request* sock msg))
+            "Nano-work-thread")))
+            (thread-start! nano-thread)
+            (let ((result (thread-join! nano-thread 4 #f)))
+              (print "Got result from thread:" result)
+              result)))
 
 (define (nano-if-request rec msg #!optional (parser #f))
   (let* ((req-rec (get-req rec))
@@ -112,14 +127,9 @@
     (dynamic-wind
       (lambda () (mutex-lock! mtx))
       (lambda ()
-        (print "Begin req")
         (let* ((cmd-string* (symbol-list->string msg))
               (cmd-string (string-append cmd-string* "\n")))
-          (print "Before send")
-          (nn-send sock cmd-string)
-          (print "After send")
-          (let ((response (nn-recv sock)))
-            (print "Got resp:" response)
+          (let ((response (nano-if-request/timeout sock cmd-string)))
             (if parser
               (parser response)
               response))))
