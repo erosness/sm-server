@@ -31,6 +31,34 @@
 
 (use nrepl posix srfi-18 spiffy)
 
+(define (make-nonblocking-stdin)
+
+  (define cip (current-input-port))
+  (set-buffering-mode! cip #:none) ;; <-- important!
+
+  (make-input-port (lambda ()
+                     (let loop ()
+
+                       (if (char-ready? cip)
+                           (read-char cip)
+                           (begin
+                             (thread-wait-for-i/o! (port->fileno cip) #:input)
+                             (loop)))))
+                   (lambda () (char-ready? cip))
+                   (lambda () (close-input-port cip))))
+
+;; provide a repl on our network
+(define (start-nrepl #!optional (port (+ (server-port) 1)))
+  (thread-start! (lambda () (nrepl port))))
+
+;; TODO: make a prettier repl here. parley is pretty but stty's all
+;; messed up on Android.
+(define (repl*)
+  ;; provide a repl on stdin:
+  (nrepl-loop (make-nonblocking-stdin)
+            (current-output-port)))
+
+
 (define (random-suffix)
   (string-join (map (lambda _ (->string (random 10))) (iota 4)) ""))
 
@@ -67,7 +95,3 @@
                   (player-store)) '())))
 
     dns-sd-unregister!))
-
-
-
-

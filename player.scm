@@ -51,7 +51,7 @@
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 srfi-13 test http-client matchable
-     srfi-1 posix extras looper nanomsg)
+     srfi-1 posix extras looper nanoif)
 (import clojurian-syntax medea closing-http-client process-cli concurrent-utils)
 
 ;; create shell string for launching `cplay` player daemon. launch it
@@ -98,55 +98,9 @@
 ;; Begin general nano partitions
 ;; TODO: move section to separate file.
 
-(define (make-nano-socket addr)
-  (let ((nnsock (nn-socket 'pair)))
-    (nn-connect nnsock addr)
-    nnsock))
-
-;; Record type to handle communication with gstplay.
-(define-record-type gp (%make-gst socket gst-mutex handlers response)
-  gp?
-  (socket get-socket make-socket)
-  (gst-mutex get-mutex set-mutex)
-  (handlers get-handlers set-handler)
-  (response get-r set-r))
-
-(define-record-printer gp
-  (lambda (rec out)
-    (fprintf out "gp handlers: ~S responses:"
-                  (if (get-handlers rec) "Has handler" "No handler"))))
-
-(define (make-gst addr)
-  (%make-gst (make-nano-socket addr) (make-mutex) #f #f))
-
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
 
-  (define (nn-send* rec msg)
-    (let ((sock (get-socket rec)))
-      (nn-send sock msg)))
-
-(define (gst-request rec msg #!optional (parser #f))
-(let ((sock (get-socket rec))
-      (mtx  (get-mutex rec) ))
-  (dynamic-wind
-    (lambda () (mutex-lock! mtx))
-    (lambda ()
-      (let* ((sock (get-socket rec))
-            (cmd-string* (symbol-list->string msg))
-            (cmd-string (string-append cmd-string* "\n")))
-        (nn-send* rec cmd-string)
-        (let ((response (nn-recv sock)))
-          (if parser
-            (begin
-              (print "Response:" response "P:" parser)
-              (parser response))
-            response))))
-    (lambda () (mutex-unlock! mtx)))))
-
-(define (get-msg rec)
-  (let ((sock (get-socket rec)))
-    (nn-recv* sock nn/dontwait)))
 ;; end general nano part
 ;; begin parsers
 (define (parse-add-response resp)
@@ -211,27 +165,27 @@
   (thread-sleep! 0.3))
 
 ;; Control operations
-(define (player-pause)           (gst-request gstplayer `(pause)))
-(define (player-unpause)         (prepause-spotify) (gst-request gstplayer `(unpause)))
-(define (player-spotify-unpause) (gst-request gstplayer  `(unpause)))
-(define (player-paused?)         (gst-request gstplayer `(paused?) parse-cplay-paused?-response))
-(define (player-pos)             (gst-request gstplayer `(pos) parse-cplay-pos-response))
+(define (player-pause)           (nano-if-request gstplayer `(pause)))
+(define (player-unpause)         (prepause-spotify) (nano-if-request gstplayer `(unpause)))
+(define (player-spotify-unpause) (nano-if-request gstplayer  `(unpause)))
+(define (player-paused?)         (nano-if-request gstplayer `(paused?) parse-cplay-paused?-response))
+(define (player-pos)             (nano-if-request gstplayer `(pos) parse-cplay-pos-response))
 (define (player-duration)        (receive (pos duration)
-                                   (gst-request gstplayer `(pos) parse-cplay-pos-response)
+                                   (nano-if-request gstplayer `(pos) parse-cplay-pos-response)
                                    duration))
-(define (player-seek seek)       (prepause-spotify) (gst-request gstplayer `(seek ,seek)))
-(define (player-quit)            (gst-request gstplayer  `(quit)))
+(define (player-seek seek)       (prepause-spotify) (nano-if-request gstplayer `(seek ,seek)))
+(define (player-quit)            (nano-if-request gstplayer  `(quit)))
 ;; cplay running and not paused:
-(define (playing?)   (and (not (eq? #f (gst-request gstplayer `(pos))))
+(define (playing?)   (and (not (eq? #f (nano-if-request gstplayer `(pos))))
                           (not (player-paused?))))
-(define (player-nexttrack?) (gst-request gstplayer  `(nexttrack?)))
+(define (player-nexttrack?) (nano-if-request gstplayer  `(nexttrack?)))
 (define (play! pcommand on-exit on-next)
   (setup-nexttrack-callback on-next)
   (prepause-spotify)
-  (gst-request gstplayer pcommand))
+  (nano-if-request gstplayer pcommand))
 (define (player-nexttrack turi)
   (let ((nxt  (next-command turi)))
-    (gst-request gstplayer `(nexttrack ,nxt))))
+    (nano-if-request gstplayer `(nexttrack ,nxt))))
 
 (define (nextplay! turi on-next)
   (prepause-spotify)
@@ -249,7 +203,7 @@
   (prepause-spotify)
   (pp "At follow!")
   (pp ip_leader)
-  (gst-request gstplayer `(play ("play follower " ,ip_leader )(print "# ignoring ip_leader callback"))))
+  (nano-if-request gstplayer `(play ("play follower " ,ip_leader )(print "# ignoring ip_leader callback"))))
 
 
 (define (play-command/tr turi)
@@ -272,13 +226,13 @@
 (define (next-command turi)
   (car (cdr (play-command turi))))
 
-(define (play-addfollower! uid_follower)    (print "in call") (gst-request gstplayer `(add , uid_follower)) (print "after call"))
+(define (play-addfollower! uid_follower)    (print "in call") (nano-if-request gstplayer `(add , uid_follower)) (print "after call"))
 
-(define (play-rmfollower! uid_follower) (gst-request gstplayer `(remove, uid_follower)))
+(define (play-rmfollower! uid_follower) (nano-if-request gstplayer `(remove, uid_follower)))
 
 (define (spotify-play parameter)
   (print "At spotify-play: " parameter)
-  (gst-request gstplayer `(play , "spotify") (print "# ignoring Spotify callback")))
+  (nano-if-request gstplayer `(play , "spotify") (print "# ignoring Spotify callback")))
 
 (test-group "play-command"
  (test '("play" "file:///filename") (play-command "file:///filename"))
@@ -335,6 +289,6 @@
       (set! monitor-thread (make-monitor-thread))))
 
 ;; Start gstplayer interface
-(define gstplayer (make-gst "ipc:///data/nanomessage/playcmd.pair"))
+(define gstplayer (make-nano-half-if "ipc:///data/nanomessage/playcmd.pair"))
 
 )
