@@ -1,13 +1,15 @@
 ;; nanoif test client.
-(use posix matchable test string-utils)
-(import nanoif)
+(use posix matchable test string-utils nanoif)
 
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
 
-(define request (make-nano-if
-  "ipc:///data/nanomessage/test.pair"
-  "ipc:///data/nanomessage/test.pub"))
+;;(define request (make-nano-if
+;;  "ipc:///data/nanomessage/test.pair"
+;;  "ipc:///data/nanomessage/test.pub"))
+
+(define request (make-nano-half-if
+  "ipc:///data/nanomessage/test.pair"))
 
 (define (handler msg)
   (print "Installed handler:" msg))
@@ -22,4 +24,4 @@
 (nano-if-request request '("Heisann4") parse-response)
 (thread-sleep! 11.2)
 (nano-if-request request '("Heisann5") parse-response)
-(set-handler request handler)
+;;(set-handler request handler)
