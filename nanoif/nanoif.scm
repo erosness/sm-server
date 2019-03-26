@@ -2,6 +2,7 @@
 ;; TS1001 for details). Consists of one request-response connection based
 ;; on the pair protocol and one subscribe channel for metadata etc.
 (module nanoif  (make-nano-if
+                 make-nano-half-if
                  nano-if-request
                  set-handler)
 
@@ -23,6 +24,14 @@
   nano-if?
   (req-if get-req)
   (sub-if get-sub))
+
+(define (make-nano-half-if req-addr)
+  (print "Begin make-nano-if")
+  (let ((rec (%make-nano-if
+              (make-req-if req-addr)
+              #f)))
+      (print "Did etablish both interfaces")
+      rec))
 
 (define (make-nano-if req-addr pub-addr)
   (print "Begin make-nano-if")
@@ -63,40 +72,46 @@
     (nn-subscribe nnsock "") ;; Subscribe to eveything.
     nnsock))
 
-  ;; Record type to handle communication with gstplay.
+;; Record type to handle communication with gstplay.
 (define-record-type sub-if (%make-sub-if sub-socket handlers sub-thread)
   sub-if?
   (sub-socket get-sub-socket)
   (handlers get-handler %set-handler)
   (sub-thread get-sub-thread set-sub-thread))
 
+;; Print for subscribe record, for debug
 (define-record-printer sub-if
   (lambda (rec out)
     (fprintf out "nano-if handlers: ~S responses:"
                   (if (get-handler rec) "Has handler" "No handler"))))
 
+;; Default push handler, just prints the incoming datum.
 (define (default-push-handler msg)
   (print "Incoming message:" msg))
 
+;; Create the subscriber part of the interface
 (define (make-sub-if pub-addr)
+  (print "At make-sub-if:")
+  (print "At make-sub-if:" pub-addr)
+  (if pub-addr
   (let* ((socket (make-sub-socket pub-addr))
         (rec (%make-sub-if
             socket
             default-push-handler
             #f)))
     (set-sub-thread rec (make-sub-thread rec))
-    rec))
+    rec)
+    #f))
 
+;; Exported procedure to set the push message handler.
 (define (set-handler rec handler)
   (let* ((sub-if (get-sub rec)))
     (%set-handler sub-if handler)))
 
-;; Blocking thread to fetch meesages over nanomsg connection.
-;; Currently only strict requst-respnse messages. TODO: out-of-band
-;; push messages for tag update and status change (typically end-of-track)
+;; Blocking thread to fetch meesages over nanomsg push-connection.
 (define (make-sub-thread sub-if)
-;; Read all messages in a blocking loop. Sort messages as response and
-;; push messages based on grammar.
+
+;; Read next JSON object as a message and decode
   (define (read-nanomsg)
     (let* ((pull-socket (get-sub-socket sub-if))
            (msg (nn-recv pull-socket))
@@ -104,6 +119,7 @@
            (push-handler (get-handler sub-if)))
       (push-handler obj)))
 
+;; create the thread itself.
   (thread-start!
     (->>
       read-nanomsg
@@ -111,10 +127,12 @@
       (loop)
       ((flip make-thread) "NanoReadThread"))))
 
+;; Exchange the messages (request - response)
 (define (nano-if-request* sock msg)
   (nn-send sock msg)
   (nn-recv sock))
 
+;; Message exchange with timeout (...not yet properly installed)
 (define (nano-if-request/timeout sock msg)
   (let ((nano-thread
           (make-thread
@@ -125,6 +143,7 @@
               (print "Got result from thread:" result)
               result)))
 
+;; Do the request operation.
 (define (nano-if-request rec msg #!optional (parser #f))
   (let* ((req-rec (get-req rec))
         (sock (get-req-socket req-rec))
