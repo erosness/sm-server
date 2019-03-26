@@ -40,7 +40,7 @@
 
 (define (nano-push)
       (print "Sending push message")
-      (nn-send push-sock  (json->string `(( xx ( one . 11) ( two . 22))))))
+      (nn-send push-sock  (json->string `(( xx ( one . 11) ( time . ,(time->seconds (current-time))))))))
 
 (define push-thread
   (thread-start!
