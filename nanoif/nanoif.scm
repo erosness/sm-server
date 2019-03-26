@@ -2,7 +2,8 @@
 ;; TS1001 for details). Consists of one request-response connection based
 ;; on the pair protocol and one subscribe channel for metadata etc.
 (module nanoif  (make-nano-if
-                 nano-if-request)
+                 nano-if-request
+                 set-handler)
 
 (import extras chicken scheme srfi-1)
 (use nanomsg clojurian-syntax looper srfi-18 data-structures medea)
@@ -18,10 +19,10 @@
             token-str)))
 
 ;; Main structure, contains one request interface and one subscribe interface
-(define-record-type nano-if (%make-nano-if req-if pub-if)
+(define-record-type nano-if (%make-nano-if req-if sub-if)
   nano-if?
   (req-if get-req)
-  (pub-if get-pub))
+  (sub-if get-sub))
 
 (define (make-nano-if req-addr pub-addr)
   (print "Begin make-nano-if")
@@ -62,38 +63,46 @@
     (nn-subscribe nnsock "") ;; Subscribe to eveything.
     nnsock))
 
-
   ;; Record type to handle communication with gstplay.
 (define-record-type sub-if (%make-sub-if sub-socket handlers sub-thread)
   sub-if?
-  (pub-socket get-sub-socket)
-  (handlers get-handlers set-handler)
+  (sub-socket get-sub-socket)
+  (handlers get-handler %set-handler)
   (sub-thread get-sub-thread set-sub-thread))
 
 (define-record-printer sub-if
   (lambda (rec out)
     (fprintf out "nano-if handlers: ~S responses:"
-                  (if (get-handlers rec) "Has handler" "No handler"))))
+                  (if (get-handler rec) "Has handler" "No handler"))))
+
+(define (default-push-handler msg)
+  (print "Incoming message:" msg))
 
 (define (make-sub-if pub-addr)
   (let* ((socket (make-sub-socket pub-addr))
         (rec (%make-sub-if
             socket
-            #f
+            default-push-handler
             #f)))
-    (set-sub-thread rec (make-sub-thread socket #f))
+    (set-sub-thread rec (make-sub-thread rec))
     rec))
+
+(define (set-handler rec handler)
+  (let* ((sub-if (get-sub rec)))
+    (%set-handler sub-if handler)))
 
 ;; Blocking thread to fetch meesages over nanomsg connection.
 ;; Currently only strict requst-respnse messages. TODO: out-of-band
 ;; push messages for tag update and status change (typically end-of-track)
-(define (make-sub-thread socket handlers)
+(define (make-sub-thread sub-if)
 ;; Read all messages in a blocking loop. Sort messages as response and
 ;; push messages based on grammar.
   (define (read-nanomsg)
-    (let* ((pull-socket socket)
-           (msg (nn-recv pull-socket)))
-      (print "Received push message: " msg " = " (read-json msg))))
+    (let* ((pull-socket (get-sub-socket sub-if))
+           (msg (nn-recv pull-socket))
+           (obj (read-json msg))
+           (push-handler (get-handler sub-if)))
+      (push-handler obj)))
 
   (thread-start!
     (->>
