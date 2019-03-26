@@ -51,7 +51,7 @@
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 srfi-13 test http-client matchable
-     srfi-1 posix extras looper nanomsg)
+     srfi-1 posix extras looper nanoif)
 (import clojurian-syntax medea closing-http-client process-cli concurrent-utils)
 
 ;; create shell string for launching `cplay` player daemon. launch it
@@ -98,55 +98,9 @@
 ;; Begin general nano partitions
 ;; TODO: move section to separate file.
 
-(define (make-nano-socket addr)
-  (let ((nnsock (nn-socket 'pair)))
-    (nn-connect nnsock addr)
-    nnsock))
-
-;; Record type to handle communication with nanomessage servers.
-(define-record-type nano-if (%make-nano-if socket req-mutex handlers response)
-  nano-if?
-  (socket get-socket make-socket)
-  (req-mutex get-mutex set-mutex)
-  (handlers get-handlers set-handler)
-  (response get-r set-r))
-
-(define-record-printer nano-if
-  (lambda (rec out)
-    (fprintf out "nano-if handlers: ~S responses:"
-                  (if (get-handlers rec) "Has handler" "No handler"))))
-
-(define (make-nano-if addr)
-  (%make-nano-if (make-nano-socket addr) (make-mutex) #f #f))
-
 (define (parse-response resp)
   (print "Response from gstplay: " resp))
 
-  (define (nn-send* rec msg)
-    (let ((sock (get-socket rec)))
-      (nn-send sock msg)))
-
-(define (nano-if-request rec msg #!optional (parser #f))
-(let ((sock (get-socket rec))
-      (mtx  (get-mutex rec) ))
-  (dynamic-wind
-    (lambda () (mutex-lock! mtx))
-    (lambda ()
-      (let* ((sock (get-socket rec))
-            (cmd-string* (symbol-list->string msg))
-            (cmd-string (string-append cmd-string* "\n")))
-        (nn-send* rec cmd-string)
-        (let ((response (nn-recv sock)))
-          (if parser
-            (begin
-              (print "Response:" response "P:" parser)
-              (parser response))
-            response))))
-    (lambda () (mutex-unlock! mtx)))))
-
-(define (get-msg rec)
-  (let ((sock (get-socket rec)))
-    (nn-recv* sock nn/dontwait)))
 ;; end general nano part
 ;; begin parsers
 (define (parse-add-response resp)
@@ -335,6 +289,6 @@
       (set! monitor-thread (make-monitor-thread))))
 
 ;; Start gstplayer interface
-(define gstplayer (make-nano-if "ipc:///data/nanomessage/playcmd.pair"))
+(define gstplayer (make-nano-half-if "ipc:///data/nanomessage/playcmd.pair"))
 
 )
