@@ -147,7 +147,7 @@
       (lambda () (mutex-lock! mtx))
       (lambda ()
         (let* ((cmd-string* (symbol-list->string msg))
-              (cmd-string (string-append cmd-string* "\n")))
+              (cmd-string (string-append cmd-string* "\n\x00")))
           (let ((response (nano-if-request/timeout sock cmd-string)))
             (if parser
               (parser response)
