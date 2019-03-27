@@ -203,7 +203,7 @@
   (prepause-spotify)
   (pp "At follow!")
   (pp ip_leader)
-  (nano-if-request gstplayer `(play ("play follower " ,ip_leader )(print "# ignoring ip_leader callback"))))
+  (nano-if-request gstplayer `(play ("play follower " ,ip_leader )(lambda ()(print "# ignoring ip_leader callback")))))
 
 
 (define (play-command/tr turi)
@@ -230,9 +230,8 @@
 
 (define (play-rmfollower! uid_follower) (nano-if-request gstplayer `(remove, uid_follower)))
 
-(define (spotify-play parameter)
-  (print "At spotify-play: " parameter)
-  (nano-if-request gstplayer `(play , "spotify") (print "# ignoring Spotify callback")))
+(define (spotify-play)
+  (nano-if-request gstplayer `(play , "spotify")))
 
 (test-group "play-command"
  (test '("play" "file:///filename") (play-command "file:///filename"))
