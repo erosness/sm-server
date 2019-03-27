@@ -27,7 +27,7 @@
 (pq-add-current-change-listener
  *pq* (change-callback "/v1/player/current"))
 
- 
+
 
 (define (local-ip)
   (irregex-match-substring
@@ -55,13 +55,13 @@
       ))
 
 
-(define (player-pos-info) 
+(define (player-pos-info)
   (if (> seek_delay 0)
-      
+
       `((pos .      ,seek_target)
 	(duration . ,(player-duration))
-	(paused .   ,(player-paused?)))      
-      ;; else seek_delay     
+	(paused .   ,(player-paused?)))
+      ;; else seek_delay
       `((pos .      ,(player-pos))
 	(duration . ,(player-duration))
 	(paused .   ,(player-paused?)))
@@ -105,7 +105,7 @@
     #f))
 
 (define (follower-notification leader)
-  (pq-current-set! *pq*  
+  (pq-current-set! *pq*
     (if leader
        `((type . "follower")(title . "Following Maestro")(id_leader . ,leader ))
        `((type . "follower")(title . "Following Maestro")))))
@@ -136,7 +136,7 @@
 	(let ((uid_follower (alist-ref 'uid_follower (current-json))))
 	  (play-addfollower! uid_follower)
 	  (print "UID: " uid_follower)
-	  (player-information)	  
+	  (player-information)
 	  )
 	`((status . "Fail"))
 	)))
@@ -298,7 +298,7 @@
 
 
 ;; do this on every player hearbeat interval
-(define (player-thread-iteration) 
+(define (player-thread-iteration)
   (if (> seek_delay 0)
       (
        print "**************************************"
@@ -389,10 +389,11 @@
 	       (cond
 		;; Maestro does not play spotify, and receives input stream
 		((and (not (play-spotify? (pq-current *pq*)))
-		      (spotify-playing? event)
-                      (spotify-active? event))
-	           (spotify-play "spotify")
-                   (spotify-notification event)
+		            (spotify-playing? event)
+                (spotify-active? event))
+	     (spotify-play "spotify")
+       (print "------- event\n" event "\nEnd event-------")
+       (spotify-notification event)
 		   (player-information))
 	        ;; Maestro is playin Spotify, but Spotify is no longer avtive on this unit
 		 ((and (play-spotify? (pq-current *pq*))
@@ -443,7 +444,7 @@
 				("fm"  (fm-radio-ps))
 				(else #f)))
 
-		  
+
                   (content (alist-merge (player-information) `((subtitle . ,subtitle)) `((stationname . ,station)) `((title . ,title)) )))
          (send-notification "/v1/player/current" content))
        #t) ; <-- keep going
@@ -467,7 +468,7 @@
 		   )
 
   )
-				    
+
 
 
 )
