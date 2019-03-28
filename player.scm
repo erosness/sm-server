@@ -113,7 +113,7 @@
   (print "Nexttrack set response from gstplay: " resp))
 
 (define (parse-cplay-pos-response resp)
-  (match (string-split resp " #\x0a;#\x00;")
+  (match (string-split resp " \x0a\x00")
     (("ok" pos duration)
       (let ((pos-number (string->number pos))
             (duration-number (string->number duration)))
@@ -128,19 +128,19 @@
        (receive (parse-cplay-pos-response "ok 23.2341 42.43")))
   (test "parse cplay pos - success with tail"
        '(93.2341 45.23)
-       (receive (parse-cplay-pos-response "ok 93.2341 45.23\n#\x00;")))
+       (receive (parse-cplay-pos-response "ok 93.2341 45.23\n\x00")))
  (test "parse cplay pos - success with huge number and tail"
       '(1298129893.2341 45.23)
-      (receive (parse-cplay-pos-response "ok 1298129893.2341 45.23\n#\x00;")))
+      (receive (parse-cplay-pos-response "ok 1298129893.2341 45.23\n\x00")))
  (test "parse cplay pos - success, report 0 for number garbage"
        '(0 45.23)
-       (receive (parse-cplay-pos-response "ok per 45.23\n#\x00;")))
+       (receive (parse-cplay-pos-response "ok per 45.23\n\x00")))
  (test "parse cplay pos - failure"
        '(0 0)
        (receive (parse-cplay-pos-response "some garbage 1234"))))
 
 (define (parse-cplay-paused?-response resp)
- (and-let* ((value (string-split resp " #\x0a;#\x00;"))
+ (and-let* ((value (string-split resp " \x0a\x00"))
             ((equal? (length value) 2))
             (value (cadr value))
             ((or (equal? value "false") (equal? value "true"))))
@@ -203,7 +203,7 @@
   (prepause-spotify)
   (pp "At follow!")
   (pp ip_leader)
-  (nano-if-request gstplayer `(play ("play follower " ,ip_leader )(print "# ignoring ip_leader callback"))))
+  (nano-if-request gstplayer `(play ("play follower " ,ip_leader )(lambda ()(print "# ignoring ip_leader callback")))))
 
 
 (define (play-command/tr turi)
@@ -230,9 +230,8 @@
 
 (define (play-rmfollower! uid_follower) (nano-if-request gstplayer `(remove, uid_follower)))
 
-(define (spotify-play parameter)
-  (print "At spotify-play: " parameter)
-  (nano-if-request gstplayer `(play , "spotify") (print "# ignoring Spotify callback")))
+(define (spotify-play)
+  (nano-if-request gstplayer `(play , "spotify")))
 
 (test-group "play-command"
  (test '("play" "file:///filename") (play-command "file:///filename"))

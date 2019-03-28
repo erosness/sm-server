@@ -30,7 +30,6 @@
   (let ((rec (%make-nano-if
               (make-req-if req-addr)
               #f)))
-      (print "Did etablish both interfaces")
       rec))
 
 (define (make-nano-if req-addr pub-addr)
@@ -38,7 +37,6 @@
   (let ((rec (%make-nano-if
               (make-req-if req-addr)
               (make-sub-if pub-addr))))
-      (print "Did etablish both interfaces")
       rec))
 
 ;; ==== Request interface starts here
@@ -91,8 +89,6 @@
 
 ;; Create the subscriber part of the interface
 (define (make-sub-if pub-addr)
-  (print "At make-sub-if:")
-  (print "At make-sub-if:" pub-addr)
   (if pub-addr
   (let* ((socket (make-sub-socket pub-addr))
         (rec (%make-sub-if
@@ -140,7 +136,6 @@
             "Nano-work-thread")))
             (thread-start! nano-thread)
             (let ((result (thread-join! nano-thread 4 #f)))
-              (print "Got result from thread:" result)
               result)))
 
 ;; Do the request operation.
@@ -152,7 +147,7 @@
       (lambda () (mutex-lock! mtx))
       (lambda ()
         (let* ((cmd-string* (symbol-list->string msg))
-              (cmd-string (string-append cmd-string* "\n")))
+              (cmd-string (string-append cmd-string* "\n\x00")))
           (let ((response (nano-if-request/timeout sock cmd-string)))
             (if parser
               (parser response)
