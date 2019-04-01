@@ -79,6 +79,7 @@
 (define bt-notifier-album #f)
 (define bt-notifier-song #f)
 (define bt-notifier-ar #f)
+(define bt-pairing? #f)
 
 
 ;; ======================= Bluetooth REST interface ====================
@@ -89,6 +90,7 @@
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
+    (print "BT turi-adapter ar=" bt-notifier-ar)
     `((url . "default:CARD=imxaudiobtm720")
       ,@(if bt-notifier-ar `((ar . ,bt-notifier-ar)) `()))))
 
@@ -97,6 +99,18 @@
     `((turi . , (bluetooth-turi '()))
       (title . "Bluetooth")
       (type . "bt"))))
+
+(define-handler /v1/catalog/bt/pair
+  (lambda ()
+    (if (current-json)
+      (let* ((json-request (current-json))
+        (pair?-cmd (alist-ref 'pair? json-request)))
+          (set! bt-pairing? pair?-cmd)
+          (if pair?-cmd
+            (print "Start pairing!")
+            (print "Stop pairing!"))
+          `((status . "Ok")))
+      `((pairing? . ,bt-pairing? )))))
 
 ;; ======================
 ;; typical IND sequence:
@@ -115,6 +129,7 @@
 ;; stop the current cplay and start a new one for bluetooth, and
 ;; announce to everybody what just happened.
 (define (restart-cplay/bluetooth!)
+  (print "BT cplay")
   (parameterize ((current-json (/v1/catalog/bt)))
     (/v1/player/current)))
 
