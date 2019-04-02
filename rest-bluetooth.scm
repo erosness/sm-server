@@ -14,7 +14,7 @@
 ;;; - TODO: restart cplay when Bluetooth sampling rates changes
 ;;;
 
-(use irregex matchable)
+(use irregex matchable nanoif)
 (import restlib turi
         (only incubator alist-merge)
         (only rest-player *pq*)
@@ -71,6 +71,8 @@
         ((prefix "IND:-A3") => (labeler 'album))
         ((equal? line "IND:-M1") 'mute)
         ((equal? line "IND:-M0") 'unmute)
+        ((equal? line "IND:-C1") 'connect)
+        ((equal? line "IND:-C0") 'disconnect)
         ((irregex-match `(: "IND:-S" (=> hz (* digit)) (w/nocase "Hz")) line) =>
          (lambda (match) `(ar ,(string->number (irregex-match-substring match 'hz)))))))
 
@@ -80,7 +82,7 @@
 (define bt-notifier-song #f)
 (define bt-notifier-ar #f)
 (define bt-pairing? #f)
-
+(define bt-notifier-device #f)
 
 ;; ======================= Bluetooth REST interface ====================
 ;;
@@ -134,14 +136,18 @@
     (('artist name) (set! bt-notifier-artist name))
     (('album name)  (set! bt-notifier-album name))
     (('ar ar)       (set! bt-notifier-ar ar))
+    (('connect)     (print "Connect"))
+    (('disconnect)  (print "Disconnect"))
 ;;    ('unmute        (restart-cplay/bluetooth!))
     (else #f)))
 
-;; use bt-notifier-* state and broadcast to clients
+;; use bt-notifier-* state and broadcast
+
 (define (notify!)
   (let ((msg (alist-merge (player-information)
                           `((title    . ,(or bt-notifier-album "Bluetooth"))
-                            (subtitle . ,(or bt-notifier-song ""))))))
+                            (subtitle . ,(or bt-notifier-song ""))
+                            (btdevice . ,(or bt-notifier-device "Disconnected"))))))
     (send-notification "/v1/player/current" msg)))
 
 
