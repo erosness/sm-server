@@ -21,7 +21,7 @@
 (import chicken scheme data-structures srfi-1)
 (use srfi-18 uri-common test uuid extras)
 
-(import concurrent-utils player incubator)
+(import concurrent-utils bt-player player incubator)
 
 (include "state-var.scm")
 
@@ -185,11 +185,16 @@
 
 ;; Play next song
 (define (pq-play-next* pq #!optional (force-loop #f))
-  (or (and-let* ((next (pq-next* pq force-loop)))
-        (pq-play* pq next))
-      (begin
-        (pq-current-set! pq #f)
-        (player-quit))))
+  (let* ((turi (pq-current pq))
+        (turi-type (alist-ref 'type turi)))
+    (print "At pq-play-next: " turi "-*-" turi-type)
+    (if (equal? turi-type "bt")
+      (bt-next pq)
+      (or (and-let* ((next (pq-next* pq force-loop)))
+            (pq-play* pq next))
+          (begin
+            (pq-current-set! pq #f)
+            (player-quit))))))
 
 ;; Call player to prepare next track
 (define (pq-nexttrack* cmd pq)
@@ -203,7 +208,7 @@
   (and-let* ((next (pq-next* pq force-loop))
              (track (alist-ref 'turi next)))
     (print "At nexttrack-next* " track)
-    (pq-nexttrack* track pq) 
+    (pq-nexttrack* track pq)
     (pq-current-set! pq next)))
 
 
@@ -320,6 +325,3 @@
 
  (test-error (pq-play* (make-pq) `((id . "a")))))
 )
-
-
-
