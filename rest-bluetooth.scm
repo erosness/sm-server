@@ -125,13 +125,6 @@
 ;; note that song/artist etc comes after unmute, so although
 ;; (/v1/catalog/bt) just fills a dummy title, it should be fixes by
 ;; the subsequent A1-A3's.
-;;
-;; stop the current cplay and start a new one for bluetooth, and
-;; announce to everybody what just happened.
-(define (restart-cplay/bluetooth!)
-  (print "BT cplay")
-  (parameterize ((current-json (/v1/catalog/bt)))
-    (/v1/player/current)))
 
 ;; update bt-notifier state
 ;; (IND-process! "IND:-A1PRefs Paradise")
@@ -141,7 +134,7 @@
     (('artist name) (set! bt-notifier-artist name))
     (('album name)  (set! bt-notifier-album name))
     (('ar ar)       (set! bt-notifier-ar ar))
-    ('unmute        (restart-cplay/bluetooth!))
+;;    ('unmute        (restart-cplay/bluetooth!))
     (else #f)))
 
 ;; use bt-notifier-* state and broadcast to clients
