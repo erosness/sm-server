@@ -20,6 +20,7 @@
         (only rest-player *pq*)
         (only playqueue pq-current)
         (only rest-player player-information /v1/player/current))
+(import bt-player)
 
 ;; ==================== BT NOTIFIER ====================
 ;;
@@ -160,12 +161,21 @@
     (display (conc "bt-notifier: line "
                    (with-output-to-string (cut write line))
                    "\n")
-             (current-error-port))
+             (current-error-port))))
+;; Temporary - keep printout for debug, do not update current.
+;;    (IND-process! line) ;; update global vars
 
-    (IND-process! line) ;; update global vars
+;;    (if (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))
+;;        (notify!))))
 
-    (if (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))
-        (notify!))))
+;; Set handler to redirect BT event here.
+(define (bt-handler obj)
+  (let ((payload (alist-ref 'metadata obj)))
+    (if (and payload (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '()))))
+      (send-notification "/v1/player/current" payload))))
+
+(bt-set-handler bt-handler)
+
 
 (begin
   (handle-exceptions e (void) (thread-terminate! bt-notifier))
