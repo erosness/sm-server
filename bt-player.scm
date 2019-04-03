@@ -3,30 +3,23 @@
 (import scheme chicken)
 (use nanoif)
 
-(define (make-bt-if)
-  (let ((btif (make-nano-if
+(define btif
+   (make-nano-if
                 "ipc:///data/nanomessage/bt.pair"
-                "ipc:///data/nanomessage/bt.pub")))
-    (set-handler btif (lambda (obj) (print "At push handler: "  obj )))
-    btif))
+                "ipc:///data/nanomessage/bt.pub"))
 
+(set-handler btif (lambda (obj) (print "At push handler: "  obj )))
 
+(define (bt-next)
+  (nano-if-request btif `("next")))
 
-(define (bt-next turi)
-  (print "At bt-next: " turi))
-
-(define (bt-prev turi)
-  (print "At bt-prev: " turi))
+(define (bt-prev)
+  (nano-if-request btif `("prevoius")))
 
 (define (bt-pause)
-  (print "At bt-pause"))
+(nano-if-request btif `("pause")))
 
 (define (bt-unpause)
-  (print "At bt-unpause"))
+  (nano-if-request btif `("unpause")))
 
 )
-
-
-(import bt-player)
-
-(define *bt* (make-bt-if))
