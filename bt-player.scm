@@ -1,7 +1,16 @@
 (module bt-player *
 
 (import scheme chicken)
-;; (use nanoif)
+(use nanoif)
+
+(define (make-bt-if)
+  (let ((btif (make-nano-if
+                "ipc:///data/nanomessage/bt.pair"
+                "ipc:///data/nanomessage/bt.pub")))
+    (set-handler btif (lambda (obj) (print "At push handler: "  obj )))
+    btif))
+
+
 
 (define (bt-next turi)
   (print "At bt-next: " turi))
@@ -16,3 +25,8 @@
   (print "At bt-unpause"))
 
 )
+
+
+(import bt-player)
+
+(define *bt* (make-bt-if))
