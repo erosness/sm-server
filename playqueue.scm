@@ -189,7 +189,7 @@
         (turi-type (alist-ref 'type turi)))
     (print "At pq-play-next: " turi "-*-" turi-type)
     (if (equal? turi-type "bt")
-      (bt-next pq)
+      (bt-next)
       (or (and-let* ((next (pq-next* pq force-loop)))
             (pq-play* pq next))
           (begin
