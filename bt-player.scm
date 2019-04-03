@@ -8,6 +8,7 @@
                 "ipc:///data/nanomessage/bt.pair"
                 "ipc:///data/nanomessage/bt.pub"))
 
+;; Mount default handler with debug output.
 (set-handler btif (lambda (obj) (print "At push handler: "  obj )))
 
 (define (bt-next)
@@ -21,5 +22,8 @@
 
 (define (bt-unpause)
   (nano-if-request btif `("unpause")))
+
+(define (bt-set-handler handler)
+  (set-handler btif handler))
 
 )
