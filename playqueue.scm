@@ -187,7 +187,6 @@
 (define (pq-play-next* pq #!optional (force-loop #f))
   (let* ((turi (pq-current pq))
         (turi-type (alist-ref 'type turi)))
-    (print "At pq-play-next: " turi "-*-" turi-type)
     (if (equal? turi-type "bt")
       (bt-next)
       (or (and-let* ((next (pq-next* pq force-loop)))
@@ -216,15 +215,19 @@
 ;; - if current song has played for more than 2 seconds, seek to start
 ;; - if this is the first song, seek to start
 (define (pq-play-prev* pq)
-  (or (and-let* ((prev (pq-prev* pq))
-                 (pos (player-pos)))
-        (if (< 2.0 pos)
-            (player-seek 0)
-            (pq-play* pq prev)))
+(let* ((turi (pq-current pq))
+      (turi-type (alist-ref 'type turi)))
+  (if (equal? turi-type "bt")
+    (bt-prev)
+    (or (and-let* ((prev (pq-prev* pq))
+                   (pos (player-pos)))
+          (if (< 2.0 pos)
+              (player-seek 0)
+              (pq-play* pq prev)))
 
-      ;; Handle first song in pq
-      (and-let* ((c (pq-current pq)))
-        (player-seek 0))))
+        ;; Handle first song in pq
+        (and-let* ((c (pq-current pq)))
+          (player-seek 0))))))
 
 ;; (pq-drop-after PQ ITEM)
 ;; Return a pq-list with the tracks up to and including ITEM. Does not
