@@ -9,7 +9,8 @@
 
 (import player
         rest ;; <-- (rest-server-port)
-        playqueue)
+        playqueue
+        bt-player)
 (use test restlib clojurian-syntax ports
      srfi-18 extras posix srfi-1 srfi-13
      medea matchable irregex matchable)
@@ -110,6 +111,19 @@
        `((type . "follower")(title . "Following Maestro")(id_leader . ,leader ))
        `((type . "follower")(title . "Following Maestro")))))
 
+(define (any-player-pause)
+  (let* ((current (pq-current *pq*))
+         (type (assoc 'type current)))
+    (if (equal? (cdr type) "bt")
+      (bt-pause))
+    (player-pause)))
+
+(define (any-player-unpause)
+  (let* ((current (pq-current *pq*))
+         (type (assoc 'type current)))
+    (if (equal? (cdr type) "bt")
+      (bt-unpause))
+    (player-unpause)))
 
 (define-handler /v1/player/follower
   ( lambda()
@@ -127,8 +141,6 @@
 	  (status . "Fail")
 	  )
 	)))
-
-
 
 (define-handler /v1/player/addfollower
   ( lambda()
@@ -231,7 +243,7 @@
 
           ;; Change paused?
           (and-let* ((pause (assoc 'paused json-request)))
-            (if (cdr pause) (player-pause) (player-unpause)))
+            (if (cdr pause) (any-player-pause) (any-player-unpause)))
 
           ;; Change loop?
           (and-let* ((loop (assoc 'loop json-request)))
