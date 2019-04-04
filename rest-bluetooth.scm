@@ -81,7 +81,7 @@
 (define bt-notifier-artist #f)
 (define bt-notifier-album #f)
 (define bt-notifier-song #f)
-(define bt-notifier-ar #f)
+(define bt-notifier-ar 44100)
 (define bt-pairing? #f)
 (define bt-notifier-device #f)
 
@@ -153,15 +153,15 @@
 
 
 (import process-cli) ;; TODO: dependency-graph is getting messy
-(define bt-port (open-input-file*/nonblock (file-open "/dev/ttymxc3" open/read)))
+;;(define bt-port (open-input-file*/nonblock (file-open "/dev/ttymxc3" open/read)))
 
-(define (bt-notifier-iteration)
-  (let ((line (read-line bt-port)))
+;;(define (bt-notifier-iteration)
+;;  (let ((line (read-line bt-port)))
 
-    (display (conc "bt-notifier: line "
-                   (with-output-to-string (cut write line))
-                   "\n")
-             (current-error-port))))
+;;    (display (conc "bt-notifier: line "
+;;                   (with-output-to-string (cut write line))
+;;                   "\n")
+;;             (current-error-port))))
 ;; Temporary - keep printout for debug, do not update current.
 ;;    (IND-process! line) ;; update global vars
 
@@ -177,12 +177,12 @@
 (bt-set-handler bt-handler)
 
 
-(begin
-  (handle-exceptions e (void) (thread-terminate! bt-notifier))
-  (define bt-notifier
-    (thread-start!
-     (->> (lambda () (bt-notifier-iteration))
-          (loop/interval 1)
-          (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
-                                               ,(condition->list e))) #t))
-          (loop)))))
+;;(begin
+;;  (handle-exceptions e (void) (thread-terminate! bt-notifier))
+;;  (define bt-notifier
+;;    (thread-start!
+;;     (->> (lambda () (bt-notifier-iteration))
+;;          (loop/interval 1)
+;;          (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
+;;                                               ,(condition->list e))) #t))
+;;          (loop)))))
