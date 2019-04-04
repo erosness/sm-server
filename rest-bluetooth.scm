@@ -82,6 +82,7 @@
 (define bt-notifier-album #f)
 (define bt-notifier-song #f)
 (define bt-notifier-ar 44100)
+(define bt-paused? #t)
 (define bt-pairing? #f)
 (define bt-notifier-device #f)
 
@@ -114,6 +115,10 @@
             (print "Stop pairing!"))
           `((status . "Ok")))
       `((pairing? . ,bt-pairing? )))))
+
+(define (restart-cplay/bluetooth!)
+  (parameterize ((current-json (/v1/catalog/bt)))
+    (/v1/player/current)))
 
 ;; ======================
 ;; typical IND sequence:
@@ -170,9 +175,18 @@
 
 ;; Set handler to redirect BT event here.
 (define (bt-handler obj)
-  (let ((payload (alist-ref 'metadata obj)))
-    (if (and payload (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '()))))
-      (send-notification "/v1/player/current" payload))))
+  (let ((payload (alist-ref 'metadata obj))
+        (bt-is-source (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))))
+    (if payload
+      (let ((is-paused (alist-ref "paused")))
+        ;; If go from paused to unpaused, kick gstplay again.
+        (if (and (not is-paused) bt-paused?)
+          (begin
+            (set! bt-paused? #f)
+            (if bt-is-source
+              (restart-cplay/bluetooth!)))
+        (if bt-is-source
+          (send-notification "/v1/player/current" payload)))))))
 
 (bt-set-handler bt-handler)
 
