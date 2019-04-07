@@ -177,8 +177,9 @@
 (define (bt-handler obj)
   (let ((payload (alist-ref 'metadata obj))
         (bt-is-source (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))))
+    (print "At handler: " payload)
     (if payload
-      (let ((is-paused (alist-ref "paused")))
+      (let ((is-paused (alist-ref "paused" payload)))
         ;; If go from paused to unpaused, kick gstplay again.
         (if (and (not is-paused) bt-paused?)
           (begin
