@@ -5,8 +5,8 @@
 
 (define btif
    (make-nano-if
-                "ipc:///data/nanomessage/bt.pair"
-                "ipc:///data/nanomessage/bt.pub"))
+                "ipc:///data/nanomessage/drv_bluetooth.pair"
+                "ipc:///data/nanomessage/drv_bluetooth.pub"))
 
 ;; Mount default handler with debug output.
 (set-handler btif (lambda (obj) (print "At push handler: "  obj )))
