@@ -37,7 +37,7 @@ ciflags ?= -s -keep-installed
 
 all: deps modules
 
-modules: blobbery looper pefat multicast tone-generator dab i2c restlib wimp tunein dlna
+modules: blobbery looper pefat multicast tone-generator dab i2c restlib wimp tunein dlna nanoif
 	$(ci) $(ciflags)
 
 dlna:
@@ -79,6 +79,9 @@ tunein:
 nics:
 	cd nics; $(ci) $(ciflags)
 
+nanoif:
+	cd nanoif; $(ci) $(ciflags)
+
 # we patched up socket so it compiles with aosp-chicken-install.
 socket:
 # you can inspect env variables with this:
@@ -94,4 +97,4 @@ endif
 
 
 .PHONY: socket restlib i2c dab tone-generator blobbery deps wimp all \
-	multicast pefat dlna looper nics tunein
+	multicast pefat dlna looper nics tunein nanoif

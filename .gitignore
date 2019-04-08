@@ -53,4 +53,5 @@
 /tunein/tunein.import.scm
 /tunein/tunein.import.so
 /tunein/tunein.so
+/nanoif/nanoif.import.scm
 /*.import.scm
