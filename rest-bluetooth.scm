@@ -157,7 +157,8 @@
     (send-notification "/v1/player/current" msg)))
 
 
-(import process-cli) ;; TODO: dependency-graph is getting messy
+;;(import process-cli)
+ ;; TODO: dependency-graph is getting messy
 ;;(define bt-port (open-input-file*/nonblock (file-open "/dev/ttymxc3" open/read)))
 
 ;;(define (bt-notifier-iteration)
@@ -174,23 +175,45 @@
 ;;        (notify!))))
 
 ;; Set handler to redirect BT event here.
+
+(define (xor a b) (or (and a (not b))(and (not a) b)))
+
+(define (update-current-meta payload)
+  (let ((current (pq-current *pq*)))
+    (print "Update current Current=" current " Payload=" payload)
+    (if (equal? "bt" (alist-ref 'type current))
+      (alist-update 'pause bt-paused? current))
+    ))
+
 (define (bt-handler obj)
-  (let ((payload (alist-ref 'metadata obj))
-        (bt-is-source (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))))
-    (print "At handler: " payload)
-    (if payload
-      (let ((is-paused (alist-ref "paused" payload)))
-        ;; If go from paused to unpaused, kick gstplay again.
-        (if (and (not is-paused) bt-paused?)
-          (begin
-            (set! bt-paused? #f)
-            (if bt-is-source
-              (restart-cplay/bluetooth!)))
-        (if bt-is-source
-          (send-notification "/v1/player/current" payload)))))))
+  (let ((main-key ( car ( car obj))))
+    (print "bt-handler-obj: Main key=" main-key)
+    (match main-key
+      ('metadata
+        (print "In match - metadata")
+        (and-let* ((payload (alist-ref 'metadata obj)))
+          (let* ((source-sets-paused (alist-ref 'paused payload))
+                (current (or (pq-current *pq*) '()))
+                (current-is-bt (equal? "bt" (alist-ref 'type current))))
+
+            (print "Payload=" payload
+                    " source-sets-paused=" source-sets-paused
+                    " bt-paused?=" bt-paused?
+                    " current-is-bt:" current-is-bt )
+              (if (and bt-paused? (not source-sets-paused) current-is-bt)
+                (restart-cplay/bluetooth!))
+              (set! bt-paused? source-sets-paused)
+              (update-current-meta payload)
+              (if current-is-bt
+                (send-notification "/v1/player/current" payload)))))
+      ('status'
+        (print "In match - status" obj))
+      (else (print "At else")))
+    (print "leaving")))
+
+
 
 (bt-set-handler bt-handler)
-
 
 ;;(begin
 ;;  (handle-exceptions e (void) (thread-terminate! bt-notifier))
