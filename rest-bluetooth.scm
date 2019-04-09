@@ -206,7 +206,7 @@
               (update-current-meta payload)
               (if current-is-bt
                 (send-notification "/v1/player/current" payload)))))
-      ('status'
+      ('status
         (print "In match - status" obj))
       (else (print "At else")))
     (print "leaving")))
