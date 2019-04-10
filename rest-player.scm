@@ -3,7 +3,8 @@
                      spotify-monitor-thread
                      /v1/player/current
 		                 fm-pq
-                     *pq*)
+                     *pq*
+                     bt-notification)
 
 (import chicken scheme data-structures)
 
@@ -344,6 +345,14 @@
                      (read-char p))
                    (lambda () (char-ready? p))
                    (lambda () (close-input-port p))))
+
+;; Sneak in bt metadata
+(define (bt-notification msg)
+ (and-let* ((old (pq-current *pq*))
+           (bt? (equal? "bt" (alist-ref 'type old))))
+   (print "bt notification msg:" msg " old:" old)
+   (pq-current-set! *pq* (alist-merge old msg))))
+
 
 ;; send a pretend-current notification to our apps. should keep
 ;; player-pane in sync with what Spotify is doing.
