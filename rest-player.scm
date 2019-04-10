@@ -2,7 +2,7 @@
                      player-information
                      spotify-monitor-thread
                      /v1/player/current
-		     fm-pq
+		                 fm-pq
                      *pq*)
 
 (import chicken scheme data-structures)
