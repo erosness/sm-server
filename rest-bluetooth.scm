@@ -17,7 +17,7 @@
 (use irregex matchable nanoif)
 (import restlib turi
         (only incubator alist-merge)
-        (only rest-player *pq*)
+        (only rest-player *pq* bt-notification)
         (only playqueue pq-current)
         (only rest-player player-information /v1/player/current))
 (import bt-player)
@@ -179,11 +179,33 @@
 (define (xor a b) (or (and a (not b))(and (not a) b)))
 
 (define (update-current-meta payload)
-  (let ((current (pq-current *pq*)))
-    (print "Update current Current=" current " Payload=" payload)
-    (if (equal? "bt" (alist-ref 'type current))
-      (alist-update 'pause bt-paused? current))
-    ))
+  (print "Update current meta=" (player-information) " Payload=" payload)
+  (if (equal? "bt" (alist-ref 'type (player-information)))
+    (let* ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
+           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)"))
+           (msg `((subtitle . ,(string-concatenate
+                                             (list
+                                               from-bt-title
+                                               " - "
+                                               from-bt-subtitle)))
+                              (pause . ,bt-paused? ))))
+        (bt-notification msg)
+        (send-notification "/v1/player/current" msg))))
+
+(define (connection-text connection)
+  (match connection
+    (0 "Disconnected")
+    (1 "Connected")
+    (2 "Pairing")
+    (else "Strange connect status")))
+
+(define (update-current-status payload)
+  (print "Update current status=" (player-information) " Payload=" payload)
+  (if (equal? "bt" (alist-ref 'type (player-information)))
+    (let* ((connection (alist-ref 'connection payload))
+           (msg `((title . ,(connection-text connection)))))
+      (bt-notification msg)
+      (send-notification "/v1/player/current" msg))))
 
 (define (bt-handler obj)
   (let ((main-key ( car ( car obj))))
@@ -193,8 +215,7 @@
         (print "In match - metadata")
         (and-let* ((payload (alist-ref 'metadata obj)))
           (let* ((source-sets-paused (alist-ref 'paused payload))
-                (current (or (pq-current *pq*) '()))
-                (current-is-bt (equal? "bt" (alist-ref 'type current))))
+                (current-is-bt (equal? "bt" (alist-ref 'type (player-information)))))
 
             (print "Payload=" payload
                     " source-sets-paused=" source-sets-paused
@@ -203,11 +224,10 @@
               (if (and bt-paused? (not source-sets-paused) current-is-bt)
                 (restart-cplay/bluetooth!))
               (set! bt-paused? source-sets-paused)
-              (update-current-meta payload)
-              (if current-is-bt
-                (send-notification "/v1/player/current" payload)))))
+              (update-current-meta payload))))
       ('status
-        (print "In match - status" obj))
+        (print "In match - status" obj)
+        (update-current-status obj))
       (else (print "At else")))
     (print "leaving")))
 
