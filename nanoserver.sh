@@ -12,8 +12,8 @@
     (nn-bind push-sock addr)
     push-sock))
 
-(define req-sock (make-nano-req-server-socket "ipc:///data/nanomessage/test.pair"))
-(define push-sock (make-nano-push-server-socket "ipc:///data/nanomessage/test.pub"))
+(define req-sock (make-nano-req-server-socket "ipc:///data/nanomessage/bt.pair"))
+(define push-sock (make-nano-push-server-socket "ipc:///data/nanomessage/bt.pub"))
 
 (print "Begin")
 
@@ -38,15 +38,41 @@
       (time->seconds
         (current-time))))))
 
+(define msg-src
+  (list
+    `(( metadata ( title . "Travling Light")
+      ( subtitle . "Minor Majority")
+      ( paused . #f )))
+    `(( metadata ( title . "This land")
+      ( subtitle . "Blueberry")
+      ( paused . #f )))
+    `(( metadata ( title . "Horseshit")
+      ( subtitle . "Abel")
+      ( paused . #f )))
+    `(( metadata ( title . "High'n dry")
+      ( subtitle . "Hexås ørten ærø")
+      ( paused . #f )))
+  ))
+
+(define (rotate lst)
+ (let ((first (car lst))
+       (rest (cdr lst)))
+   (append rest (list first))))
+
 (define (nano-push)
       (print "Sending push message")
-      (nn-send push-sock  (json->string `(( xx ( one . 11) ( time . ,(time->seconds (current-time))))))))
+      (nn-send push-sock  (json->string (car msg-src)))
+      (set! msg-src (rotate msg-src))
+      (nn-send push-sock  (json->string `(( status ( connection . 2 )
+                                          ( player . "Erik")
+                                          ( last_pair . 0 ))))))
+
 
 (define push-thread
   (thread-start!
     (->>
       nano-push
-      (loop/interval 2.0)
+      (loop/interval 5.0)
       (loop)
       ((flip make-thread) "NanoPushThread"))))
 

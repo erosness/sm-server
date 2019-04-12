@@ -14,12 +14,13 @@
 ;;; - TODO: restart cplay when Bluetooth sampling rates changes
 ;;;
 
-(use irregex matchable)
+(use irregex matchable nanoif)
 (import restlib turi
         (only incubator alist-merge)
-        (only rest-player *pq*)
+        (only rest-player *pq* bt-notification)
         (only playqueue pq-current)
         (only rest-player player-information /v1/player/current))
+(import bt-player)
 
 ;; ==================== BT NOTIFIER ====================
 ;;
@@ -71,6 +72,8 @@
         ((prefix "IND:-A3") => (labeler 'album))
         ((equal? line "IND:-M1") 'mute)
         ((equal? line "IND:-M0") 'unmute)
+        ((equal? line "IND:-C1") 'connect)
+        ((equal? line "IND:-C0") 'disconnect)
         ((irregex-match `(: "IND:-S" (=> hz (* digit)) (w/nocase "Hz")) line) =>
          (lambda (match) `(ar ,(string->number (irregex-match-substring match 'hz)))))))
 
@@ -78,8 +81,10 @@
 (define bt-notifier-artist #f)
 (define bt-notifier-album #f)
 (define bt-notifier-song #f)
-(define bt-notifier-ar #f)
-
+(define bt-notifier-ar 44100)
+(define bt-paused? #t)
+(define bt-pairing? #f)
+(define bt-notifier-device #f)
 
 ;; ======================= Bluetooth REST interface ====================
 ;;
@@ -89,6 +94,7 @@
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
+    (print "BT turi-adapter ar=" bt-notifier-ar)
     `((url . "default:CARD=imxaudiobtm720")
       ,@(if bt-notifier-ar `((ar . ,bt-notifier-ar)) `()))))
 
@@ -97,6 +103,22 @@
     `((turi . , (bluetooth-turi '()))
       (title . "Bluetooth")
       (type . "bt"))))
+
+(define-handler /v1/catalog/bt/pair
+  (lambda ()
+    (if (current-json)
+      (let* ((json-request (current-json))
+        (pair?-cmd (alist-ref 'pair? json-request)))
+          (set! bt-pairing? pair?-cmd)
+          (if pair?-cmd
+            (print "Start pairing!")
+            (print "Stop pairing!"))
+          `((status . "Ok")))
+      `((pairing? . ,bt-pairing? )))))
+
+(define (restart-cplay/bluetooth!)
+  (parameterize ((current-json (/v1/catalog/bt)))
+    (/v1/player/current)))
 
 ;; ======================
 ;; typical IND sequence:
@@ -111,12 +133,6 @@
 ;; note that song/artist etc comes after unmute, so although
 ;; (/v1/catalog/bt) just fills a dummy title, it should be fixes by
 ;; the subsequent A1-A3's.
-;;
-;; stop the current cplay and start a new one for bluetooth, and
-;; announce to everybody what just happened.
-(define (restart-cplay/bluetooth!)
-  (parameterize ((current-json (/v1/catalog/bt)))
-    (/v1/player/current)))
 
 ;; update bt-notifier state
 ;; (IND-process! "IND:-A1PRefs Paradise")
@@ -126,39 +142,105 @@
     (('artist name) (set! bt-notifier-artist name))
     (('album name)  (set! bt-notifier-album name))
     (('ar ar)       (set! bt-notifier-ar ar))
-    ('unmute        (restart-cplay/bluetooth!))
+    (('connect)     (print "Connect"))
+    (('disconnect)  (print "Disconnect"))
+;;    ('unmute        (restart-cplay/bluetooth!))
     (else #f)))
 
-;; use bt-notifier-* state and broadcast to clients
+;; use bt-notifier-* state and broadcast
+
 (define (notify!)
   (let ((msg (alist-merge (player-information)
                           `((title    . ,(or bt-notifier-album "Bluetooth"))
-                            (subtitle . ,(or bt-notifier-song ""))))))
+                            (subtitle . ,(or bt-notifier-song ""))
+                            (btdevice . ,(or bt-notifier-device "Disconnected"))))))
     (send-notification "/v1/player/current" msg)))
 
 
-(import process-cli) ;; TODO: dependency-graph is getting messy
-(define bt-port (open-input-file*/nonblock (file-open "/dev/ttymxc3" open/read)))
+;;(import process-cli)
+ ;; TODO: dependency-graph is getting messy
+;;(define bt-port (open-input-file*/nonblock (file-open "/dev/ttymxc3" open/read)))
 
-(define (bt-notifier-iteration)
-  (let ((line (read-line bt-port)))
+;;(define (bt-notifier-iteration)
+;;  (let ((line (read-line bt-port)))
 
-    (display (conc "bt-notifier: line "
-                   (with-output-to-string (cut write line))
-                   "\n")
-             (current-error-port))
+;;    (display (conc "bt-notifier: line "
+;;                   (with-output-to-string (cut write line))
+;;                   "\n")
+;;             (current-error-port))))
+;; Temporary - keep printout for debug, do not update current.
+;;    (IND-process! line) ;; update global vars
 
-    (IND-process! line) ;; update global vars
+;;    (if (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))
+;;        (notify!))))
 
-    (if (equal? "bt" (alist-ref 'type (or (pq-current *pq*) '())))
-        (notify!))))
+;; Set handler to redirect BT event here.
 
-(begin
-  (handle-exceptions e (void) (thread-terminate! bt-notifier))
-  (define bt-notifier
-    (thread-start!
-     (->> (lambda () (bt-notifier-iteration))
-          (loop/interval 1)
-          (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
-                                               ,(condition->list e))) #t))
-          (loop)))))
+(define (xor a b) (or (and a (not b))(and (not a) b)))
+
+(define (update-current-meta payload)
+  (print "Update current meta=" (player-information) " Payload=" payload)
+  (if (equal? "bt" (alist-ref 'type (player-information)))
+    (let* ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
+           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)"))
+           (msg `((subtitle . ,(string-concatenate
+                                             (list
+                                               from-bt-title
+                                               " - "
+                                               from-bt-subtitle)))
+                              (pause . ,bt-paused? ))))
+        (bt-notification msg)
+        (send-notification "/v1/player/current" msg))))
+
+(define (connection-text connection)
+  (match connection
+    (0 "Disconnected")
+    (1 "Connected")
+    (2 "Pairing")
+    (else "Strange connect status")))
+
+(define (update-current-status payload)
+  (print "Update current status=" (player-information) " Payload=" payload)
+  (if (equal? "bt" (alist-ref 'type (player-information)))
+    (let* ((connection (alist-ref 'connection payload))
+           (msg `((title . ,(connection-text connection)))))
+      (bt-notification msg)
+      (send-notification "/v1/player/current" msg))))
+
+(define (bt-handler obj)
+  (let ((main-key ( car ( car obj))))
+    (print "bt-handler-obj: Main key=" main-key)
+    (match main-key
+      ('metadata
+        (print "In match - metadata")
+        (and-let* ((payload (alist-ref 'metadata obj)))
+          (let* ((source-sets-paused (alist-ref 'paused payload))
+                (current-is-bt (equal? "bt" (alist-ref 'type (player-information)))))
+
+            (print "Payload=" payload
+                    " source-sets-paused=" source-sets-paused
+                    " bt-paused?=" bt-paused?
+                    " current-is-bt:" current-is-bt )
+              (if (and bt-paused? (not source-sets-paused) current-is-bt)
+                (restart-cplay/bluetooth!))
+              (set! bt-paused? source-sets-paused)
+              (update-current-meta payload))))
+      ('status
+        (print "In match - status" obj)
+        (update-current-status obj))
+      (else (print "At else")))
+    (print "leaving")))
+
+
+
+(bt-set-handler bt-handler)
+
+;;(begin
+;;  (handle-exceptions e (void) (thread-terminate! bt-notifier))
+;;  (define bt-notifier
+;;    (thread-start!
+;;     (->> (lambda () (bt-notifier-iteration))
+;;          (loop/interval 1)
+;;          (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
+;;                                               ,(condition->list e))) #t))
+;;          (loop)))))
