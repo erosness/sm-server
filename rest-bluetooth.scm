@@ -62,23 +62,23 @@
 ;; (IND-decompose "IND:-S44123Hz")
 ;; (IND-decompose "IND:-M0")
 ;; (IND-decompose "IND:-M1")
-(define (IND-decompose line)
+;;(define (IND-decompose line)
   ;; check for prefix and return the rest of the string if match
-  (define (prefix str) (and (string-prefix? str line)
+;;  (define (prefix str) (and (string-prefix? str line)
                             (string-drop line (string-length str))))
-  (define ((labeler key) value) (list key value))
-  (cond ((prefix "IND:-A1") => (labeler 'song))
-        ((prefix "IND:-A2") => (labeler 'artist))
-        ((prefix "IND:-A3") => (labeler 'album))
-        ((equal? line "IND:-M1") 'mute)
-        ((equal? line "IND:-M0") 'unmute)
-        ((equal? line "IND:-C1") 'connect)
-        ((equal? line "IND:-C0") 'disconnect)
-        ((irregex-match `(: "IND:-S" (=> hz (* digit)) (w/nocase "Hz")) line) =>
-         (lambda (match) `(ar ,(string->number (irregex-match-substring match 'hz)))))))
-
+;;  (define ((labeler key) value) (list key value))
+;;  (cond ((prefix "IND:-A1") => (labeler 'song))
+;;        ((prefix "IND:-A2") => (labeler 'artist))
+;;        ((prefix "IND:-A3") => (labeler 'album))
+;;        ((equal? line "IND:-M1") 'mute)
+;;        ((equal? line "IND:-M0") 'unmute)
+;;        ((equal? line "IND:-C1") 'connect)
+;;        ((equal? line "IND:-C0") 'disconnect)
+;;        ((irregex-match `(: "IND:-S" (=> hz (* digit)) (w/nocase "Hz")) line) =>
+;;         (lambda (match) `(ar ,(string->number (irregex-match-substring match 'hz)))))))
+;;
 ;; aggregated bt-notifier state
-(define bt-notifier-artist #f)
+;;(define bt-notifier-artist #f)
 (define bt-notifier-album #f)
 (define bt-notifier-song #f)
 (define bt-notifier-ar 44100)
@@ -136,16 +136,16 @@
 
 ;; update bt-notifier state
 ;; (IND-process! "IND:-A1PRefs Paradise")
-(define (IND-process! line)
-  (match (IND-decompose line)
-    (('song name)   (set! bt-notifier-song name))
-    (('artist name) (set! bt-notifier-artist name))
-    (('album name)  (set! bt-notifier-album name))
-    (('ar ar)       (set! bt-notifier-ar ar))
-    (('connect)     (print "Connect"))
-    (('disconnect)  (print "Disconnect"))
+;;(define (IND-process! line)
+;;  (match (IND-decompose line)
+;;    (('song name)   (set! bt-notifier-song name))
+;;    (('artist name) (set! bt-notifier-artist name))
+;;    (('album name)  (set! bt-notifier-album name))
+;;    (('ar ar)       (set! bt-notifier-ar ar))
+;;    (('connect)     (print "Connect"))
+;;    (('disconnect)  (print "Disconnect"))
 ;;    ('unmute        (restart-cplay/bluetooth!))
-    (else #f)))
+;;    (else #f)))
 
 ;; use bt-notifier-* state and broadcast
 
