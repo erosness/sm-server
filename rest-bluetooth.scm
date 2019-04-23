@@ -79,12 +79,12 @@
 ;;
 ;; aggregated bt-notifier state
 ;;(define bt-notifier-artist #f)
-(define bt-notifier-album #f)
-(define bt-notifier-song #f)
+(define bt-title #f)
+(define bt-subtitle #f)
 (define bt-notifier-ar 44100)
 (define bt-paused? #t)
 (define bt-pairing? #f)
-(define bt-notifier-device #f)
+(define bt-device #f)
 
 ;; ======================= Bluetooth REST interface ====================
 ;;
@@ -151,9 +151,8 @@
 
 (define (notify!)
   (let ((msg (alist-merge (player-information)
-                          `((title    . ,(or bt-notifier-album "Bluetooth"))
-                            (subtitle . ,(or bt-notifier-song ""))
-                            (btdevice . ,(or bt-notifier-device "Disconnected"))))))
+                          `((title    . ,(or bt-title "Bluetooth"))
+                            (subtitle . ,(or bt-subtitle ""))))))
     (send-notification "/v1/player/current" msg)))
 
 
@@ -183,13 +182,12 @@
   (if (equal? "bt" (alist-ref 'type (player-information)))
     (let* ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
            (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)"))
-           (msg `((subtitle . ,(string-concatenate
+           (set! bt-subtitle `((subtitle . ,(string-concatenate
                                              (list
                                                from-bt-title
                                                " - "
-                                               from-bt-subtitle)))
-                              (pause . ,bt-paused? ))))
-        (bt-notification msg)
+                                               from-bt-subtitle))))))
+...set current element in playqueue here......        (bt-notification msg)
         (send-notification "/v1/player/current" msg))))
 
 (define (connection-text connection)
@@ -209,7 +207,6 @@
 
 (define (bt-handler obj)
   (let ((main-key ( car ( car obj))))
-    (print "bt-handler-obj: Main key=" main-key)
     (match main-key
       ('metadata
         (print "In match - metadata")
