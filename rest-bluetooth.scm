@@ -65,7 +65,7 @@
 ;;(define (IND-decompose line)
   ;; check for prefix and return the rest of the string if match
 ;;  (define (prefix str) (and (string-prefix? str line)
-                            (string-drop line (string-length str))))
+;;                            (string-drop line (string-length str))))
 ;;  (define ((labeler key) value) (list key value))
 ;;  (cond ((prefix "IND:-A1") => (labeler 'song))
 ;;        ((prefix "IND:-A2") => (labeler 'artist))
@@ -179,29 +179,29 @@
 
 (define (update-current-meta payload)
   (print "Update current meta=" (player-information) " Payload=" payload)
-  (if (equal? "bt" (alist-ref 'type (player-information)))
-    (let* ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
-           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)"))
-           (set! bt-subtitle `((subtitle . ,(string-concatenate
-                                             (list
-                                               from-bt-title
-                                               " - "
-                                               from-bt-subtitle))))))
-...set current element in playqueue here......        (bt-notification msg)
+    (let ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
+           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)")))
+      (set! bt-subtitle (string-concatenate (list from-bt-title " - " from-bt-subtitle)))
+      (let ((msg  `((subtitle . ,bt-subtitle))))
+        (print "In update: " msg)
+        (bt-notification msg)
         (send-notification "/v1/player/current" msg))))
 
-(define (connection-text connection)
+(define (connection-text connection device)
+  (print "Connection-text:" connection " - " device)
   (match connection
     (0 "Disconnected")
-    (1 "Connected")
+    (1 device )
     (2 "Pairing")
-    (else "Strange connect status")))
+    (else "")))
 
 (define (update-current-status payload)
   (print "Update current status=" (player-information) " Payload=" payload)
   (if (equal? "bt" (alist-ref 'type (player-information)))
-    (let* ((connection (alist-ref 'connection payload))
-           (msg `((title . ,(connection-text connection)))))
+    (let* ((connect-status (alist-ref 'connection payload))
+           (device (alist-ref 'player payload))
+           (msg `((title . ,(connection-text connect-status device)))))
+      (print "Update status again: " connect-status " - msg: " payload)
       (bt-notification msg)
       (send-notification "/v1/player/current" msg))))
 
@@ -224,7 +224,8 @@
               (update-current-meta payload))))
       ('status
         (print "In match - status" obj)
-        (update-current-status obj))
+        (and-let* ((payload (alist-ref 'status obj)))
+          (update-current-status payload)))
       (else (print "At else")))
     (print "leaving")))
 
