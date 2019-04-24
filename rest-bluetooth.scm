@@ -54,13 +54,6 @@
   (parameterize ((current-json (/v1/catalog/bt)))
     (/v1/player/current)))
 
-;; use bt-notifier-* state and broadcast
-
-(define (notify!)
-  (let ((msg (alist-merge (player-information)
-                          `((title    . ,(or bt-title "Bluetooth"))
-                            (subtitle . ,(or bt-subtitle ""))))))
-    (send-notification "/v1/player/current" msg)))
 
 ;; Process incoming updates from bluetooth driver.
 
