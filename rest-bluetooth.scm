@@ -16,7 +16,7 @@
 ;; Some static variables keeping track of the state of the Bluetooth
 ;; connection as reported by the driver.
 (define bt-title "Bluetooth")
-(define bt-subtitle #f)
+(define bt-subtitle " ")
 (define bt-notifier-ar 44100)
 (define bt-paused? #t)
 (define bt-pairing? #f)
