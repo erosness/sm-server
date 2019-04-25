@@ -15,7 +15,7 @@
 
 ;; Some static variables keeping track of the state of the Bluetooth
 ;; connection as reported by the driver.
-(define bt-title #f)
+(define bt-title "Bluetooth")
 (define bt-subtitle #f)
 (define bt-notifier-ar 44100)
 (define bt-paused? #t)
@@ -35,7 +35,8 @@
 (define-handler /v1/catalog/bt
   (lambda ()
     `((turi . , (bluetooth-turi '()))
-      (title . "Bluetooth")
+      (title . ,bt-title)
+      (subtitle . ,bt-subtitle)
       (type . "bt"))))
 
 (define-handler /v1/catalog/bt/pair
@@ -63,45 +64,44 @@
       (set! bt-subtitle (string-concatenate (list from-bt-title " - " from-bt-subtitle)))
       (let ((msg  `((subtitle . ,bt-subtitle))))
         (bt-notification msg))
-      (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
-        (send-notification "/v1/player/current" msg))))
+      (if (equal? "bt" (alist-ref 'type (player-information)))
+        (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
+          (send-notification "/v1/player/current" msg)))))
 
 (define (connection-text connection device)
   (match connection
-    (0 (set! bt-subtitle " ") "Disconnected")
+    (0 (set! bt-subtitle " ") (set! bt-paused? #t) "Disconnected")
     (1 device )
-    (2 (set! bt-subtitle " ") "Pairing")
+    (2 (set! bt-subtitle " ") (set! bt-paused? #t) "Pairing")
     (else "")))
 
 (define (update-current-status payload)
-  (if (equal? "bt" (alist-ref 'type (player-information)))
     (let* ((connect-status (alist-ref 'connection payload))
            (device (alist-ref 'player payload))
            (title-text (connection-text connect-status device))
            (msg `((title . ,title-text))))
       (set! bt-title title-text)
       (bt-notification msg))
-    (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
-      (send-notification "/v1/player/current" msg))))
+    (if (equal? "bt" (alist-ref 'type (player-information)))
+      (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
+          (send-notification "/v1/player/current" msg))))
 
 (define (bt-handler obj)
-  (let ((main-key ( car ( car obj))))
+  (let ((main-key ( car ( car obj)))
+        (current-is-bt (equal? "bt" (alist-ref 'type (player-information)))))
     (match main-key
       ('metadata
-        (and-let* ((payload (alist-ref 'metadata obj)))
-          (let* ((source-sets-paused (alist-ref 'paused payload))
-                (current-is-bt (equal? "bt" (alist-ref 'type (player-information)))))
-              (if (and bt-paused? (not source-sets-paused) current-is-bt)
-                (restart-cplay/bluetooth!))
-              (set! bt-paused? source-sets-paused)
-              (update-current-meta payload))))
+        (let* ((payload (alist-ref 'metadata obj))
+               (source-sets-paused (alist-ref 'paused payload)))
+          (if (and bt-paused? (not source-sets-paused) current-is-bt)
+            (restart-cplay/bluetooth!))
+          (set! bt-paused? source-sets-paused)
+          (update-current-meta payload)))
       ('status
         (and-let* ((payload (alist-ref 'status obj)))
           (update-current-status payload)))
       (else (print "At else")))
     (print "leaving")))
-
-
 
 (bt-set-handler bt-handler)
 
