@@ -58,12 +58,10 @@
 ;; Process incoming updates from bluetooth driver.
 
 (define (update-current-meta payload)
-  (print "Update current meta=" payload)
     (let ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)")))
       (set! bt-subtitle (string-concatenate (list from-bt-title " - " from-bt-subtitle)))
       (let ((msg  `((subtitle . ,bt-subtitle))))
-        (print "Notify(m) title=" bt-title " subtitle=" bt-subtitle " msg=" msg)
         (bt-notification msg))
       (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
         (send-notification "/v1/player/current" msg))))
@@ -76,14 +74,12 @@
     (else "")))
 
 (define (update-current-status payload)
-(print "Update current status=" payload)
   (if (equal? "bt" (alist-ref 'type (player-information)))
     (let* ((connect-status (alist-ref 'connection payload))
            (device (alist-ref 'player payload))
            (title-text (connection-text connect-status device))
            (msg `((title . ,title-text))))
       (set! bt-title title-text)
-      (print "Notify(s) title=" bt-title " subtitle=" bt-subtitle " msg=" msg)
       (bt-notification msg))
     (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
       (send-notification "/v1/player/current" msg))))
@@ -95,11 +91,6 @@
         (and-let* ((payload (alist-ref 'metadata obj)))
           (let* ((source-sets-paused (alist-ref 'paused payload))
                 (current-is-bt (equal? "bt" (alist-ref 'type (player-information)))))
-
-            (print "Payload=" payload
-                    " source-sets-paused=" source-sets-paused
-                    " bt-paused?=" bt-paused?
-                    " current-is-bt:" current-is-bt )
               (if (and bt-paused? (not source-sets-paused) current-is-bt)
                 (restart-cplay/bluetooth!))
               (set! bt-paused? source-sets-paused)
