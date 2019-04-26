@@ -19,9 +19,9 @@
 (define bt-subtitle " ")
 (define bt-notifier-ar 44100)
 (define bt-paused? #t)
-(define bt-pairing? #f)
 (define bt-device #f)
-
+(define bt-pairing? #f)
+(define bt-connected? #f)
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
@@ -39,7 +39,7 @@
       (subtitle . ,bt-subtitle)
       (type . "bt"))))
 
-(define-handler /v1/catalog/bt/pair
+(define-handler /v1/catalog/bt/connect
   (lambda ()
     (if (current-json)
       (let* ((json-request (current-json))
@@ -49,7 +49,9 @@
             (print "Start pairing!") ;; TODO: Fill inimplemetations
             (print "Stop pairing!"))
           `((status . "Ok")))
-      `((pairing? . ,bt-pairing? )))))
+      `((pairing? . ,bt-pairing? )
+        (connected? . ,bt-connected? )
+        (device . ,bt-device )))))
 
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
@@ -81,6 +83,8 @@
            (title-text (connection-text connect-status device))
            (msg `((title . ,title-text))))
       (set! bt-title title-text)
+      (set! bt-connected? (equal? connect-status 1))
+      (set! bt-device (if bt-connected? device "No device"))
       (bt-notification msg))
     (if (equal? "bt" (alist-ref 'type (player-information)))
       (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
