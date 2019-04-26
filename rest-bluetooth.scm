@@ -46,8 +46,8 @@
         (pair?-cmd (alist-ref 'pair? json-request)))
           (set! bt-pairing? pair?-cmd)
           (if pair?-cmd
-            (print "Start pairing!") ;; TODO: Fill inimplemetations
-            (print "Stop pairing!"))
+            (bt-start-pair)
+            (bt-end-pair))
           `((status . "Ok")))
       `((pairing? . ,bt-pairing? )
         (connected? . ,bt-connected? )
