@@ -108,6 +108,7 @@
     (print "leaving")))
 
 (bt-set-handler bt-handler)
+(bt-refresh)
 
 ;;(begin
 ;;  (handle-exceptions e (void) (thread-terminate! bt-notifier))
