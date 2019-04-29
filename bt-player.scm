@@ -23,8 +23,14 @@
 (define (bt-unpause)
   (nano-if-request btif `("unpause")))
 
-  (define (bt-refresh)
-    (nano-if-request btif `("refresh")))
+(define (bt-refresh)
+  (nano-if-request btif `("refresh")))
+
+(define (bt-start-pair)
+  (nano-if-request btif `("start_pair")))
+
+(define (bt-end-pair)
+  (nano-if-request btif `("end_pair")))
 
 (define (bt-set-handler handler)
   (set-handler btif handler))
