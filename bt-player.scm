@@ -15,13 +15,16 @@
   (nano-if-request btif `("next")))
 
 (define (bt-prev)
-  (nano-if-request btif `("prevoius")))
+  (nano-if-request btif `("previous")))
 
 (define (bt-pause)
 (nano-if-request btif `("pause")))
 
 (define (bt-unpause)
   (nano-if-request btif `("unpause")))
+
+  (define (bt-refresh)
+    (nano-if-request btif `("refresh")))
 
 (define (bt-set-handler handler)
   (set-handler btif handler))

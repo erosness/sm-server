@@ -19,9 +19,9 @@
 (define bt-subtitle " ")
 (define bt-notifier-ar 44100)
 (define bt-paused? #t)
-(define bt-pairing? #f)
 (define bt-device #f)
-
+(define bt-pairing? #f)
+(define bt-connected? #f)
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
@@ -39,17 +39,19 @@
       (subtitle . ,bt-subtitle)
       (type . "bt"))))
 
-(define-handler /v1/catalog/bt/pair
+(define-handler /v1/catalog/bt/connect
   (lambda ()
     (if (current-json)
       (let* ((json-request (current-json))
         (pair?-cmd (alist-ref 'pair? json-request)))
           (set! bt-pairing? pair?-cmd)
           (if pair?-cmd
-            (print "Start pairing!") ;; TODO: Fill inimplemetations
-            (print "Stop pairing!"))
+            (bt-start-pair)
+            (bt-end-pair))
           `((status . "Ok")))
-      `((pairing? . ,bt-pairing? )))))
+      `((pairing? . ,bt-pairing? )
+        (connected? . ,bt-connected? )
+        (device . ,bt-device )))))
 
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
@@ -62,10 +64,10 @@
     (let ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)")))
       (set! bt-subtitle (string-concatenate (list from-bt-title " - " from-bt-subtitle)))
-      (let ((msg  `((subtitle . ,bt-subtitle))))
+      (let ((msg  `((subtitle . ,bt-subtitle)(paused . ,bt-paused?))))
         (bt-notification msg))
       (if (equal? "bt" (alist-ref 'type (player-information)))
-        (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
+        (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title)(paused . ,bt-paused?))))
           (send-notification "/v1/player/current" msg)))))
 
 (define (connection-text connection device)
@@ -81,6 +83,8 @@
            (title-text (connection-text connect-status device))
            (msg `((title . ,title-text))))
       (set! bt-title title-text)
+      (set! bt-connected? (equal? connect-status 1))
+      (set! bt-device (if bt-connected? device "No device"))
       (bt-notification msg))
     (if (equal? "bt" (alist-ref 'type (player-information)))
       (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
@@ -104,6 +108,7 @@
     (print "leaving")))
 
 (bt-set-handler bt-handler)
+(bt-refresh)
 
 ;;(begin
 ;;  (handle-exceptions e (void) (thread-terminate! bt-notifier))
