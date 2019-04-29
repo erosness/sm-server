@@ -116,15 +116,15 @@
   (let* ((current (pq-current *pq*))
          (type (assoc 'type current)))
     (if (equal? (cdr type) "bt")
-      (bt-pause))
-    (player-pause)))
+      (bt-pause)
+      (player-pause))))
 
 (define (any-player-unpause)
   (let* ((current (pq-current *pq*))
          (type (assoc 'type current)))
     (if (equal? (cdr type) "bt")
-      (bt-unpause))
-    (player-unpause)))
+      (bt-unpause)
+      (player-unpause))))
 
 (define-handler /v1/player/follower
   ( lambda()
