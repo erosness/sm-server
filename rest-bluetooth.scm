@@ -64,10 +64,10 @@
     (let ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)")))
       (set! bt-subtitle (string-concatenate (list from-bt-title " - " from-bt-subtitle)))
-      (let ((msg  `((subtitle . ,bt-subtitle))))
+      (let ((msg  `((subtitle . ,bt-subtitle)(paused . ,bt-paused?))))
         (bt-notification msg))
       (if (equal? "bt" (alist-ref 'type (player-information)))
-        (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title))))
+        (let ((msg  `((subtitle . ,bt-subtitle)(title . ,bt-title)(paused . ,bt-paused?))))
           (send-notification "/v1/player/current" msg)))))
 
 (define (connection-text connection device)
