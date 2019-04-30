@@ -25,7 +25,7 @@
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
-    (print "BT turi-adapter ar=" bt-notifier-ar)
+    (print "BT turi-adapter ar=" bt-ar)
     `((url . "default:CARD=imxaudiobtm720")
       ,@(if bt-ar `((ar . ,bt-ar)) `()))))
 
@@ -64,7 +64,6 @@
     (let ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
           (from-bt-subtitle (or (alist-ref 'subtitle payload) "(no artist)")))
       (set! bt-subtitle (string-concatenate (list from-bt-title " - " from-bt-subtitle)))
-      (set! bt-ar (or (alist-ref 'audiorate payload) 44100))
       (let ((msg  `((subtitle . ,bt-subtitle)(paused . ,bt-paused?))))
         (bt-notification msg))
       (if (equal? "bt" (alist-ref 'type (player-information)))
@@ -85,6 +84,7 @@
            (msg `((title . ,title-text))))
       (set! bt-title title-text)
       (set! bt-connected? (equal? connect-status 1))
+      (set! bt-ar (or (alist-ref 'audiorate payload) 44100))
       (set! bt-device (if bt-connected? device "No device"))
       (bt-notification msg))
     (if (equal? "bt" (alist-ref 'type (player-information)))
