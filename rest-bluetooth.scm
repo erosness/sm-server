@@ -17,7 +17,7 @@
 ;; connection as reported by the driver.
 (define bt-title "Bluetooth")
 (define bt-subtitle " ")
-(define bt-notifier-ar 44100)
+(define bt-ar 44100)
 (define bt-paused? #t)
 (define bt-device #f)
 (define bt-pairing? #f)
@@ -25,9 +25,9 @@
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
-    (print "BT turi-adapter ar=" bt-notifier-ar)
+    (print "BT turi-adapter ar=" bt-ar)
     `((url . "default:CARD=imxaudiobtm720")
-      ,@(if bt-notifier-ar `((ar . ,bt-notifier-ar)) `()))))
+      ,@(if bt-ar `((ar . ,bt-ar)) `()))))
 
 ;; ======================= Bluetooth REST interface ====================
 ;;
@@ -84,6 +84,7 @@
            (msg `((title . ,title-text))))
       (set! bt-title title-text)
       (set! bt-connected? (equal? connect-status 1))
+      (set! bt-ar (or (alist-ref 'audiorate payload) 44100))
       (set! bt-device (if bt-connected? device "No device"))
       (bt-notification msg))
     (if (equal? "bt" (alist-ref 'type (player-information)))
@@ -107,15 +108,12 @@
       (else (print "At else")))
     (print "leaving")))
 
+;; Install the handler for incoming BT messages.
 (bt-set-handler bt-handler)
-(bt-refresh)
 
-;;(begin
-;;  (handle-exceptions e (void) (thread-terminate! bt-notifier))
-;;  (define bt-notifier
-;;    (thread-start!
-;;     (->> (lambda () (bt-notifier-iteration))
-;;          (loop/interval 1)
-;;          (loop/exceptions (lambda (e) (pp `(error: ,(current-thread)
-;;                                               ,(condition->list e))) #t))
-;;          (loop)))))
+;; Set up delayed refresh
+(thread-start!
+  (make-thread
+    (lambda ()
+      (thread-sleep! 15)
+      (bt-refresh))))
