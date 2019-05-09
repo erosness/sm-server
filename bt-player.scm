@@ -1,7 +1,10 @@
 (module bt-player *
 
-(import scheme chicken)
-(use nanoif)
+(import scheme chicken data-structures)
+
+(use restlib nanoif)
+
+(import store)
 
 (define btif
    (make-nano-if
@@ -10,6 +13,18 @@
 
 ;; Mount default handler with debug output.
 (set-handler btif (lambda (obj) (print "At push handler: "  obj )))
+
+(define store (make-store (string->symbol
+                                   (conc "speaker-icon" "-"
+                                         (rest-server-port)))))
+(define my-default-name "Maestro")
+
+(define (my-name)
+  (and-let* ((icon-store (store)))
+    (let ((my-given-name (alist-ref 'name (store))))
+      (if my-given-name
+        my-given-name
+        my-default-name))))
 
 (define (bt-next)
   (nano-if-request btif `("next")))
@@ -31,6 +46,9 @@
 
 (define (bt-end-pair)
   (nano-if-request btif `("end_pair")))
+
+(define (bt-name)
+  (nano-if-request btif `("name" ,(my-name))))
 
 (define (bt-set-handler handler)
   (set-handler btif handler))

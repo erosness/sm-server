@@ -116,4 +116,5 @@
   (make-thread
     (lambda ()
       (thread-sleep! 15)
-      (bt-refresh))))
+      (bt-refresh)
+      (bt-name))))

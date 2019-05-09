@@ -16,6 +16,7 @@
 (include "rest.scm")
 
 (include "process-cli.scm")
+(include "bt-player.scm")
 (include "player.scm")
 (include "playqueue.scm")
 
