@@ -25,7 +25,6 @@
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
-    (print "BT turi-adapter ar=" bt-ar)
     `((url . "default:CARD=imxaudiobtm720")
       ,@(if bt-ar `((ar . ,bt-ar)) `()))))
 
@@ -106,7 +105,7 @@
         (and-let* ((payload (alist-ref 'status obj)))
           (update-current-status payload)))
       (else (print "At else")))
-    (print "leaving")))
+    (print "leaving" )))
 
 ;; Install the handler for incoming BT messages.
 (bt-set-handler bt-handler)

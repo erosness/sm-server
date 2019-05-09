@@ -9,12 +9,12 @@
      (only posix with-input-from-pipe))
 
 ;; local imports
-(import restlib store)
+(import restlib store bt-player)
 
-(define mac 
-  (conc 
-    (read (open-input-file "/sys/fsl_otp/HW_OCOTP_MAC1")) 
-    ":" 
+(define mac
+  (conc
+    (read (open-input-file "/sys/fsl_otp/HW_OCOTP_MAC1"))
+    ":"
     (read (open-input-file "/sys/fsl_otp/HW_OCOTP_MAC0"))))
 
 (define find_ip_leader
@@ -60,6 +60,7 @@
                (with-input-from-pipe (conc "spotifyctl 7879 label "
                                            (alist-ref 'name (current-json)))
                                      void)
+               (thread-start! (make-thread (lambda ()(bt-name))))
                '((status . "ok")))
         (if (speaker-store)
             (let* ((%alist-raw ( alist-delete 'ip_audio (alist-delete 'uid_leader (alist-delete 'uid (speaker-store)))))
