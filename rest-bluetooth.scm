@@ -48,7 +48,7 @@
             (bt-start-pair)
             (bt-end-pair))
           `((status . "Ok")))
-      `((pairing? . ,bt-pairing? )
+      `((pair? . ,bt-pairing? )
         (connected? . ,bt-connected? )
         (device . ,bt-device )))))
 
