@@ -9,10 +9,11 @@
    (define port (string->number port/str))
 
 
-   (use spiffy matchable medea restlib)
+   (use spiffy matchable medea restlib )
 
    ;; bind dynamic paramter for everybody to use.
    (rest-server-port port)
+   (set-buffering-mode! (current-output-port) #:line)
 
    ;; does not contain deps (it's included from cube-server.scm too)
    (include "cspeaker.scm")

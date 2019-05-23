@@ -193,17 +193,12 @@
   (setup-nexttrack-callback on-next))
 
 (define (play-follower-cmd uid-leader)
-  (
-;;   (play-worker `(quit))
-   (cplay-follower uid-leader)
-   )
-  )
+   (cplay-follower uid-leader))
 
 (define (follow! ip_leader)
   (prepause-spotify)
   (pp "At follow!")
-  (pp ip_leader)
-  (nano-if-request gstplayer `(play ("play follower " ,ip_leader )(lambda ()(print "# ignoring ip_leader callback")))))
+  (nano-if-request gstplayer `(play follower ,ip_leader )))
 
 
 (define (play-command/tr turi)
