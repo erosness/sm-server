@@ -22,6 +22,7 @@
 (define bt-device #f)
 (define bt-pairing? #f)
 (define bt-connected? #f)
+(define bt-paired-list '#())
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
@@ -68,6 +69,10 @@
 	  `((pairing? . ,bt-pairing? )
 	  (connected? . ,bt-connected? )
 	  (device . ,bt-device )))))
+
+(define-handler /v1/catalog/bt/paired
+  (lambda ()
+    bt-paired-list))
 
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
