@@ -42,13 +42,13 @@
   (lambda ()
     (if (current-json)
       (let* ((json-request (current-json))
-        (pair?-cmd (alist-ref 'pair? json-request)))
+        (pair?-cmd (alist-ref 'pairing? json-request)))
           (set! bt-pairing? pair?-cmd)
           (if pair?-cmd
             (bt-start-pair)
             (bt-end-pair))
           `((status . "Ok")))
-      `((pair? . ,bt-pairing? )
+      `((pairing? . ,bt-pairing? )
         (connected? . ,bt-connected? )
         (device . ,bt-device )))))
 
