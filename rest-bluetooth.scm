@@ -41,16 +41,16 @@
 (define-handler /v1/catalog/bt/connect
   (lambda ()
     (if (current-json)
-      (let* ((json-request (current-json))
-        (pair?-cmd (alist-ref 'pair? json-request)))
-          (set! bt-pairing? pair?-cmd)
-          (if pair?-cmd
-            (bt-start-pair)
-            (bt-end-pair))
-          `((status . "Ok")))
-      `((pairing? . ,bt-pairing? )
-        (connected? . ,bt-connected? )
-        (device . ,bt-device )))))
+	(let* ((json-request (current-json))
+	       (pair?-cmd (or (alist-ref 'pair? json-request) (alist-ref 'pairing? json-request))))
+	  (set! bt-pairing? pair?-cmd)
+	  (if pair?-cmd
+	      (bt-start-pair)
+	      (bt-end-pair))
+	  `((status . "Ok")))
+	`((pairing? . ,bt-pairing? )
+	  (connected? . ,bt-connected? )
+	  (device . ,bt-device )))))
 
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
