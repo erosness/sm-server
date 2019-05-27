@@ -42,7 +42,7 @@
   (lambda ()
     (if (current-json)
       (let* ((json-request (current-json))
-        (pair?-cmd (alist-ref 'pairing? json-request)))
+        (pair?-cmd (alist-ref 'pair? json-request)))
           (set! bt-pairing? pair?-cmd)
           (if pair?-cmd
             (bt-start-pair)
