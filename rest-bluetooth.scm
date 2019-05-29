@@ -74,6 +74,10 @@
   (lambda ()
     bt-paired-list))
 
+(define-handler /v1/catalog/bt/paired
+  (lambda ()
+    bt-paired-list))
+
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
     (/v1/player/current)))
