@@ -45,26 +45,22 @@
 	    (let ((json-request (current-json)))
 ;; First section starts here, handles the obsolete pair? attribute for
 ;; backwards compatibility
-        (print "/v1/catalog/bt/connect:" json-request)
-      	      (let ((paired?-entry (assq 'pair? json-request)))
-                (if paired?-entry
-                  (let ((paired?-value (cdr paired?-entry)))
-                    (print "PAIR:" paired?-entry " - " paired?-value)
-                    (set! bt-pairing? paired?-value)
-                     (if paired?-value
-                      (bt-start-pair)
-                      (bt-end-pair)))))
+	      (let ((paired?-entry (assq 'pair? json-request)))
+          (if paired?-entry
+            (let ((paired?-value (cdr paired?-entry)))
+              (set! bt-pairing? paired?-value)
+               (if paired?-value
+                (bt-start-pair)
+                (bt-end-pair)))))
 ;; First section ends here, second section starts. Handles the real
 ;; pairing attribute.
-        (print "/v1/catalog/bt/connect:" json-request)
-              (let ((paired?-entry (assq 'pairing? json-request)))
-                (if paired?-entry
-                  (let ((paired?-value (cdr paired?-entry)))
-                    (print "PAIR:" paired?-entry " - " paired?-value)
-                    (set! bt-pairing? paired?-value)
-                     (if paired?-value
-                      (bt-start-pair)
-                      (bt-end-pair)))))
+        (let ((paired?-entry (assq 'pairing? json-request)))
+          (if paired?-entry
+            (let ((paired?-value (cdr paired?-entry)))
+              (set! bt-pairing? paired?-value)
+               (if paired?-value
+                (bt-start-pair)
+                (bt-end-pair)))))
         `((status . "Ok")))
 	  `((pairing? . ,bt-pairing? )
 	  (connected? . ,bt-connected? )
@@ -74,14 +70,9 @@
   (lambda ()
     bt-paired-list))
 
-(define-handler /v1/catalog/bt/paired
-  (lambda ()
-    bt-paired-list))
-
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
     (/v1/player/current)))
-
 
 ;; Process incoming updates from bluetooth driver.
 (define (update-current-paired payload)
