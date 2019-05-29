@@ -63,6 +63,8 @@
 
 
 ;; Process incoming updates from bluetooth driver.
+(define (update-current-paired payload)
+  (set! bt-paired-list payload))
 
 (define (update-current-meta payload)
     (let ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
@@ -109,7 +111,10 @@
       ('status
         (and-let* ((payload (alist-ref 'status obj)))
           (update-current-status payload)))
-      (else (print "At else")))
+      ('paired
+        (and-let* ((payload (alist-ref 'paired obj)))
+          (update-current-paired payload)))
+      (else (print "At else" obj)))
     (print "leaving" )))
 
 ;; Install the handler for incoming BT messages.
@@ -119,6 +124,8 @@
 (thread-start!
   (make-thread
     (lambda ()
-      (thread-sleep! 15)
+      (thread-sleep! 5)
+      (bt-refresh)
+      (thread-sleep! 10)
       (bt-refresh)
       (bt-name))))
