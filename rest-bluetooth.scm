@@ -22,6 +22,7 @@
 (define bt-device #f)
 (define bt-pairing? #f)
 (define bt-connected? #f)
+(define bt-paired-list '#())
 
 (define-local-turi-adapter bluetooth-turi "bt"
   (lambda (params)
@@ -44,37 +45,38 @@
 	    (let ((json-request (current-json)))
 ;; First section starts here, handles the obsolete pair? attribute for
 ;; backwards compatibility
-        (print "/v1/catalog/bt/connect:" json-request)
-      	      (let ((paired?-entry (assq 'pair? json-request)))
-                (if paired?-entry
-                  (let ((paired?-value (cdr paired?-entry)))
-                    (print "PAIR:" paired?-entry " - " paired?-value)
-                    (set! bt-pairing? paired?-value)
-                     (if paired?-value
-                      (bt-start-pair)
-                      (bt-end-pair)))))
+	      (let ((paired?-entry (assq 'pair? json-request)))
+          (if paired?-entry
+            (let ((paired?-value (cdr paired?-entry)))
+              (set! bt-pairing? paired?-value)
+               (if paired?-value
+                (bt-start-pair)
+                (bt-end-pair)))))
 ;; First section ends here, second section starts. Handles the real
 ;; pairing attribute.
-        (print "/v1/catalog/bt/connect:" json-request)
-              (let ((paired?-entry (assq 'pairing? json-request)))
-                (if paired?-entry
-                  (let ((paired?-value (cdr paired?-entry)))
-                    (print "PAIR:" paired?-entry " - " paired?-value)
-                    (set! bt-pairing? paired?-value)
-                     (if paired?-value
-                      (bt-start-pair)
-                      (bt-end-pair)))))
+        (let ((paired?-entry (assq 'pairing? json-request)))
+          (if paired?-entry
+            (let ((paired?-value (cdr paired?-entry)))
+              (set! bt-pairing? paired?-value)
+               (if paired?-value
+                (bt-start-pair)
+                (bt-end-pair)))))
         `((status . "Ok")))
 	  `((pairing? . ,bt-pairing? )
 	  (connected? . ,bt-connected? )
 	  (device . ,bt-device )))))
 
+(define-handler /v1/catalog/bt/paired
+  (lambda ()
+    bt-paired-list))
+
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
     (/v1/player/current)))
 
-
 ;; Process incoming updates from bluetooth driver.
+(define (update-current-paired payload)
+  (set! bt-paired-list payload))
 
 (define (update-current-meta payload)
     (let ((from-bt-title (or (alist-ref 'title payload) "(no title)"))
@@ -121,7 +123,10 @@
       ('status
         (and-let* ((payload (alist-ref 'status obj)))
           (update-current-status payload)))
-      (else (print "At else")))
+      ('paired
+        (and-let* ((payload (alist-ref 'paired obj)))
+          (update-current-paired payload)))
+      (else (print "At else" obj)))
     (print "leaving" )))
 
 ;; Install the handler for incoming BT messages.
@@ -131,6 +136,8 @@
 (thread-start!
   (make-thread
     (lambda ()
-      (thread-sleep! 15)
+      (thread-sleep! 5)
+      (bt-refresh)
+      (thread-sleep! 10)
       (bt-refresh)
       (bt-name))))
