@@ -41,16 +41,33 @@
 (define-handler /v1/catalog/bt/connect
   (lambda ()
     (if (current-json)
-      (let* ((json-request (current-json))
-        (pair?-cmd (alist-ref 'pair? json-request)))
-          (set! bt-pairing? pair?-cmd)
-          (if pair?-cmd
-            (bt-start-pair)
-            (bt-end-pair))
-          `((status . "Ok")))
-      `((pairing? . ,bt-pairing? )
-        (connected? . ,bt-connected? )
-        (device . ,bt-device )))))
+	    (let ((json-request (current-json)))
+;; First section starts here, handles the obsolete pair? attribute for
+;; backwards compatibility
+        (print "/v1/catalog/bt/connect:" json-request)
+      	      (let ((paired?-entry (assq 'pair? json-request)))
+                (if paired?-entry
+                  (let ((paired?-value (cdr paired?-entry)))
+                    (print "PAIR:" paired?-entry " - " paired?-value)
+                    (set! bt-pairing? paired?-value)
+                     (if paired?-value
+                      (bt-start-pair)
+                      (bt-end-pair)))))
+;; First section ends here, second section starts. Handles the real
+;; pairing attribute.
+        (print "/v1/catalog/bt/connect:" json-request)
+              (let ((paired?-entry (assq 'pairing? json-request)))
+                (if paired?-entry
+                  (let ((paired?-value (cdr paired?-entry)))
+                    (print "PAIR:" paired?-entry " - " paired?-value)
+                    (set! bt-pairing? paired?-value)
+                     (if paired?-value
+                      (bt-start-pair)
+                      (bt-end-pair)))))
+        `((status . "Ok")))
+	  `((pairing? . ,bt-pairing? )
+	  (connected? . ,bt-connected? )
+	  (device . ,bt-device )))))
 
 (define (restart-cplay/bluetooth!)
   (parameterize ((current-json (/v1/catalog/bt)))
