@@ -67,6 +67,7 @@
 
   `(track ,@(r 'id       item-id)
           ,@(r 'turi     item-turi)
+          ,@(r 'type     (lambda (x) "dlna" ))
           ,@(r 'title    item-title)
           ,@(r 'subtitle item-artist)
           ,@(r 'album    item-album)
