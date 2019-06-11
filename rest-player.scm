@@ -47,15 +47,6 @@
 
 ;; alist of position, duration, paused etc (or '() if nothing is
 ;; playing)
-(define (player-pos-info-old)
-
-  (if (player-pos) ;; <- active cplay?
-      `((pos .      ,(player-pos))
-	(duration . ,(player-duration))
-	(paused .   ,(player-paused?)))
-      '()
-      ))
-
 
 (define (player-pos-info)
   (if (> seek_delay 0)
