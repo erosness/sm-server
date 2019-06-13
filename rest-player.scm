@@ -47,15 +47,6 @@
 
 ;; alist of position, duration, paused etc (or '() if nothing is
 ;; playing)
-(define (player-pos-info-old)
-
-  (if (player-pos) ;; <- active cplay?
-      `((pos .      ,(player-pos))
-	(duration . ,(player-duration))
-	(paused .   ,(player-paused?)))
-      '()
-      ))
-
 
 (define (player-pos-info)
   (if (> seek_delay 0)
@@ -189,77 +180,71 @@
 (define-handler /v1/player/current
   (lambda ()
     (if (current-json)
-        (let* ((json-request (current-json))
+      (let* ((json-request (current-json))
                ;; returns the first track with the same id as json
                ;; request or #f if none
-               (existing (pq-ref *pq* json-request))
+            (existing (pq-ref *pq* json-request))
                ;; the currently playing track or #f if none
-               (current (pq-current *pq*)))
+            (current (pq-current *pq*)))
 
-		  (print "player/current incoming request")
-		  (pp (current-json))
+		    (print "player/current incoming request")
+		    (pp (current-json))
 
           ;; Change track?
-          (if (or (alist-ref 'turi json-request)
-                  (alist-ref 'id json-request))
-              (if existing
-                  ;; if the requested track is already in the queue, start playing it
-                  (begin
-                    (print "pq: playing track which already exists in pq")
-                    (pq-play *pq* existing #f) ;; - see [pq-play with #f]
-                    (set! current existing))
-                  (or
-                   ;; Should this track be played without being added
-                   ;; to the playqueue?
-                   (and-let* (((play-direct? json-request)))
-                     (pq-play *pq* json-request #f)
-                     (set! current json-request))
+        (if (or (alist-ref 'turi json-request)
+                (alist-ref 'id json-request))
+          (if existing
+            ;; if the requested track is already in the queue, start playing it
+            (begin
+              (print "pq: playing track which already exists in pq")
+              (pq-play *pq* existing #f) ;; - see [pq-play with #f]
+              (set! current existing))
+              (or
+                ;; Should this track be played without being added
+                ;; to the playqueue?
+                (and-let* (((play-direct? json-request)))
+                  (pq-play *pq* json-request #f)
+                  (set! current json-request))
 
-                   (begin
-                     ;; if the requested track is _not_ already in the
-                     ;; queue, delete all tracks following it, add requested and
-                     ;; play it.
-                     (and-let* ((played (pq-drop-after *pq* current))
-                                ((pq-list-set! *pq* played))
-                                (requested (pq-add *pq* json-request)))
-                       (pq-play *pq* requested #f) ;; - see [pq-play with #f]
-                       (set! current requested)))
+                (begin
+                  ;; if the requested track is _not_ already in the
+                  ;; queue, delete all tracks following it, add requested and
+                  ;; play it.
+                  (and-let* ((played (pq-drop-after *pq* current))
+                             ((pq-list-set! *pq* played))
+                             (requested (pq-add *pq* json-request)))
+                    (pq-play *pq* requested #f) ;; - see [pq-play with #f]
+                    (set! current requested)))
 
                    ;; no current, add requested and play it
-                   (let ((requested (pq-add *pq* json-request)))
-                     (pq-play *pq* requested #f) ;; - see [pq-play with #f]
-                     (set! current requested)))))
+                (let ((requested (pq-add *pq* json-request)))
+                  (pq-play *pq* requested #f) ;; - see [pq-play with #f]
+                  (set! current requested)))))
 
-          ;; Change pos?
-          (and-let* ((pos (assoc 'pos json-request))
-					 (current)
-					 (current-duration (alist-ref 'duration current))
-                     ;; Don't allow seek on infinite streams
-                     ((>= current-duration 0)))
-		    (print "seeking track to position " (cdr pos))
-		    (set! seek_delay 2)
-		    (set! seek_target (cdr pos))
-            (player-seek (cdr pos))
-	    )
+        ;; Change pos?
+        (and-let* ((pos (assoc 'pos json-request))
+				           (current)
+					         (current-duration (alist-ref 'duration current))
+                   ;; Don't allow seek on infinite streams
+                   ((>= current-duration 0)))
+		      (print "seeking track to position " (cdr pos))
+		      (set! seek_delay 2)
+		      (set! seek_target (cdr pos))
+          (player-seek (cdr pos)))
 
           ;; Change paused?
-          (and-let* ((pause (assoc 'paused json-request)))
-            (if (cdr pause) (any-player-pause) (any-player-unpause)))
+        (and-let* ((pause (assoc 'paused json-request)))
+          (if (cdr pause) (any-player-pause) (any-player-unpause)))
 
           ;; Change loop?
-          (and-let* ((loop (assoc 'loop json-request)))
-            (pq-loop?-set! *pq* (cdr loop)))
+        (and-let* ((loop (assoc 'loop json-request)))
+          (pq-loop?-set! *pq* (cdr loop)))
 
           ;; Set and NOTIFY new current value
-          (let ((new-current (player-information current)))
-            (pq-current-set! *pq* new-current)
-	    (print "player/current: leaving")
-	    (print new-current)
-            new-current
-	    )
-	  )
-        ;;else
-        (player-information))))
+        (pq-current-set! *pq* current)
+        current)
+      ;;else
+      (player-information))))
 
 ;; Adds an item to the back of the playqueue
 ;; Returns: the passed in item with a unique id added
