@@ -241,10 +241,8 @@
           (pq-loop?-set! *pq* (cdr loop)))
 
           ;; Set and NOTIFY new current value
-        (pq-current-set! *pq* new-current)
-	      (print "player/current: leaving")
-	      (print new-current)
-        new-current)
+        (pq-current-set! *pq* current)
+        current)
       ;;else
       (player-information))))
 
