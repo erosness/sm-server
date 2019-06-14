@@ -2,12 +2,16 @@
 
 (compile -O0 cube-server-program.scm -o cube-server -J)
 (compile -O0 cspeaker-program.scm -o cspeaker)
+(compile -O0 record-player-program.scm -o record-player)
 
 (install-program 'cube-server
                  '("cube-server"))
 
 (install-program 'cspeaker
                  '("cspeaker"))
+
+(install-program 'record-player
+                  '("record-player"))
 
 ;; I want to copy .import files so that (import turi notify) will work
 ;; from compiled code.
@@ -16,3 +20,5 @@
 
 (install-script 'cube-server "cube-server.sh")
 (install-script 'cspeaker "cspeaker.sh")
+;; Currently no script for record-player. Possibly script for cspeaker
+;; is obsolete, using monit and cspeakerd.
