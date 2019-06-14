@@ -11,22 +11,12 @@
 
 (include "debug-utils.scm")
 (include "concurrent-utils.scm")
-;;(include "notify.scm")
 
 (include "rest.scm")
-
-;;(include "process-cli.scm")
-
-;;(include "player.scm")
-;;(include "playqueue.scm")
-
 (include "dns-sd.scm")
 
 ;; rest plugin layers
-;;(include "rest-audio.scm")
-;;(include "rest-player.scm")
 (include "rest-version.scm")
-
 (include "rest-icon.scm")
 
 (use nrepl posix srfi-18 spiffy)
