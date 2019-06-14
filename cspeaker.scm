@@ -32,7 +32,6 @@
 (include "rest-audio.scm")
 (include "rest-player.scm")
 (include "rest-version.scm")
-
 (include "rest-icon.scm")
 
 (use nrepl posix srfi-18 spiffy)
