@@ -17,7 +17,7 @@
 
 ;; rest plugin layers
 (include "rest-version.scm")
-(include "rest-icon.scm")
+(include "rest-source-icon.scm")
 
 (use nrepl posix srfi-18 spiffy)
 
