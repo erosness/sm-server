@@ -9,7 +9,7 @@
      (only posix with-input-from-pipe))
 
 ;; local imports
-(import restlib store)
+(import incubator restlib store)
 
 (define mac
   (conc
@@ -50,16 +50,6 @@
       (begin (source-store (current-json))
              '((status . "ok")))
       (if (source-store)
-        (let* ((%alist-raw ( alist-delete 'ip_audio (alist-delete 'uid_leader (alist-delete 'uid (source-store)))))
-		           (%alist-with-name (if (alist-ref 'name %alist-raw)
-                                         %alist-raw
-                                         (alist-cons 'name (alist-ref 'name empty-value) %alist-raw)))
-		           (%alist-name-icon
-                 (if (and (alist-ref 'icon %alist-with-name)(< 0 (alist-ref 'icon %alist-with-name)))
-	       				 %alist-with-name
-                 (alist-cons  'icon (alist-ref 'icon empty-value) (alist-delete 'icon %alist-with-name)))))
-	        (alist-cons 'ip_audio own-ip
-			      (alist-cons 'uid_leader own-ip
-				      (alist-cons 'uid mac %alist-name-icon))))
-      empty-value))))
+        (alist-merge empty-value (source-store) `((turi . ,(turi))))
+        empty-value))))
 )
