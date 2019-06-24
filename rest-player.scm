@@ -238,11 +238,12 @@
 
           ;; Change loop?
         (and-let* ((loop (assoc 'loop json-request)))
-          (pq-loop?-set! *pq* (cdr loop)))
+		  (pq-loop?-set! *pq* (cdr loop)))
 
-          ;; Set and NOTIFY new current value
-        (pq-current-set! *pq* current)
-        current)
+	;; Set and NOTIFY new current value
+ 	(let ((new-current (player-information current)))
+ 	  (pq-current-set! *pq* new-current)
+ 	  new-current))
       ;;else
       (player-information))))
 
