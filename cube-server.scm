@@ -14,6 +14,7 @@
 (include "rest-usb.scm")
 (include "rest-tunein.scm")
 (include "rest-alsa-capture.scm")
+(include "rest-record-player.scm")
 ;; (include "rest-group.scm")
 
 (cond-expand
