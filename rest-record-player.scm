@@ -10,9 +10,8 @@
 
 ;; Some static variables keeping track of the state of the Bluetooth
 ;; connection as reported by the driver.
-(define rc-turi "http://turi----TBD")
-(define rc-title "Bluetooth")
-(define rc-subtitle "Sang X")
+(define rp-turi #f)
+(define rp-subaddr #f)
 
 (define-local-turi-adapter record-player-turi "record-player"
   (lambda (params)
@@ -24,17 +23,49 @@
 
 (define-handler /v1/catalog/record-player
   (lambda ()
-    `((turi . , (bluetooth-turi '()))
-      (title . ,bt-title)
-      (subtitle . ,bt-subtitle)
-      (type . "bt"))))
+    (if rp-turi
+    `((turi .     ,rp-turi)
+      (title .    "IXION Symphony")
+      (subtitle . "Record Player")
+      (type .     "record-player"))
+    (response-unavailable))))
 
-(define (fetch-source-icon)
-  (print "Fetch..."))
+;; ======================= Detect sources ==============================
+
+(use medea http-client clojurian-syntax looper)
+(define (*fetch-source-turi subaddr)
+  (let ((addr rp-subaddr)
+        (turi rp-turi)
+        (current (fetch-source-turi subaddr)))
+    (if (and turi (not current) addr (= subaddr addr))
+      (begin
+        (set! rp-turi #f)
+        (set! rp-subaddr #f)))
+    (if (and current (not turi))
+      (begin
+        (set! rp-turi current)
+        (set! rp-subaddr subaddr)))))
+
+(define (fetch-source-turi subaddr)
+  (let ((http-request (conc "http://192.168.42." (number->string subaddr) ":5055/v1/source/icon")))
+    (handle-exceptions x #f
+      (receive (payload-string uri response)
+        (with-input-from-request http-request #f read-string)
+        (alist-ref 'turi (read-json payload-string))))))
 
 ;; Set up delayed refresh
-(thread-start!
-  (make-thread
-    (lambda ()
-      (thread-sleep! 5)
-      (fetch-source-icon))))
+(define (spawn-source-detect-threads)
+  (print "Detect:" rp-subaddr " = " rp-turi)
+  (do ((subaddr 2 (+ subaddr 1))) ((= subaddr 15))
+    (thread-start!
+      (make-thread
+        (lambda ()
+          (*fetch-source-turi subaddr))))))
+
+(define (make-source-detect-thread)
+  (thread-start!
+    (->>
+      spawn-source-detect-threads
+      (loop/interval 20)
+      (loop)
+      ((flip make-thread) "Source detect thread"))))
