@@ -173,7 +173,7 @@
 (define (player-duration)        (receive (pos duration)
                                    (nano-if-request gstplayer `(pos) parse-cplay-pos-response)
                                    duration))
-(define (player-seek seek)       (prepause-spotify) (nano-if-request gstplayer `(seek ,seek)))
+(define (player-seek seek)       (prepause-spotify) (nano-if-request gstplayer `(seek ,(number->string seek))))
 (define (player-quit)            (nano-if-request gstplayer  `(quit)))
 ;; cplay running and not paused:
 (define (playing?)   (and (not (eq? #f (nano-if-request gstplayer `(pos))))
