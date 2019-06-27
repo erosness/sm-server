@@ -1,6 +1,4 @@
 ;;; cube-server record-player:
-
-;;(use irregex matchable nanoif)
 (import restlib turi)
 
 ;; Some static variables keeping track of the availability of the record
@@ -10,6 +8,8 @@
 
 ;; ======================= Bluetooth REST interface ====================
 ;;
+;; Note that false in rp-turi means no record-player found (or possibility
+;; found and then lost), return 503 Service Unavailable as HTTP response.
 (define-handler /v1/catalog/record-player
   (lambda ()
     (if rp-turi
@@ -71,4 +71,5 @@
       (loop)
       ((flip make-thread) "Source detect thread"))))
 
+;; Start detect thread.
 (define t (make-source-detect-thread))
