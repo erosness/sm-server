@@ -9,7 +9,7 @@
      (only posix with-input-from-pipe))
 
 ;; local imports
-(import incubator restlib store)
+(import restlib store bt-player)
 
 (define mac
   (conc
