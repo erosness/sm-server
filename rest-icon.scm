@@ -48,22 +48,31 @@
      (uid  . ,mac)
      (type . "S")))))
 
-(define empty-value
-   `((icon . 1)
-   (name . "Record Player")
-   (turi  . ,(turi) )))
-
-(define-handler /v1/source/icon
+(define-handler /v1/player/icon
   (lambda ()
     (if (eq? 'DELETE (request-method (current-request)))
         (current-json empty-value))
 
     (if (current-json)
-      ;; TODO: maybe validate that incoming json has field 'icon'
-      ;; with an integer value
-      (begin (source-store (current-json))
-             '((status . "ok")))
-      (if (source-store)
-        (alist-merge empty-value (source-store) `((turi . ,(turi))))
-        empty-value))))
+        ;; TODO: maybe validate that incoming json has field 'icon'
+        ;; with an integer value
+        (begin (speaker-store (current-json))
+               (with-input-from-pipe (conc "spotifyctl 7879 label "
+                                           (alist-ref 'name (current-json)))
+                                     void)
+               (thread-start! (make-thread (lambda ()(bt-name))))
+               '((status . "ok")))
+        (if (speaker-store)
+            (let* ((%alist-raw ( alist-delete 'ip_audio (alist-delete 'uid_leader (alist-delete 'uid (speaker-store)))))
+		   (%alist-with-name (if (alist-ref 'name %alist-raw)
+                                         %alist-raw
+                                         (alist-cons 'name (alist-ref 'name empty-value) %alist-raw)))
+		   (%alist-name-icon (if (and (alist-ref 'icon %alist-with-name)
+					      (< 0 (alist-ref 'icon %alist-with-name)))
+					 %alist-with-name
+					 (alist-cons  'icon (alist-ref 'icon empty-value) (alist-delete 'icon %alist-with-name)))))
+	      (alist-cons 'ip_audio find_ip_leader
+			  (alist-cons 'uid_leader find_ip_leader
+				      (alist-cons 'uid mac %alist-name-icon))))
+            empty-value))))
 )
