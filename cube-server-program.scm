@@ -38,7 +38,13 @@
    ;; (define dns-sd-unregister!/pq      (register-pq-with-icon-store nickname port "cube"))
 
    (define server-thread (start-rest-server!))
+   (define server-thread-ssl (start-rest-server-ssl!))
+   (thread-join! server-thread)
+   (thread-join! server-thread-ssl)
    (start-nrepl)
-   (if (assoc 'n opts)
-       (thread-join! server-thread)
-       (repl*))))
+   ))
+;;   (if (assoc 'n opts)
+;;       (thread-join! server-thread)
+;;       (repl*))))
+
+

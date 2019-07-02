@@ -1,12 +1,12 @@
 ;;; Various helper utils for our rest server.
 
-(use clojurian-syntax           ;; util
-     spiffy intarweb uri-common ;; web
-     medea                      ;; json
-     test                       ;; well.. guess
-     irregex                    ;; quess again!
-     srfi-13                    ;; for string-null? (chicken-install
-                                ;; complains if this is missing)
+(use clojurian-syntax           	;; util
+     spiffy openssl intarweb uri-common	;; web
+     medea                      	;; json
+     test                       	;; well.. guess
+     irregex                    	;; quess again!
+     srfi-13                    	;; for string-null? (chicken-install
+                                	;; complains if this is missing)
      srfi-69 srfi-18
      )
 
@@ -283,6 +283,20 @@
 ;; copying spiffy's server-port parameter.
 (define rest-server-port server-port)
 
+(define listener (ssl-listen 5555))
+(ssl-load-certificate-chain! listener "/data/security/maestro.pem")
+(ssl-load-private-key! listener "/data/security/maestro.key")
+
+(define (start-rest-server-ssl!)
+  (thread-start!
+   (lambda ()
+     (define handler (->> (lambda () (json-handler))
+                          (wrap-json)
+                          (wrap-errors)
+                          (log-handler)))
+
+     (vhost-map `((".*" . ,(lambda (continue) (with-headers '((access-control-allow-origin "*")) handler)))))
+     (accept-loop listener ssl-accept))))
 
 ;; spawns server in separate thread on port (rest-server-port).
 (define (start-rest-server!)
@@ -295,6 +309,8 @@
 
      (vhost-map `((".*" . ,(lambda (continue) (with-headers '((access-control-allow-origin "*")) handler)))))
      (start-server))))
+
+
 
 ;; ==================== test utils ====================
 
