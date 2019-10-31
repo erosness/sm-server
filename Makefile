@@ -12,7 +12,6 @@ DEPS = \
  intarweb:1.3 \
  matchable:3.3 \
  medea:2 \
- nanomsg:0.3 \
  nrepl:0.1 \
  openssl:1.10.0 \
  spiffy:5.3.2 \
@@ -37,7 +36,7 @@ ciflags ?= -s -keep-installed
 
 all: deps modules
 
-modules: blobbery looper pefat multicast tone-generator dab i2c restlib wimp tunein dlna nanoif
+modules: blobbery looper pefat multicast tone-generator i2c restlib wimp tunein dlna
 	$(ci) $(ciflags)
 
 dlna:
@@ -61,9 +60,6 @@ multicast:
 tone-generator:
 	cd tone-generator; $(ci) $(ciflags)
 
-dab: i2c
-	cd dab; $(ci) $(ciflags)
-
 i2c:
 	cd i2c; $(ci) $(ciflags)
 
@@ -78,9 +74,6 @@ tunein:
 
 nics:
 	cd nics; $(ci) $(ciflags)
-
-nanoif:
-	cd nanoif; $(ci) $(ciflags)
 
 # we patched up socket so it compiles with aosp-chicken-install.
 socket:

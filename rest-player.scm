@@ -6,6 +6,7 @@
                      *pq*
                      bt-notification)
 
+
 (import chicken scheme data-structures)
 
 (import player
@@ -431,45 +432,17 @@
 ;;
 ;; we introduced a field 'stationname' for FM stations, mainly for debugging purposes
 ;; the 'title' field already gives the stationname
-(begin
-  (use dab)
-  (handle-exceptions e (void) (thread-terminate! dab/fm-notifier))
-  (define dab/fm-notifier
-    (run-monitor-thread
-     "dab/fm-notifier"
-     (lambda ()
-       (and-let* (((pq-current *pq*))
-                  (subtitle (match (alist-ref 'type (pq-current *pq*))
-                              ("dab" (dab-dls))
-                              ("fm"  (fm-radio-text))
-                              (else #f)))
-		  (title (match (alist-ref 'type (pq-current *pq*))
-				("fm"  (fm-radio-ps))
-				(else #f)))
-		  (station (match (alist-ref 'type (pq-current *pq*))
-				("fm"  (fm-radio-ps))
-				(else #f)))
 
-
-                  (content (alist-merge (player-information) `((subtitle . ,subtitle)) `((stationname . ,station)) `((title . ,title)) )))
-         (send-notification "/v1/player/current" content))
-       #t) ; <-- keep going
-     )))
-
-
-(use fmt dab)
-(define (pp-hz hz) (fmt #f (num (/ hz 1000) 10 2) "Mhz"))
-
-
+(define (pp-hz hz) #f)
 
 (define (fm-pq)
-  (pq-current-set! *pq* `((title . , (conc (fm-radio-ps) (pp-hz (fm-frequency))))
-			  (subtitle . , (fm-radio-text))
+  (pq-current-set! *pq* `((title . , (conc "fm-old" (pp-hz 100.0)))
+			  (subtitle . , "no-fm")
 			  (type . "fm")
 			  (pos . 0)
 			  (duration . -1)
 			  (paused . , #f)
-			  (frequency . , (fm-frequency))
+			  (frequency . , 100.0)
 			  )
 		   )
 

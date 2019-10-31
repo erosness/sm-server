@@ -51,8 +51,10 @@
 
 (import chicken scheme data-structures)
 (use fmt test uri-common srfi-18 srfi-13 test http-client matchable
-     srfi-1 posix extras looper nanoif)
+     srfi-1 posix extras looper)
 (import clojurian-syntax medea closing-http-client process-cli concurrent-utils)
+
+(define (nano-if-request rec msg #!optional k) #f)
 
 ;; create shell string for launching `cplay` player daemon. launch it
 ;; with play!.
@@ -283,6 +285,6 @@
       (set! monitor-thread (make-monitor-thread))))
 
 ;; Start gstplayer interface
-(define gstplayer (make-nano-half-if "ipc:///data/nanomessage/playcmd.pair"))
+(define gstplayer "xx")
 
 )

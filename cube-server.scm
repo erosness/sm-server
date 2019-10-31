@@ -16,14 +16,3 @@
 (include "rest-alsa-capture.scm")
 (include "rest-record-player.scm")
 ;; (include "rest-group.scm")
-
-(cond-expand
- ((not arm)
-  (include "rest-dummy-dab.scm")
-  (include "rest-dummy-fm.scm")
-  )
- (else
-  (include "rest-bluetooth.scm")
-  (include "rest-dab.scm")
-  (include "rest-fm.scm")
-  ))

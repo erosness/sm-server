@@ -17,12 +17,6 @@
 
 (include "process-cli.scm")
 
-(cond-expand
-  (android
-    (include "bt-player.scm"))
-  (else
-    (include "bt-dummy-player.scm")))
-
 (include "player.scm")
 (include "playqueue.scm")
 
