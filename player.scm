@@ -199,7 +199,6 @@
 
 (define (follow! ip_leader)
   (prepause-spotify)
-  (pp "At follow!")
   (nano-if-request gstplayer `(play follower ,ip_leader )))
 
 
@@ -214,7 +213,6 @@
            ar: (alist-ref 'ar response))))
 
 (define (play-command turi)
-  (print "At player:play-command:" turi)
   (let ((turi (if (uri? turi) turi (uri-reference turi))))
     (case (uri-scheme turi)
       ((tr) (play-command/tr turi))
@@ -243,7 +241,6 @@
 
 (define (do-nexttrack-callback)
   (let ((cb nexttrack-callback))
-    (print "CB:" cb)
     (if cb
 	(begin
 	  (set! nexttrack-callback #f)
@@ -256,7 +253,6 @@
         (if (and (< pos used-callback-position)
                  (< pos duration))
           (set! used-callback-position 0))
-;;        (print "Monitor-body: " pos " - " duration " p "  used-callback-position )
         (if (and (< (- duration pos) 15)
                  (< pos duration)
                  nexttrack-callback)
