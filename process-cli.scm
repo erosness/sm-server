@@ -107,7 +107,6 @@
     ;; asynchronously and we have to call on-exit.
     (define read-thread
       (make-thread (lambda ()
-                     (print ";; ( read-thread " (current-thread) " started")
                      (let loop ()
                        (set! last-line (read-line pip))
                        (condition-variable-signal! cvar)
@@ -116,11 +115,9 @@
 
                      (close-input-port pip)
                      (close-output-port pop)
-                     (print ";; waiting for " pid)
                      ;; wait and detach from child
                      (process-wait pid)
-                     (and on-exit (on-exit))
-                     (print ";; read-thread " (current-thread) " done )"))
+                     (and on-exit (on-exit)))
                    (conc "(ms" (current-milliseconds) ")")))
 
     (thread-specific-set! read-thread #t)
