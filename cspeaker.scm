@@ -4,6 +4,9 @@
 ;;; playqueue.
 ;;;
 (use pefat)
+
+(include "bt-dummy-player.scm")
+
 (include "incubator.scm")
 (include "store.scm")
 
