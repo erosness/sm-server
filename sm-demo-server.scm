@@ -5,6 +5,7 @@
 ;; this guys takes in a lot of our dependencies as well
 (include "cspeaker.scm")
 
+(include "rest-info.scm")
 (include "turi.scm")
 
 
