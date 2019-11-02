@@ -55,3 +55,4 @@
 /tunein/tunein.so
 /nanoif/nanoif.import.scm
 /*.import.scm
+/sm-demo-server
