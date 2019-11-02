@@ -8,8 +8,7 @@
 
 ;; I want to copy .import files so that (import turi notify) will work
 ;; from compiled code.
-(install-extension 'cube-server ;; <-- what?
+(install-extension 'sm-demo-server ;; <-- what?
                    (glob "*.import.scm"))
 
-(install-script 'cube-server "cube-server.sh")
-(install-script 'cspeaker "cspeaker.sh")
+(install-script 'sm-demo-server "sm-demo-server.sh")
