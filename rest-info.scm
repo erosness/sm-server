@@ -11,7 +11,11 @@
 ;; local imports
 (import restlib store)
 
-(define mac "xx.xx.xx.xx.xx.xx")
+(cond-expand
+  (arm
+    (define mac (with-input-from-file "/sys/class/net/eth0/address" read-string)))
+  (else
+    (define mac (with-input-from-file "/sys/class/net/enp0s31f6/address" read-string))))
 
 (define find_ip_leader
   (irregex-match-substring
@@ -29,11 +33,8 @@
                                          (rest-server-port)))))
 
 (define empty-value
-  `((uid_leader . ,find_ip_leader )
-  (icon . 0)
-  (name . "")
-  (uid  . ,mac)
-  (type . "sm-demo")))
+  `((name . "noname")
+  (uid  . ,mac)))
 
 (define-handler /v1/sm/info
   (lambda ()
