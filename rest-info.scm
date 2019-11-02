@@ -35,7 +35,7 @@
   (uid  . ,mac)
   (type . "sm-demo")))
 
-(define-handler /v1/player/info
+(define-handler /v1/sm/info
   (lambda ()
     (if (eq? 'DELETE (request-method (current-request)))
         (current-json empty-value))
