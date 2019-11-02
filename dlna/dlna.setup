@@ -1,9 +1,0 @@
-
-;; -*- scheme -*-
-
-(compile -s dlna-module.scm -o dlna.so -J)
-(compile -s dlna.import.scm)
-(install-extension 'dlna '("dlna.so" "dlna.import.so"))
-
-(compile cli.scm -o dlna-client)
-(install-program 'dlna-client '("dlna-client"))
