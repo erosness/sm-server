@@ -11,11 +11,7 @@
 ;; local imports
 (import restlib store bt-player)
 
-(define mac
-  (conc
-    (read (open-input-file "/sys/fsl_otp/HW_OCOTP_MAC1"))
-    ":"
-    (read (open-input-file "/sys/fsl_otp/HW_OCOTP_MAC0"))))
+(define mac "xx.xx.xx.xx.xx.xx")
 
 (define find_ip_leader
   (irregex-match-substring
