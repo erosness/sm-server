@@ -4,6 +4,7 @@
 (require-extension utf8-srfi-14)
 
 (include "store.scm")
+(include "notify.scm")
 (include "rest.scm")
 
 (use nrepl posix srfi-18 spiffy)
