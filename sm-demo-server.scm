@@ -14,9 +14,3 @@
   (thread-start! (lambda () (nrepl port))))
 
 (include "rest-info.scm")
-(include "turi.scm")
-
-
-(include "rest-tone.scm")
-(include "rest-alsa-capture.scm")
-(include "rest-record-player.scm")
