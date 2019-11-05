@@ -14,3 +14,4 @@
   (thread-start! (lambda () (nrepl port))))
 
 (include "rest-info.scm")
+(include "rest-doorbell-out.scm")
