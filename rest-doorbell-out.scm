@@ -12,12 +12,14 @@
 (import restlib store sm-config)
 
 (define doorbell-out-store (make-store (string->symbol
-                                   (conc "doorbell-out" "-"
-                                         (rest-server-port)))))
+                             (conc "doorbell-out" "-"
+                               (rest-server-port)))))
+
+
 
 (define default-settings
-  `((name . "noname")
-  (uid  . ,(uid))))
+  `((has-lock  . #t)
+    (has-video . #f)))
 
 (define-handler /v1/sm/doorbell-out/settings
   (lambda ()
@@ -34,7 +36,7 @@
 
 (define-handler /v1/sm/doorbell-out/bell
   (lambda ()
-    `((ringing . #f))))
+    `((active . #f))))
 
 (define-handler /v1/sm/doorbell-out/lock
   (lambda ()

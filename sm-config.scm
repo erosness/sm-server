@@ -18,7 +18,7 @@
     ("4c:cc:6a:d7:c1:78\n" '#("doorlock" "this-is-host" "doorbell-out"))
     ("b8:27:eb:33:47:88\n" '#("doorlock" "doorbell-out" "door-motor"))
     ("b8:27:eb:4c:26:ae\n" '#("presence" "doorbell-in" "shade-motor"))
-    ("b8:27:eb:6f:22:ad\n" '#("presence" "floor"))
+    ("b8:27:eb:6f:22:ad\n" '#("presence" "floor"  "doorbell-out"))
     ("b8:27:eb:c6:f9:04\n" '#("presence" "floor" "shade-motor"))
     (_ #("no-service"))))
 
