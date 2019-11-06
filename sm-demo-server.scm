@@ -15,4 +15,12 @@
 
 
 (include "rest-info.scm")
-(include "rest-doorbell-out.scm")
+
+(import sm-config)
+
+(map
+  (lambda (cap)
+    (match cap
+      ("doorbell-out" (include "rest-doorbell-out.scm"))
+      (_              (include "rest-noop.scm"))))
+  (vector->list (capability)))

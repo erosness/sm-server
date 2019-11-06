@@ -10,8 +10,8 @@
 (import restlib sm-config)
 
 (define (empty-value)
-  `((name . ,(unit-name(uid)))
-    (cap . ,(capability (uid)))
+  `((name . ,(unit-name))
+    (cap . ,(capability))
     (uid  . ,(uid))))
 
 (define-handler /v1/sm/info

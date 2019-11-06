@@ -11,33 +11,37 @@
 ;; local imports
 (import restlib store sm-config)
 
-(define speaker-store (make-store (string->symbol
-                                   (conc "speaker-icon" "-"
+(define doorbell-out-store (make-store (string->symbol
+                                   (conc "doorbell-out" "-"
                                          (rest-server-port)))))
 
-(define empty-value
+(define default-settings
   `((name . "noname")
-  (uid  . ,uid)))
+  (uid  . ,(uid))))
 
-(define-handler /v1/sm/doorbell-out
+(define-handler /v1/sm/doorbell-out/settings
   (lambda ()
     (if (eq? 'DELETE (request-method (current-request)))
-        (current-json empty-value))
-
+        (current-json default-settings))
     (if (current-json)
         ;; TODO: maybe validate that incoming json has field 'icon'
         ;; with an integer value
-        (begin (speaker-store (current-json))
+        (begin (doorbell-out-store (current-json))
                '((status . "ok")))
-        (if (speaker-store)
-            (let* ((%alist-raw ( alist-delete 'ip_audio (alist-delete 'uid_leader (alist-delete 'uid (speaker-store)))))
-		   (%alist-with-name (if (alist-ref 'name %alist-raw)
-                                         %alist-raw
-                                         (alist-cons 'name (alist-ref 'name empty-value) %alist-raw)))
-		   (%alist-name-icon (if (and (alist-ref 'icon %alist-with-name)
-					      (< 0 (alist-ref 'icon %alist-with-name)))
-					 %alist-with-name
-					 (alist-cons  'icon (alist-ref 'icon empty-value) (alist-delete 'icon %alist-with-name)))))
-				      (alist-cons 'uid uid %alist-name-icon))
-            empty-value))))
+        (if (doorbell-out-store)
+          (doorbell-out-store)
+		      default-settings))))
+
+(define-handler /v1/sm/doorbell-out/bell
+  (lambda ()
+    `((ringing . #f))))
+
+(define-handler /v1/sm/doorbell-out/lock
+  (lambda ()
+  `((unlock . #f))))
+
+(define-handler /v1/sm/doorbell-out/voice
+  (lambda ()
+  `((avtive . #f))))
+
 )
