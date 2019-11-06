@@ -1,4 +1,4 @@
-
+;; Server for out-door part of the doorbell.
 (module rest-doorbell-out ()
 
 (import chicken scheme data-structures srfi-1)
@@ -9,24 +9,7 @@
      (only posix with-input-from-pipe))
 
 ;; local imports
-(import restlib store)
-
-(cond-expand
-  (arm
-    (define mac (with-input-from-file "/sys/class/net/eth0/address" read-string)))
-  (else
-    (define mac (with-input-from-file "/sys/class/net/enp0s31f6/address" read-string))))
-
-(define find_ip_leader
-  (irregex-match-substring
-   (irregex-search
-    '(: "inet " (=> ip (or"192" "10")
-		    (= 1 "." (** 1 3 numeric))
-		    (= 1 ".42")
-		    (= 1 "." (** 1 3 numeric))
-		    ))
-    (conc (with-input-from-pipe "ip a|grep inet" read-string) " inet 192.168.42.1"))
-   'ip))
+(import restlib store sm-config)
 
 (define speaker-store (make-store (string->symbol
                                    (conc "speaker-icon" "-"
@@ -34,7 +17,7 @@
 
 (define empty-value
   `((name . "noname")
-  (uid  . ,mac)))
+  (uid  . ,uid)))
 
 (define-handler /v1/sm/doorbell-out
   (lambda ()
@@ -55,8 +38,6 @@
 					      (< 0 (alist-ref 'icon %alist-with-name)))
 					 %alist-with-name
 					 (alist-cons  'icon (alist-ref 'icon empty-value) (alist-delete 'icon %alist-with-name)))))
-	      (alist-cons 'ip_audio find_ip_leader
-			  (alist-cons 'uid_leader find_ip_leader
-				      (alist-cons 'uid mac %alist-name-icon))))
+				      (alist-cons 'uid uid %alist-name-icon))
             empty-value))))
 )
