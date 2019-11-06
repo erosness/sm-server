@@ -5,8 +5,9 @@
 ;; device/tradio's init.rc
 (system "stop ffserver")
 
+;; Pull in the intermediate hardcoded configuration
+(include "sm-config.scm")
 (include "args.scm")
-
 
 ;; FIX for http-client error when doing wimp-login
 ;; openssl needs chicken-syntax which is not included by default.
