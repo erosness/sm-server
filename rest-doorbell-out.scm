@@ -3,7 +3,7 @@
 
 (import chicken scheme data-structures srfi-1)
 
-(use intarweb spiffy raspberry-pi-gpio
+(use intarweb spiffy
      medea matchable irregex ports clojurian-syntax restlib srfi-18 extras
      posix srfi-1 srfi-13
      (only posix with-input-from-pipe))
