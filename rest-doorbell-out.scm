@@ -3,7 +3,7 @@
 
 (import chicken scheme data-structures srfi-1)
 
-(use intarweb spiffy
+(use intarweb spiffy raspberry-pi-gpio
      medea matchable irregex ports clojurian-syntax restlib srfi-18 extras
      posix srfi-1 srfi-13
      (only posix with-input-from-pipe))
@@ -15,6 +15,9 @@
                              (conc "doorbell-out" "-"
                                (rest-server-port)))))
 
+(define gpio-doorbell 21)
+(define gpio-doorlock 22)
+(define gpio-door 23)
 
 
 (define default-settings
