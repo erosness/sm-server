@@ -19,6 +19,6 @@
 
 (define-handler /v1/sm/zeroconf
   (lambda ()
-    `((published-units . ,(list->vector (map out (published-units)))))))
+    `((published_units . ,(list->vector (map out (published-units)))))))
 
 )
