@@ -15,6 +15,7 @@
 
 
 (include "rest-info.scm")
+(include "rest-zeroconf.scm")
 
 (import sm-config)
 
