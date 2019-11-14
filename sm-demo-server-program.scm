@@ -28,8 +28,6 @@
    ;; bind our server port "globally" for everybody to use
    (rest-server-port port)
 
-   (define ixion-unit-type 'maestro)
-
    (include "sm-demo-server.scm")
 
    (print "started sm-demo-server on http://localhost:" port)

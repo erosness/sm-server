@@ -13,6 +13,7 @@
 (define (start-nrepl #!optional (port (+ (server-port) 1)))
   (thread-start! (lambda () (nrepl port))))
 
+(include "gpio.scm")
 
 (include "rest-info.scm")
 (include "rest-zeroconf.scm")
