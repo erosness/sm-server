@@ -8,13 +8,13 @@
   (arm
     (print "Gpio arm"))
 (else
-
   (define (filename n)
     (string-append "/var/sm/p" (number->string n)))
 
-  (define (make-gpio-input p )
+  (define (make-gpio-input p)
     (gpio-output p #f)
-    (lambda ()(with-input-from-file (filename p) read-string)))
+    (lambda ()(with-input-from-file (filename p)
+      (lambda()(if (eqv? #\0 (string-ref (read-string) 0)) #f #t )))))
 
   (define (make-gpio-output p)
     (gpio-output p #f)

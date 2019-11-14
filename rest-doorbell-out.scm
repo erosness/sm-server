@@ -1,24 +1,19 @@
 ;; Server for out-door part of the doorbell.
 (module rest-doorbell-out ()
 
-(import chicken scheme data-structures srfi-1)
-
-(use intarweb spiffy
-     medea matchable irregex ports clojurian-syntax restlib srfi-18 extras
-     posix srfi-1 srfi-13
-     (only posix with-input-from-pipe))
+(import chicken scheme data-structures srfi-1 intarweb spiffy)
 
 ;; local imports
-(import restlib store sm-config)
+(import restlib store sm-config gpio)
 
 (define doorbell-out-store (make-store (string->symbol
                              (conc "doorbell-out" "-"
                                (rest-server-port)))))
 
-(define gpio-doorbell 21)
-(define gpio-doorlock 22)
-(define gpio-door 23)
-
+(define doorbell? (make-gpio-input 1))
+(define unlocked? (make-gpio-input 2))
+(define unlock!   (make-gpio-output 2))
+(define dooropen? (make-gpio-input 3))
 
 (define default-settings
   `((has-lock  . #t)
@@ -39,14 +34,20 @@
 
 (define-handler /v1/sm/doorbell-out/bell
   (lambda ()
-    `((active . #f))))
+    `((active . ,(doorbell?)))))
 
 (define-handler /v1/sm/doorbell-out/lock
   (lambda ()
-  `((unlock . #f))))
+    (if (current-json)
+      (unlock! (alist-ref 'unlock (current-json))))
+    `((unlock . ,(unlocked?)))))
+
+(define-handler /v1/sm/doorbell-out/door
+  (lambda ()
+  `((open . ,(dooropen?)))))
 
 (define-handler /v1/sm/doorbell-out/voice
   (lambda ()
-  `((avtive . #f))))
+  `((acvtive . #f))))
 
 )
