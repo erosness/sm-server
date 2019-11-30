@@ -28,11 +28,11 @@
 
 (define (unit-name)
   (match (uid)
-    ("4c:cc:6a:d7:c1:78\n" "host")
-    ("b8:27:eb:33:47:88\n" "pi2")
-    ("b8:27:eb:4c:26:ae\n" "pi3a")
-    ("b8:27:eb:6f:22:ad\n" "pi3b")
-    ("b8:27:eb:c6:f9:04\n" "pi3c")
+    ("4c:cc:6a:d7:c1:78" "host")
+    ("b8:27:eb:33:47:88" "pi2")
+    ("b8:27:eb:4c:26:ae" "pi3a")
+    ("b8:27:eb:6f:22:ad" "pi3b")
+    ("b8:27:eb:c6:f9:04" "pi3c")
     (_ #("no-name"))))
 
 )
