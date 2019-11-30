@@ -25,4 +25,4 @@
     (match cap
       ("doorbell-out" (include "rest-doorbell-out.scm"))
       (_              (include "rest-noop.scm"))))
-  (vector->list (capability)))
+    (capability))
