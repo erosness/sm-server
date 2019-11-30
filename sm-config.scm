@@ -9,8 +9,9 @@
 ;; Use ethernet MAC as unique id
 (cond-expand
   (arm
-    (substring
-      (define (uid) (with-input-from-file "/sys/class/net/eth0/address" read-string) 0 17)))
+    (define (uid)
+      (substring
+        (with-input-from-file "/sys/class/net/eth0/address" read-string) 0 17)))
   (else
     (define (uid)
       (substring
