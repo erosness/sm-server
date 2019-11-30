@@ -6,6 +6,10 @@
 
 (cond-expand
   (arm
+    (define (make-gpio-input p)
+      (lambda (p) #f))
+    (define (make-gpio-output p)
+      (lambda (x) #f))
     (print "Gpio arm"))
 (else
   (define (filename n)
