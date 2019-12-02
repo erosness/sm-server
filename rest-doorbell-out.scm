@@ -1,10 +1,14 @@
 ;; Server for out-door part of the doorbell.
 (module rest-doorbell-out ()
 
-(import chicken scheme data-structures srfi-1 intarweb spiffy)
+(import chicken scheme data-structures srfi-1 intarweb spiffy srfi-69 data-structures)
 
 ;; local imports
 (import restlib store sm-config gpio)
+
+(define (fid uid cap)
+  (string-hash (conc uid cap)))
+
 
 (define doorbell-out-store (make-store (string->symbol
                              (conc "doorbell-out" "-"
@@ -31,6 +35,14 @@
         (if (doorbell-out-store)
           (doorbell-out-store)
 		      default-settings))))
+
+(define-handler /v1/sm/doorbell-out/status
+  (lambda ()
+    `((fid . ,(fid (uid) "doorlock"))
+      (doorbell . ,(doorbell?))
+      (unlock . ,(unlocked?))
+      (dooropen . ,(dooropen?)))))
+
 
 (define-handler /v1/sm/doorbell-out/bell
   (lambda ()

@@ -16,13 +16,6 @@
       (b . "b")
       (c . 3))))
 
-(define-handler /v1/sm/doorbell-out/status
-  (lambda ()
-    `((fid . ,(fid (uid) "doorbell-out"))
-      (a . 1)
-      (b . "b")
-      (c . 3))))
-
 (define-handler /v1/sm/door-motor/status
   (lambda ()
     `((fid . ,(fid (uid) "door-motor"))
