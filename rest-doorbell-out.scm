@@ -16,7 +16,7 @@
 
 (define doorbell? (make-gpio-input 1))
 (define unlocked? (make-gpio-input 2))
-(define unlock!   (make-gpio-output 2))
+(define unlock!   (make-gpio-output 4))
 (define dooropen? (make-gpio-input 3))
 
 (define default-settings
