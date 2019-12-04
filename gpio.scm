@@ -6,10 +6,17 @@
 
 (cond-expand
   (arm
+    (use raspberry-pi-gpio)
+    (setup-physical)
     (define (make-gpio-input p)
-      (lambda (p) #f))
+      (pin-mode p 'input')
+      (pull-up-dn-control p 'up')
+      (lambda () (digital-read p )))
+
     (define (make-gpio-output p)
-      (lambda (x) #f))
+      (pin-mode 12 'output')
+      (lambda (val) (digital-write p val)))
+
     (print "Gpio arm"))
 (else
   (define (filename n)
