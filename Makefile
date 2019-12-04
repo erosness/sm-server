@@ -25,6 +25,7 @@ DEPS = \
  uuid:0.1 \
  spiffy-cgi-handlers:0.5 \
  feature-test:0.1 \
+ raspberry-pi-gpio:1.1.0 \
 
 
 # install for tradio:
