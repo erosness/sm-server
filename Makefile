@@ -27,10 +27,10 @@ DEPS = \
  feature-test:0.1 \
 
 ifeq (${HOSTTYPE},x86_64)
- 	$(info ***NOTE: Hosttype=${HOSTTYPE}. Not ARM, no real GPIO)
+  $(info ***NOTE: Hosttype=${HOSTTYPE}. Not ARM, no real GPIO)
 else
-	$(info ***NOTE: Hosttype=${HOSTTYPE}. Assume Raspberry Pi, add real GPIO)
-	DEPS+=raspberry-pi-gpio:1.1.0
+  $(info ***NOTE: Hosttype=${HOSTTYPE}. Assume Raspberry Pi, add real GPIO)
+  DEPS+=raspberry-pi-gpio:1.1.0
 endif
 
 
