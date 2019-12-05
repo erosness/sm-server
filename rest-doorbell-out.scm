@@ -14,10 +14,10 @@
                              (conc "doorbell-out" "-"
                                (rest-server-port)))))
 
-(define doorbell? (make-gpio-input 1))
-(define unlocked? (make-gpio-input 2))
-(define unlock!   (make-gpio-output 4))
-(define dooropen? (make-gpio-input 3))
+(define doorbell? (make-gpio-input 12))
+(define unlocked? (make-gpio-input 16))
+(define unlock!   (make-gpio-output 16))
+(define dooropen? (make-gpio-input 18))
 
 (define default-settings
   `((has-lock  . #t)
