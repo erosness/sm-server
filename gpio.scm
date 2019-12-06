@@ -25,7 +25,7 @@
   (define (make-gpio-input p)
     (gpio-output p #f)
     (lambda ()(with-input-from-file (filename p)
-      (lambda()(if (eqv? #\0 (string-ref (read-string) 0)) 1 0 )))))
+      (lambda()(if (eqv? #\0 (string-ref (read-string) 0)) 0 1 )))))
 
   (define (make-gpio-output p)
     (gpio-output p #f)
