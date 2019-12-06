@@ -38,7 +38,7 @@
 
 (define-handler /v1/sm/doorbell-out/status
   (lambda ()
-    `((fid . ,(fid (uid) "doorlock"))
+    `((fid . ,(fid (uid) "doorbell-out"))
       (doorbell . ,(doorbell?))
       (unlock . ,(unlocked?))
       (dooropen . ,(dooropen?)))))
