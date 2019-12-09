@@ -24,5 +24,6 @@
   (lambda (cap)
     (match cap
       ("doorbell-out" (include "rest-doorbell-out.scm"))
+      ("doorbell-in" (include "rest-doorbell-in.scm"))
       (_              (include "rest-noop.scm"))))
     (capability))
