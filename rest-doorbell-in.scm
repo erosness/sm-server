@@ -23,8 +23,8 @@
 ;; Common return status definition
 (define (status?)
   `((fid . ,(fid (uid) "doorbell-out"))
-    (unlock-button  . ,(phy-unlock-button?))
-    (connect-button . ,(phy-connect-button?))))
+    (unlockButton  . ,(phy-unlock-button?))
+    (connectButton . ,(phy-connect-button?))))
 
 ;; The pure GET status (no PUT)
 (define-handler /v1/sm/doorbell-in/status
