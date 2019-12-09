@@ -14,46 +14,31 @@
                              (conc "doorbell-out" "-"
                                (rest-server-port)))))
 
-(define phy-doorbell? (make-gpio-input 12))
-(define phy-unlock?   (make-gpio-input 16))
-(define phy-unlock!   (make-gpio-output 15))
-(define phy-dooropen? (make-gpio-input 18))
+;; Parts implemented as physical connection via GPIO
+(define phy-doorbell? (make-gpio-input   3))
+(define phy-unlock?   (make-gpio-input   8))
+(define phy-unlock!   (make-gpio-output  7))
+(define phy-dooropen? (make-gpio-input   5))
 
-(define default-settings
-  `((has-lock  . #t)
-    (has-video . #f)))
+;; Parts implemented as SW modules
 
+;; Common return status definition
 (define (status?)
-  `((doorbell . ,(phy-doorbell?))
+  `((fid . ,(fid (uid) "doorbell-out"))
+    (doorbell . ,(phy-doorbell?))
     (unlock . ,(phy-unlock?))
     (dooropen . ,(phy-dooropen?))))
 
-(define-handler /v1/sm/doorbell-out/settings
-  (lambda ()
-    (if (eq? 'DELETE (request-method (current-request)))
-        (current-json default-settings))
-    (if (current-json)
-        ;; TODO: maybe validate that incoming json has field 'icon'
-        ;; with an integer value
-        (begin (doorbell-out-store (current-json))
-               '((status . "ok")))
-        (if (doorbell-out-store)
-          (doorbell-out-store)
-		      default-settings))))
-
-
-
+;; The pure GET status (no PUT)
 (define-handler /v1/sm/doorbell-out/status
   (lambda () (status?)))
 
-
-
+;; PUT definitions
 (define-handler /v1/sm/doorbell-out/lock
   (lambda ()
     (if (current-json)
       (phy-unlock! (alist-ref 'unlock (current-json))))
     (status?)))
-
 
 (define-handler /v1/sm/doorbell-out/voice
   (lambda ()
