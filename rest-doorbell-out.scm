@@ -14,14 +14,19 @@
                              (conc "doorbell-out" "-"
                                (rest-server-port)))))
 
-(define doorbell? (make-gpio-input 12))
-(define unlocked? (make-gpio-input 16))
-(define unlock!   (make-gpio-output 16))
-(define dooropen? (make-gpio-input 18))
+(define phy-doorbell? (make-gpio-input 12))
+(define phy-unlock?   (make-gpio-input 16))
+(define phy-unlock!   (make-gpio-output 16))
+(define phy-dooropen? (make-gpio-input 18))
 
 (define default-settings
   `((has-lock  . #t)
     (has-video . #f)))
+
+(define (status?)
+  `((doorbell . ,(phy-doorbell?))
+    (unlock . ,(phy-unlock?))
+    (dooropen . ,(phy-dooropen?))))
 
 (define-handler /v1/sm/doorbell-out/settings
   (lambda ()
@@ -36,27 +41,19 @@
           (doorbell-out-store)
 		      default-settings))))
 
+
+
 (define-handler /v1/sm/doorbell-out/status
-  (lambda ()
-    `((fid . ,(fid (uid) "doorbell-out"))
-      (doorbell . ,(doorbell?))
-      (unlock . ,(unlocked?))
-      (dooropen . ,(dooropen?)))))
+  (lambda () (status?)))
 
 
-(define-handler /v1/sm/doorbell-out/bell
-  (lambda ()
-    `((active . ,(doorbell?)))))
 
 (define-handler /v1/sm/doorbell-out/lock
   (lambda ()
     (if (current-json)
-      (unlock! (alist-ref 'unlock (current-json))))
-    `((unlock . ,(unlocked?)))))
+      (phy-unlock! (alist-ref 'unlock (current-json))))
+    (status?)))
 
-(define-handler /v1/sm/doorbell-out/door
-  (lambda ()
-  `((open . ,(dooropen?)))))
 
 (define-handler /v1/sm/doorbell-out/voice
   (lambda ()
