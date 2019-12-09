@@ -16,7 +16,7 @@
 
 (define phy-doorbell? (make-gpio-input 12))
 (define phy-unlock?   (make-gpio-input 16))
-(define phy-unlock!   (make-gpio-output 16))
+(define phy-unlock!   (make-gpio-output 15))
 (define phy-dooropen? (make-gpio-input 18))
 
 (define default-settings
