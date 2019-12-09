@@ -39,7 +39,7 @@
 (define-handler /v1/sm/doorbell-in/status
   (lambda ()
     `((fid . ,(fid (uid) "doorbell-in"))
-      (doorbell . ,(answer?))
+      (answer . ,(answer?))
       (unlock . ,(unlock?)))))
 
 
