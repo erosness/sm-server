@@ -22,7 +22,7 @@
 
 ;; Common return status definition
 (define (status?)
-  `((fid . ,(fid (uid) "doorbell-out"))
+  `((fid . ,(fid (uid) "doorbell-in"))
     (unlockButton  . ,(phy-unlock-button?))
     (connectButton . ,(phy-connect-button?))))
 
