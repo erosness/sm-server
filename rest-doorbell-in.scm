@@ -28,8 +28,7 @@
 (define (connect-button-body)
   (if (and (= 0 connect-button-prev) (= 1 (phy-connect-button?)))
     (set! connect-state (toggle connect-state)))
-  (set! connect-button-prev (phy-connect-button?))
-  (print "in-body:" (connect?) " - " connect-button-prev))
+  (set! connect-button-prev (phy-connect-button?)))
 
 (define connect-button-thread
   (thread-start!
@@ -46,7 +45,7 @@
 (define (status?)
   `((fid . ,(fid (uid) "doorbell-in"))
     (unlockButton  . ,(phy-unlock-button?))
-    (connectButton . ,(connect?))))
+    (connect . ,(connect?))))
 
 ;; The pure GET status (no PUT)
 (define-handler /v1/sm/doorbell-in/status
