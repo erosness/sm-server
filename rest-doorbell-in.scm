@@ -27,7 +27,7 @@
 
 (define (connect-button-body)
   (if (and (= 0 connect-button-prev) (= 1 (phy-connect-button?)))
-    (set! connect-state (toggle connect-state)))
+    (set! connect-state (bin-toggle connect-state)))
   (set! connect-button-prev (phy-connect-button?)))
 
 (define connect-button-thread
@@ -52,10 +52,11 @@
   (lambda () (status?)))
 
 ;; PUT definitions
-(define-handler /v1/sm/doorbell-in/doorbell-age
+(define-handler /v1/sm/doorbell-in/connect
   (lambda ()
     (if (current-json)
-      (set! doorbell-time #f))
+      (let ((val (alist-ref 'connect (current-json))))
+        (if val (set! connect-state (bin-clean val)))))
     (status?)))
 
 )

@@ -7,8 +7,11 @@
 (define (invert lvl)
   (lambda ()(if (= (lvl) 0) 1 0)))
 
-(define (toggle in)
+(define (bin-toggle in)
   (if (= in 0) 1 0))
+
+(define (bin-clean in)
+  (if (= in 0) 0 1))
 
 (cond-expand
   (arm
