@@ -15,8 +15,6 @@
                              (conc "doorbell-out" "-"
                                (rest-server-port)))))
 
-(define (invert lvl)
-  (lambda ()(if (= (lvl) 0) 1 0)))
 
 ;; Parts implemented as physical connection via GPIO
 (define phy-doorbell? (invert(make-gpio-input   3)))

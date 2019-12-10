@@ -4,6 +4,9 @@
 
 (import chicken scheme extras)
 
+(define (invert lvl)
+  (lambda ()(if (= (lvl) 0) 1 0)))
+
 (cond-expand
   (arm
     (use raspberry-pi-gpio)
