@@ -28,6 +28,9 @@
 /dlna/dlna.import.scm
 /dlna/dlna.import.so
 /dlna/dlna.so
+/linphone/linphone.import.scm
+/linphone/linphone.import.so
+/linphone/linphone.so
 /looper/looper.import.scm
 /looper/looper.import.so
 /looper/looper.so
