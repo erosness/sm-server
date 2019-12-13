@@ -1,0 +1,6 @@
+(compile -s -O2 -d1 linphone.scm -llinphone -lmediastreamer_base -o linphone.so -j linphone)
+(compile -s -d0 linphone.import.scm)
+
+(install-extension
+ 'linphone
+ '("linphone.so" "linphone.import.so"))

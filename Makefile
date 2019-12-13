@@ -43,11 +43,14 @@ ciflags ?= -s -keep-installed
 
 all: deps modules
 
-modules: blobbery looper pefat multicast tone-generator i2c restlib tunein
+modules: blobbery looper pefat multicast tone-generator i2c restlib tunein linphone
 	$(ci) $(ciflags)
 
 deps: socket
 	$(ci) $(ciflags) $(DEPS)
+
+linphone:
+	cd linphone; $(ci) $(ciflags)
 
 blobbery:
 	cd blobbery; $(ci) $(ciflags)
@@ -91,4 +94,4 @@ endif
 
 
 .PHONY: socket restlib i2c dab tone-generator blobbery deps wimp all \
-	multicast pefat dlna looper nics tunein nanoif
+	multicast pefat dlna looper nics tunein nanoif linphone
