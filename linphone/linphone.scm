@@ -1,15 +1,49 @@
 (module linphone *
 
-(import chicken scheme foreign)
-(use posix)
+(import chicken scheme foreign srfi-18 clojurian-syntax data-structures)
+(use looper posix)
 
 #>
 #include <linphone/linphonecore.h>
 #include "wrap-linphone.c"
 <#
 
-(define linphone-berit
-  (foreign-lambda* int ((int a) (int b)) "return (berit(a,b));"))
+;; top-levels used in this module
+(define lc #f)
+
+;; Interface to wrapper
+(define lphw-berit
+  (foreign-lambda* int ((int a) (int b))
+    "return (berit(a,b));"))
+
+(define lphw-create
+  (foreign-lambda* c-pointer ()
+    "return (lph_create());"))
+
+;; Interface to liblinphone
+(define lphl-core-iterate
+  (foreign-lambda* void ((c-pointer lc))
+    "linphone_core_iterate(lc);"))
+
+;; Iterator pacing libphone
+(define (lph-iterate-body)
+  (if lc (lphl-core-iterate lc)))
+
+(define connect-button-thread
+  (thread-start!
+    (->>
+      lph-iterate-body
+      (loop/interval 0.05)
+      (loop)
+      ((flip make-thread) "Linphone core iterate thread"))))
+
+;; Calls
+(define (lph-create)
+  (set! lc (lphw-create)))
+
+(define lph-call
+  (foreign-lambda* int () "return (lph_create());"))
+
 
 ;; integer typed variant of ioctl (as opposed to the ioctl egg's
 ;; pointers)
