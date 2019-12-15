@@ -1,11 +1,17 @@
 (module linphone *
 
-(import chicken scheme foreign srfi-18 clojurian-syntax data-structures)
+(import chicken scheme foreign srfi-18 clojurian-syntax data-structures
+        matchable)
 (use looper posix)
 
 #>
 #include <linphone/linphonecore.h>
 #include "wrap-linphone.c"
+
+LinphoneCore *lph_create();
+void linphone_core_destroy(LinphoneCore* core);
+void linphone_core_iterate(LinphoneCore* core);
+
 <#
 
 ;; top-levels used in this module
@@ -52,18 +58,17 @@
   (set! lc (lphw-create)))
 
 
-;; Callback test
-(define (lphw-state-changed core call state)
-  (print "At linphone callback, lc:" core " call:" call " state:" state))
+;; Callback call state
+(define (lphw-state-changed core call cstate msg)
+  (match cstate
+    ( 1 (print "Case: incoming call"))
+    (13 (print "Case: error"))
+    (18 (print "Case: call terminated"))
+    (else (print "Case not handled:" cstate))))
 
 (define-external
-  (state_changed (c-pointer core)(c-pointer call)(int state))
+  (state_changed (c-pointer core)(c-pointer call)(int state)(c-string msg))
   void
-  (lphw-state-changed core call state))
-
-(define berit-cprog
-  (foreign-safe-lambda* int ((int a)(int b))
-    "return(berit(a , b));"))
-
+  (lphw-state-changed core call state msg))
 
 )
