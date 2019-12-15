@@ -3,6 +3,7 @@
 
 int berit(int a, int b) {
   printf("Tallene: %d %d", a, b);
+  printf("Fra callback: %d\n",cb_itself(a));
   return (a+b);
 }
 
@@ -37,7 +38,7 @@ static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCal
 LinphoneCoreVTable vtable={0};
 LinphoneCore *lc;
 LinphoneCall *call=NULL;
-const char *dest=NULL;
+const char *dest="sip:pi@10.0.1.104";
 
 LinphoneCore *lph_create() {
   vtable.call_state_changed=call_state_changed;
@@ -46,7 +47,12 @@ LinphoneCore *lph_create() {
   return(lc);
 }
 
-int lph_call(LinphoneCore* arg_lc, const char* dest){
+void lph_core_destroy(LinphoneCore* arg_lc) {
+  linphone_core_destroy(arg_lc);
+  lc = NULL;
+}
+
+LinphoneCall *lph_call(LinphoneCore* arg_lc, const char* dest){
   printf("LC: here: %p got: %p\n", lc, arg_lc  );
   /*
    Place an outgoing call
@@ -59,4 +65,5 @@ int lph_call(LinphoneCore* arg_lc, const char* dest){
     printf("Call to %s is in progress...",dest);
   }
   linphone_call_ref(call);
+  return(call);
 }
