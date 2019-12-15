@@ -33,6 +33,7 @@ static void call_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCal
 		default:
 			printf("Unhandled notification %i\n",cstate);
 	}
+  state_changed(lc, call, cstate);
 }
 
 LinphoneCoreVTable vtable={0};

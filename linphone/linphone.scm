@@ -26,7 +26,7 @@
 
 ;; Interface to liblinphone
 (define lphl-core-iterate
-  (foreign-lambda* void ((c-pointer lc))
+  (foreign-safe-lambda* void ((c-pointer lc))
     "linphone_core_iterate(lc);"))
 
 ;; Iterator pacing libphone
@@ -53,11 +53,13 @@
 
 
 ;; Callback test
-(define (cb-test n)
-  (print "At callback test" n)
-  (* n n))
+(define (lphw-state-changed core call state)
+  (print "At linphone callback, lc:" core " call:" call " state:" state))
 
-(define-external (cb_itself (int y)) int (cb-test y))
+(define-external
+  (state_changed (c-pointer core)(c-pointer call)(int state))
+  void
+  (lphw-state-changed core call state))
 
 (define berit-cprog
   (foreign-safe-lambda* int ((int a)(int b))
