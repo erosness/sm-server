@@ -18,6 +18,8 @@ void linphone_core_iterate(LinphoneCore* core);
 (define lc #f)
 (define cnt1 0)
 (define call #f)
+(define current-state 'idle)
+(define state-callback (lambda(lc call state msg) (print "At state-callback")))
 
 ;; Interface to wrapper
 (define lphw-create
@@ -45,6 +47,10 @@ void linphone_core_iterate(LinphoneCore* core);
   (foreign-lambda* int ((c-pointer call))
     "return(linphone_call_get_state(call));"))
 
+(define lphl-terminate-all-calls
+  (foreign-safe-lambda* int ((c-pointer lc))
+    "return(linphone_core_terminate_all_calls(lc));"))
+
 ;; Iterator pacing libphone
 (define (lph-iterate-body)
   (if lc (begin
@@ -61,7 +67,31 @@ void linphone_core_iterate(LinphoneCore* core);
         ((flip make-thread) "Linphone core iterate thread")))))
 
 ;; Calls
-(define (lph-create)
+(define (lph-status)
+  `(( connection . none)))
+
+(define status-caller
+  (lambda()
+    `(( connection . caller)
+      ( state . ,current-state))))
+
+(define status-answerer
+  (lambda()
+    `(( connection . answerer)
+      ( state . ,current-state))))
+
+
+(define (lph-create-caller)
+  (set! lph-status status-caller)
+  (set! state-callback caller-state-callback)
+  ;; Start iterator
+  (core-iterate-thread)
+  ;; Create phone
+  (set! lc (lphw-create)))
+
+(define (lph-create-answerer)
+  (set! lph-status status-answerer)
+  (set! state-callback answerer-state-callback)
   ;; Start iterator
   (core-iterate-thread)
   ;; Create phone
@@ -69,25 +99,36 @@ void linphone_core_iterate(LinphoneCore* core);
 
 (define (lph-call dest)
   (if lc
-    (set! call (lphw-call lc dest)))
-  (if call
-    (lphl-call-get-state)
-    #f))
+    (begin
+      (set! call (lphw-call lc dest))
+      (set! current-state 'connecting))))
 
-(define (lphl_answer)
+(define (lph-answer)
   (lphl-accept lc call))
 
+(define (lph-terminate)
+  (lphl-terminate-all-calls lc))
+
 ;; Callback call state
-(define (lphw-state-changed core call cstate msg)
+(define caller-state-callback
+  (lambda (core call cstate msg)
   (match cstate
-    ( 1 (lphl-accept lc call))
-    (13 (print "Case: error"))
-    (18 (print "Case: call terminated"))
-    (else (print "Case not handled:" cstate))))
+    ( 7 (set! current-state 'connected))
+    (18 (set! current-state 'idle))
+    (else (print "Case not handled caller:" cstate)))))
+
+(define answerer-state-callback
+  (lambda (core call cstate msg)
+  (match cstate
+    ( 1 (set! current-state 'connecting)(lph-answer))
+    ( 7 (set! current-state 'connected))
+    (13 (set! current-state 'idle))
+    (18 (set! current-state 'idle))
+    (else (print "Case not handled answerer:" cstate)))))
 
 (define-external
   (state_changed (c-pointer core)(c-pointer call)(int state)(c-string msg))
   void
-  (lphw-state-changed core call state msg))
+  (state-callback core call state msg))
 
 )
