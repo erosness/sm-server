@@ -37,6 +37,14 @@ void linphone_core_iterate(LinphoneCore* core);
   (foreign-safe-lambda* void ((c-pointer lc))
     "linphone_core_iterate(lc);"))
 
+(define lphl-accept
+  (foreign-lambda* int ((c-pointer lc) (c-pointer call))
+    "return(linphone_core_accept_call(lc, call));"))
+
+(define lphl-call-get-state
+  (foreign-lambda* int ((c-pointer call))
+    "return(linphone_call_get_state(call));"))
+
 ;; Iterator pacing libphone
 (define (lph-iterate-body)
   (if lc (begin
@@ -59,11 +67,20 @@ void linphone_core_iterate(LinphoneCore* core);
   ;; Create phone
   (set! lc (lphw-create)))
 
+(define (lph-call dest)
+  (if lc
+    (set! call (lphw-call lc dest)))
+  (if call
+    (lphl-call-get-state)
+    #f))
+
+(define (lphl_answer)
+  (lphl-accept lc call))
 
 ;; Callback call state
 (define (lphw-state-changed core call cstate msg)
   (match cstate
-    ( 1 (print "Case: incoming call"))
+    ( 1 (lphl-accept lc call))
     (13 (print "Case: error"))
     (18 (print "Case: call terminated"))
     (else (print "Case not handled:" cstate))))
