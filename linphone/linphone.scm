@@ -17,6 +17,7 @@ void linphone_core_iterate(LinphoneCore* core);
 ;; top-levels used in this module
 (define lc #f)
 (define cnt1 0)
+(define call #f)
 
 ;; Interface to wrapper
 (define lphw-create
@@ -28,7 +29,8 @@ void linphone_core_iterate(LinphoneCore* core);
     "linphone_core_destroy(core);"))
 
 (define lphw-call
-  (foreign-lambda* c-pointer () "return (lph_create());"))
+  (foreign-safe-lambda* c-pointer ((c-pointer lc)(c-string dest))
+    "return (lph_call(lc, dest));"))
 
 ;; Interface to liblinphone
 (define lphl-core-iterate
@@ -41,7 +43,7 @@ void linphone_core_iterate(LinphoneCore* core);
     (lphl-core-iterate lc)
     (set! cnt1 (+ 1 cnt1)))))
 
-(define connect-button-thread
+(define core-iterate-thread
   (lambda ()
     (thread-start!
       (->>
@@ -53,7 +55,7 @@ void linphone_core_iterate(LinphoneCore* core);
 ;; Calls
 (define (lph-create)
   ;; Start iterator
-  (connect-button-thread)
+  (core-iterate-thread)
   ;; Create phone
   (set! lc (lphw-create)))
 

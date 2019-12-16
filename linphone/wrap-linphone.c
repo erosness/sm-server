@@ -20,7 +20,8 @@ void lph_core_destroy(LinphoneCore* arg_lc) {
   lc = NULL;
 }
 
-LinphoneCall *lph_call(LinphoneCore* arg_lc, const char* dest){
+LinphoneCall *lph_call(LinphoneCore* arg_lc, char* arg_dest){
+  printf("arg_dest: %s", arg_dest);
   printf("LC: here: %p got: %p\n", lc, arg_lc  );
   /*
    Place an outgoing call
@@ -33,5 +34,6 @@ LinphoneCall *lph_call(LinphoneCore* arg_lc, const char* dest){
     printf("Call to %s is in progress...",dest);
   }
   linphone_call_ref(call);
+  printf("Call status: ");
   return(call);
 }
