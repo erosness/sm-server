@@ -5,7 +5,10 @@
         srfi-69 srfi-18 data-structures clojurian-syntax)
 
 ;; local imports
-(use restlib store sm-config gpio looper)
+(use restlib store sm-config gpio looper linphone)
+
+;; Initialize linphone
+(lph-create-answerer)
 
 (define (fid uid cap)
   (string-hash (conc uid cap)))
@@ -44,11 +47,12 @@
 
 ;; Common return status definition
 (define (status?)
-  `((fid . ,(fid (uid) "doorbell-out"))
+  (append `((fid . ,(fid (uid) "doorbell-out"))
     (doorbell . ,(phy-doorbell?))
     (doorbellAge . ,(doorbell-age))
     (unlock . ,(phy-unlock?))
-    (dooropen . ,(phy-dooropen?))))
+    (dooropen . ,(phy-dooropen?)))
+    (lph-status)))
 
 ;; The pure GET status (no PUT)
 (define-handler /v1/sm/doorbell-out/status
