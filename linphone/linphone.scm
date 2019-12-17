@@ -1,4 +1,8 @@
-(module linphone *
+(module linphone (  lph-create-caller
+                    lph-create-answerer
+                    lph-call
+                    lph-terminate
+                    lph-status)
 
 (import chicken scheme foreign srfi-18 clojurian-syntax data-structures
         matchable)
