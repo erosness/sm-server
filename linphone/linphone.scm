@@ -22,7 +22,7 @@ void linphone_core_iterate(LinphoneCore* core);
 (define lc #f)
 (define cnt1 0)
 (define call #f)
-(define current-state 'idle)
+(define current-state "idle")
 (define state-callback (lambda(lc call state msg) (print "At state-callback")))
 
 ;; Interface to wrapper
@@ -72,16 +72,17 @@ void linphone_core_iterate(LinphoneCore* core);
 
 ;; Calls
 (define (lph-status)
-  `(( connection . none)))
+  `(( connection . "none")
+    ( state . ,current-state)))
 
 (define status-caller
   (lambda()
-    `(( connection . caller)
+    `(( connection . "caller")
       ( state . ,current-state))))
 
 (define status-answerer
   (lambda()
-    `(( connection . answerer)
+    `(( connection . "answerer")
       ( state . ,current-state))))
 
 
@@ -105,7 +106,7 @@ void linphone_core_iterate(LinphoneCore* core);
   (if lc
     (begin
       (set! call (lphw-call lc dest))
-      (set! current-state 'connecting))))
+      (set! current-state "connecting"))))
 
 (define (lph-answer)
   (lphl-accept lc call))
@@ -117,17 +118,17 @@ void linphone_core_iterate(LinphoneCore* core);
 (define caller-state-callback
   (lambda (core call cstate msg)
   (match cstate
-    ( 7 (set! current-state 'connected))
-    (18 (set! current-state 'idle))
+    ( 7 (set! current-state "connected"))
+    (18 (set! current-state "idle"))
     (else (print "Case not handled caller:" cstate)))))
 
 (define answerer-state-callback
   (lambda (core call cstate msg)
   (match cstate
-    ( 1 (set! current-state 'connecting)(lph-answer))
-    ( 7 (set! current-state 'connected))
-    (13 (set! current-state 'idle))
-    (18 (set! current-state 'idle))
+    ( 1 (set! current-state "connecting")(lph-answer))
+    ( 7 (set! current-state "connected"))
+    (13 (set! current-state "idle"))
+    (18 (set! current-state "idle"))
     (else (print "Case not handled answerer:" cstate)))))
 
 (define-external
