@@ -19,7 +19,7 @@
 
 (define (capability)
   (match (uid)
-    ("4c:cc:6a:d7:c1:78" '("doorbell-in" "doorbell-out"))
+    ("4c:cc:6a:d7:c1:78" '("doorbell-in" "floor"))
     ("b8:27:eb:33:47:88" '("doorlock" "doorbell-out" "door-motor"))
     ("b8:27:eb:4c:26:ae" '("presence" "doorbell-in" "shade-motor"))
     ("b8:27:eb:6f:22:ad" '("presence" "floor"  "doorbell-out"))
