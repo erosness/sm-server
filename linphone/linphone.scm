@@ -25,6 +25,9 @@ void linphone_core_iterate(LinphoneCore* core);
 (define current-state "idle")
 (define state-callback (lambda(lc call state msg) (print "At state-callback")))
 
+(define (ip->sip ip)
+  (string-append "sip:pi@" ip))
+
 ;; Interface to wrapper
 (define lphw-create
   (foreign-lambda* c-pointer ()
@@ -105,7 +108,7 @@ void linphone_core_iterate(LinphoneCore* core);
 (define (lph-call dest)
   (if lc
     (begin
-      (set! call (lphw-call lc dest))
+      (set! call (lphw-call lc (ip->sip dest)))
       (set! current-state "connecting"))))
 
 (define (lph-answer)
