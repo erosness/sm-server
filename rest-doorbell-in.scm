@@ -59,8 +59,11 @@
 (define-handler /v1/sm/doorbell-in/connect
   (lambda ()
     (if (current-json)
-      (let ((val (alist-ref 'connect (current-json))))
-        (if val (set! connect-state (bin-clean val)))))
+      (begin
+        (let ((val (alist-ref 'connect (current-json))))
+          (if val (lph-call val)))
+        (let ((val (alist-ref 'disconnect (current-json))))
+          (if val (lph-terminate)))))
     (status?)))
 
 )
