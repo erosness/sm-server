@@ -123,9 +123,12 @@ void linphone_core_iterate(LinphoneCore* core);
     (else (print "Case not handled caller:" cstate)))))
 
 (define answerer-state-callback
-  (lambda (core call cstate msg)
+  (lambda (core cb-call cstate msg)
   (match cstate
-    ( 1 (set! current-state "connecting")(lph-answer))
+    ( 1 (begin
+          (set! call cb-call)
+          (set! current-state "connecting")
+          (lph-answer)))
     ( 7 (set! current-state "connected"))
     (13 (set! current-state "idle"))
     (18 (set! current-state "idle"))
