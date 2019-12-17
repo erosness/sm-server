@@ -10,7 +10,7 @@ LinphoneCall *call=NULL;
 LinphoneCore *lph_create() {
   vtable.call_state_changed=state_changed;
 
-  lc=linphone_core_new(&vtable, NULL, "/home/erik/.linphonerc", NULL);
+  lc=linphone_core_new(&vtable, NULL, "/home/pi/.linphonerc", NULL);
   return(lc);
 }
 
