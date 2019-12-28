@@ -76,7 +76,7 @@
             (print "JSON:" (current-json))
             (let ((val (alist-ref 'sound (current-json))))
               (if val
-                (if (eq? val "bell")
+                (if (equal? val "bell")
                   (animate-led led-image-bell))))))
 
         (status?)))
