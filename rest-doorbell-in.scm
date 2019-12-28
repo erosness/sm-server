@@ -72,10 +72,13 @@
     (define-handler /v1/sm/doorbell-in/sound-bell
       (lambda ()
         (if (current-json)
+          (begin
+            (print "JSON:" (current-json))
             (let ((val (alist-ref 'sound (current-json))))
               (if val
                 (if (eq? val "bell")
-                  (animate-led led-image-bell)))))
+                  (animate-led led-image-bell))))))
+
         (status?)))
 
 )
