@@ -5,7 +5,7 @@
         srfi-69 srfi-18 data-structures clojurian-syntax)
 
 ;; local imports
-(use restlib store sm-config gpio looper linphone)
+(use restlib store sm-config gpio looper linphone led-matrix)
 
 ;; Initialize linphone
 (lph-create-caller)

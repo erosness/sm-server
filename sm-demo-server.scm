@@ -14,6 +14,7 @@
   (thread-start! (lambda () (nrepl port))))
 
 (include "gpio.scm")
+(include "led-matrix.scm")
 
 (include "rest-info.scm")
 (include "rest-zeroconf.scm")
