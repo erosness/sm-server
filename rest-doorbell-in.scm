@@ -7,6 +7,9 @@
 ;; local imports
 (use restlib store sm-config gpio looper linphone led-matrix)
 
+(include "led-images/led-image-bell.scm")
+(include "led-images/led-image-black.scm")
+
 ;; Initialize linphone
 (lph-create-caller)
 
@@ -65,5 +68,14 @@
         (let ((val (alist-ref 'disconnect (current-json))))
           (if val (lph-terminate)))))
     (status?)))
+
+    (define-handler /v1/sm/doorbell-in/sound-bell
+      (lambda ()
+        (if (current-json)
+            (let ((val (alist-ref 'sound (current-json))))
+              (if val
+                (if (eq? val "bell")
+                  (animate-led led-image-bell)))))
+        (status?)))
 
 )
