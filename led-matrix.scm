@@ -2,7 +2,7 @@
 
 (module led-matrix
   (red green blue black white yellow mangenta cyan
-   animate-thread )
+   animate-thread display-thread)
 
 (import chicken scheme extras srfi-18 looper clojurian-syntax data-structures)
 
