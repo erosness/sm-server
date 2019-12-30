@@ -69,16 +69,20 @@
           (if val (lph-terminate)))))
     (status?)))
 
-    (define-handler /v1/sm/doorbell-in/sound-bell
+    (define-handler /v1/sm/doorbell-in/display
       (lambda ()
         (if (current-json)
-          (begin
-            (print "JSON:" (current-json))
-            (let ((val (alist-ref 'sound (current-json))))
-              (if val
-                (if (equal? val "bell")
-                  (animate-led led-image-bell))))))
-
+          (and-let*
+            ((img (alist-ref 'image (current-json))))
+              (let*
+                ((%time (alist-ref 'time (current-json)))
+                (time (if %time %time 0.1))
+                (%rep (alist-ref 'repeat (current-json)))
+                (rep (if %rep (equal? "yes" #f))))
+                (case img
+                  (("ring") animate-thread led-image-bell time rep)
+                  (("black") animate-thread led-image-black time rep)
+                  ( else  animate-thread led-image-black time rep)))))
         (status?)))
 
 )

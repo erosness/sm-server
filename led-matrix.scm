@@ -1,6 +1,8 @@
 ;; Returns access procedures to GPIO, alternatively an emulated version.
 
-(module led-matrix *
+(module led-matrix
+  (red green blue black white yellow mangenta cyan
+   animate-thread )
 
 (import chicken scheme extras srfi-18 looper clojurian-syntax data-structures)
 
@@ -37,8 +39,8 @@
 (define (animate-thread led-list #!optional (time 0.2) (repeat #t))
   (thread-start!
     (->>
-      (lambda () (print "loop:" (animate-led led-list time)) #f)
-      (loop/interval 0.5)
+      (lambda () (if (animate-led led-list time) repeat #f))
+      (loop/interval time)
       (loop)
       ((flip make-thread) "Animate-thread"))))
 
