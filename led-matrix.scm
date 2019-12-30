@@ -35,13 +35,16 @@
                               (lambda ()
                                 (display-list led-list time))))))
 
+(define display-thread #f)
 
 (define (animate-thread led-list #!optional (time 0.2) (repeat #t))
-  (thread-start!
-    (->>
-      (lambda () (if (animate-led led-list time) repeat #f))
-      (loop/interval time)
-      (loop)
-      ((flip make-thread) "Animate-thread"))))
+  (if display-thread (thread-terminate! display-thread))
+  (set! display-thread
+    (thread-start!
+      (->>
+        (lambda () (if (animate-led led-list time) repeat #f))
+        (loop/interval time)
+        (loop)
+        ((flip make-thread) "Animate-thread")))))
 
 )
