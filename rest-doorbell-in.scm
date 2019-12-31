@@ -81,10 +81,10 @@
             (time (if %time %time 0.1))
             (%rep (alist-ref 'repeat (current-json)))
             (rep (if %rep (equal? "yes" %rep) #f)))
-            (set! display-avtive
+            (set! display-active
               (case img
-                ((ring key) #f)
-                (else #t)))
+                ((ring key) #t)
+                (else #f)))
             (case img
               ((ring)  (animate-thread led-image-bell time rep))
               ((black) (animate-thread led-image-black 0.1 #f))
