@@ -50,7 +50,8 @@
 (define (status?)
   (append
     `((fid . ,(fid (uid) "doorbell-in"))
-      (unlockButton  . ,(phy-unlock-button?)))
+      (unlockButton  . ,(phy-unlock-button?))
+      (display . ,(if display-active "active" "off")))
       (lph-status)))
 
 ;; The pure GET status (no PUT)
@@ -68,6 +69,8 @@
           (if val (lph-terminate)))))
     (status?)))
 
+(define display-active #f)
+
 (define-handler /v1/sm/doorbell-in/display
   (lambda ()
     (if (current-json)
@@ -78,6 +81,10 @@
             (time (if %time %time 0.1))
             (%rep (alist-ref 'repeat (current-json)))
             (rep (if %rep (equal? "yes" %rep) #f)))
+            (set! display-avtive
+              (case img
+                ((ring key) #f)
+                (else #t)))
             (case img
               ((ring)  (animate-thread led-image-bell time rep))
               ((black) (animate-thread led-image-black 0.1 #f))
