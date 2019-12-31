@@ -71,20 +71,18 @@
 
 (define-handler /v1/sm/doorbell-in/display
   (lambda ()
-    (print "In handler:" (current-json))
     (if (current-json)
       (and-let*
-        ((img (alist-ref 'image (current-json))))
+        ((img (string->symbol (alist-ref 'image (current-json)))))
           (let*
             ((%time (alist-ref 'time (current-json)))
             (time (if %time %time 0.1))
             (%rep (alist-ref 'repeat (current-json)))
             (rep (if %rep (equal? "yes" %rep) #f)))
-            (print "Inside:" rep time img)
             (case img
-              (("ring") (animate-thread led-image-bell time rep))
-              (("black") (animate-thread led-image-black time rep))
-              ( else  (animate-thread led-image-black time rep))))))
+              ((ring)  (animate-thread led-image-bell time rep))
+              ((black) (animate-thread led-image-black time rep))
+              ( else (animate-thread led-image-black 0.1 #f))))))
     (status?)))
 
 )
