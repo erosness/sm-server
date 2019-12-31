@@ -7,8 +7,7 @@
 ;; local imports
 (use restlib store sm-config gpio looper linphone led-matrix)
 
-(include "led-images/led-image-bell.scm")
-(include "led-images/led-image-black.scm")
+(include "led-images/led-image-all.scm")
 
 ;; Initialize linphone
 (lph-create-caller)
@@ -81,7 +80,8 @@
             (rep (if %rep (equal? "yes" %rep) #f)))
             (case img
               ((ring)  (animate-thread led-image-bell time rep))
-              ((black) (animate-thread led-image-black time rep))
+              ((black) (animate-thread led-image-black 0.1 #f))
+              ((key) (animate-thread led-image-key 0.1 #f))
               ( else (animate-thread led-image-black 0.1 #f))))))
     (status?)))
 
