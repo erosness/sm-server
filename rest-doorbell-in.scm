@@ -87,6 +87,8 @@
                 (else #f)))
             (case img
               ((ring)  (animate-thread led-image-bell time rep))
+              ((didring1)  (animate-thread led-image-didring-1 time rep))
+              ((didring2)  (animate-thread led-image-didring-2 time rep))
               ((black) (animate-thread led-image-black 0.1 #f))
               ((key) (animate-thread led-image-key 0.1 #f))
               ( else (animate-thread led-image-black 0.1 #f))))))

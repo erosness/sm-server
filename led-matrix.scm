@@ -1,7 +1,7 @@
 ;; Returns access procedures to GPIO, alternatively an emulated version.
 
 (module led-matrix
-  (red green blue black white yellow mangenta cyan
+  (red green blue dimblue black white yellow mangenta cyan
    animate-thread display-thread)
 
 (import chicken scheme extras srfi-18 looper clojurian-syntax data-structures)
@@ -9,6 +9,7 @@
 (define (red) (write-byte #x00) (write-byte #xF0))
 (define (green) (write-byte #x00) (write-byte #x0F))
 (define (blue) (write-byte #x1f) (write-byte #x00))
+(define (dimblue) (write-byte #x0f) (write-byte #x00))
 (define (black) (write-byte #x00) (write-byte #x00))
 (define (white) (write-byte #x1f) (write-byte #xFF))
 (define (yellow) (write-byte #x00) (write-byte #xFF))
