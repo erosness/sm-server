@@ -4,18 +4,20 @@
                     capability
                     unit-name )
 
-(import chicken scheme data-structures srfi-1 extras matchable)
+(import chicken scheme data-structures srfi-1 extras matchable utils irregex posix)
 
-;; Use ethernet MAC as unique id
-(cond-expand
-  (arm
-    (define (uid)
-      (substring
-        (with-input-from-file "/sys/class/net/eth0/address" read-string) 0 17)))
-  (else
-    (define (uid)
-      (substring
-        (with-input-from-file "/sys/class/net/enp0s31f6/address" read-string) 0 17))))
+;; Get the unit id (uid), which is the string representation of the
+;; MAC addrss of the first (often only) ethernet interface found.
+(define (is-eth? f)
+  (irregex-search "^en" f))
+
+(define (eth-path)
+  (conc "/sys/class/net/"(find is-eth? (directory "/sys/class/net")) "/address"))
+
+(define (uid)
+  (substring
+    (with-input-from-file (eth-path) read-string) 0 17))
+
 
 (define (capability)
   (match (uid)
