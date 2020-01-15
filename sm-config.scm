@@ -9,7 +9,7 @@
 ;; Get the unit id (uid), which is the string representation of the
 ;; MAC addrss of the first (often only) ethernet interface found.
 (define (is-eth? f)
-  (irregex-search "^en" f))
+  (irregex-search "^e[nt]" f))
 
 (define (eth-path)
   (conc "/sys/class/net/"(find is-eth? (directory "/sys/class/net")) "/address"))
