@@ -10,7 +10,7 @@
 
 (define (published-units)
   (with-input-from-pipe
-    "avahi-browse -rtp _sm._tcp | grep = | grep IPv4 | awk -F ';' 'BEGIN {printf \"(\"}{printf \"(\\\x22%s\\\x22 %s)\", $8, $9}END {printf \")\"}'"
+    "avahi-browse -rtp _sm._tcp | grep = | grep IPv4 | grep -e '^=;[we]'| awk -F ';' 'BEGIN {printf \"(\"}{printf \"(\\\x22%s\\\x22 %s)\", $8, $9}END {printf \")\"}'"
      read))
 
 (define (out u)
