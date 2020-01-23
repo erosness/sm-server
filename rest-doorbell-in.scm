@@ -5,9 +5,7 @@
         srfi-69 srfi-18 data-structures clojurian-syntax)
 
 ;; local imports
-(use restlib store sm-config gpio looper linphone led-matrix)
-
-(include "led-images/led-image-all.scm")
+(use restlib store sm-config gpio looper linphone)
 
 ;; Initialize linphone
 (lph-create-caller)
@@ -50,8 +48,7 @@
 (define (status?)
   (append
     `((fid . ,(fid (uid) "doorbell-in"))
-      (unlockButton  . ,(phy-unlock-button?))
-      (display . ,(if display-active "active" "off")))
+      (unlockButton  . ,(phy-unlock-button?)))
       (lph-status)))
 
 ;; The pure GET status (no PUT)
@@ -68,32 +65,4 @@
         (let ((val (alist-ref 'disconnect (current-json))))
           (if val (lph-terminate)))))
     (status?)))
-
-(define display-active #f)
-
-(define-handler /v1/sm/doorbell-in/display
-  (lambda ()
-    (if (current-json)
-      (and-let*
-        ((img (string->symbol (alist-ref 'image (current-json)))))
-          (let*
-            ((%time (alist-ref 'time (current-json)))
-            (time (if %time %time 0.1))
-            (%rep (alist-ref 'repeat (current-json)))
-            (rep (if %rep (equal? "yes" %rep) #f)))
-            (set! display-active
-              (case img
-                ((ring key) #t)
-                (else #f)))
-            (case img
-              ((ring)  (animate-thread led-image-bell time rep))
-              ((didring1)  (animate-thread led-image-didring-1 time rep))
-              ((didring2)  (animate-thread led-image-didring-2 time rep))
-              ((didring3)  (animate-thread led-image-didring-3 time rep))
-              ((didring4)  (animate-thread led-image-didring-4 time rep))
-              ((black) (animate-thread led-image-black 0.1 #f))
-              ((key) (animate-thread led-image-key 0.1 #f))
-              ( else (animate-thread led-image-black 0.1 #f))))))
-    (status?)))
-
 )
