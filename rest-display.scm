@@ -1,16 +1,13 @@
-;; Server for in-door part of the doorbell.
-(module rest-doorbell-in ()
+;; Server for 8x8 matrix display on the Raspberry Sense HAT.
+(module rest-display ()
 
 (import chicken scheme data-structures srfi-1 intarweb spiffy
         srfi-69 srfi-18 data-structures clojurian-syntax)
 
 ;; local imports
-(use restlib store sm-config gpio looper linphone led-matrix)
+(use restlib store sm-config gpio looper led-matrix)
 
 (include "led-images/led-image-all.scm")
-
-;; Initialize linphone
-(lph-create-caller)
 
 (define (fid uid cap)
   (string-hash (conc uid cap)))
@@ -30,48 +27,21 @@
 (define (connect?)
   connect-state)
 
-(define (connect-button-body)
-  (if (and (= 0 connect-button-prev) (= 1 (phy-connect-button?)))
-    (set! connect-state (bin-toggle connect-state)))
-  (set! connect-button-prev (phy-connect-button?)))
-
-(define connect-button-thread
-  (thread-start!
-    (->>
-      connect-button-body
-      (loop/interval 0.5)
-      (loop)
-      ((flip make-thread) "Doorbell-thread"))))
-
-(define (connect-button?)
-  connect-button-prev)
-
 ;; Common return status definition
 (define (status?)
   (append
-    `((fid . ,(fid (uid) "doorbell-in"))
-      (unlockButton  . ,(phy-unlock-button?))
-      (display . ,(if display-active "active" "off")))
-      (lph-status)))
+    `((fid . ,(fid (uid) "display8x8"))
+      (display . ,(symbol->string display-active)))))
 
 ;; The pure GET status (no PUT)
-(define-handler /v1/sm/doorbell-in/status
+(define-handler /v1/sm/display8x8/status
   (lambda () (status?)))
 
 ;; PUT definitions
-(define-handler /v1/sm/doorbell-in/connect
-  (lambda ()
-    (if (current-json)
-      (begin
-        (let ((val (alist-ref 'connect (current-json))))
-          (if val (lph-call val)))
-        (let ((val (alist-ref 'disconnect (current-json))))
-          (if val (lph-terminate)))))
-    (status?)))
 
-(define display-active #f)
+(define display-active 'black)
 
-(define-handler /v1/sm/doorbell-in/display
+(define-handler /v1/sm/display8x8/image
   (lambda ()
     (if (current-json)
       (and-let*
@@ -81,10 +51,7 @@
             (time (if %time %time 0.1))
             (%rep (alist-ref 'repeat (current-json)))
             (rep (if %rep (equal? "yes" %rep) #f)))
-            (set! display-active
-              (case img
-                ((ring key) #t)
-                (else #f)))
+            (set! display-active img)
             (case img
               ((ring)  (animate-thread led-image-bell time rep))
               ((didring1)  (animate-thread led-image-didring-1 time rep))
