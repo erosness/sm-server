@@ -4,7 +4,8 @@
   (red green blue dimblue black white yellow mangenta cyan
    animate-thread display-thread)
 
-(import chicken scheme extras srfi-18 looper clojurian-syntax data-structures)
+(import chicken scheme extras srfi-18 clojurian-syntax data-structures)
+(use looper)
 
 (define (red) (write-byte #x00) (write-byte #xF0))
 (define (green) (write-byte #x00) (write-byte #x0F))
@@ -61,10 +62,6 @@
   )
 )
 ;; Initial set to off if ARM
-(cond-expand
-  (arm
-    (animate-thread (list image-off)))
-  (else
-    (print "No led matrix HW")))
+;; (animate-thread (list image-off))
 
 )
