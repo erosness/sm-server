@@ -48,4 +48,23 @@
         (loop)
         ((flip make-thread) "Animate-thread")))))
 
+(define (image-off)
+  (begin
+    (black)(black)(black)(black)(black)(black)(black)(black)
+    (black)(black)(black)(black)(black)(black)(black)(black)
+    (black)(black)(black)(black)(black)(black)(black)(black)
+    (black)(black)(black)(black)(black)(black)(black)(black)
+    (black)(black)(black)(black)(black)(black)(black)(black)
+    (black)(black)(black)(black)(black)(black)(black)(black)
+    (black)(black)(black)(black)(black)(black)(black)(black)
+    (black)(black)(black)(black)(black)(black)(black)(black)
+  )
+)
+;; Initial set to off if ARM
+(cond-expand
+  (arm
+    (animate-thread (list image-off)))
+  (else
+    (print "No led matrix HW")))
+
 )
