@@ -62,6 +62,6 @@
   )
 )
 ;; Initial set to off if ARM
-;; (animate-thread (list image-off))
+(animate-thread (list image-off))
 
 )
