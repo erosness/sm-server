@@ -26,6 +26,6 @@
     (match cap
       ("doorbell-out" (include "rest-doorbell-out.scm"))
       ("doorbell-in" (include "rest-doorbell-in.scm"))
-      ("display8x8" (include "rest-display.scm"))
+      ("display8x8" (include "rest-display8x8.scm"))
       (_              (include "rest-noop.scm"))))
     (capability))

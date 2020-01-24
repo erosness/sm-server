@@ -31,7 +31,7 @@
 (define (status?)
   (append
     `((fid . ,(fid (uid) "display8x8"))
-      (display . ,(symbol->string display-active)))))
+      (image . ,(symbol->string display-active)))))
 
 ;; The pure GET status (no PUT)
 (define-handler /v1/sm/display8x8/status
