@@ -19,8 +19,8 @@
                                (rest-server-port)))))
 
 ;; Parts implemented as physical connection via GPIO
-(define phy-unlock-button?  (invert(make-gpio-input 10)))
-(define phy-connect-button? (invert(make-gpio-input 12)))
+(define phy-unlock-button?  (invert(make-gpio-input 3)))
+(define phy-connect-button? (invert(make-gpio-input 5)))
 
 ;; Parts implemented as SW modules
 (define connect-button-prev 1)
