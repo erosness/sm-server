@@ -48,7 +48,8 @@
 (define (status?)
   (append
     `((fid . ,(fid (uid) "doorbell-in"))
-      (unlockButton  . ,(phy-unlock-button?)))
+      (unlockButton  . ,(phy-unlock-button?))
+      (callButton . ,(connect-button?)))
       (lph-status)))
 
 ;; The pure GET status (no PUT)
