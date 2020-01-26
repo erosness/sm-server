@@ -23,7 +23,7 @@
       (lambda () (digital-read p )))
 
     (define (make-gpio-output p)
-      (pin-mode 12 'output')
+      (pin-mode p 'output')
       (lambda (val) (digital-write p val)))
 
     (print "Gpio arm"))
