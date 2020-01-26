@@ -22,11 +22,39 @@
 (define phy-unlock-button?  (invert(make-gpio-input 3)))
 (define phy-connect-button? (invert(make-gpio-input 5)))
 
+(define door-red (make-gpio-output 10))
+(define door-green (make-gpio-output 8))
+(define voice-red (make-gpio-output 13))
+(define voice-green (make-gpio-output 12))
+
 ;; Parts implemented as SW modules
 (define connect-button-prev 1)
 (define connect-state 0)
 (define (connect?)
   connect-state)
+
+(define (door-led-work color)
+  (case color
+    ((red) (door-red 1)(door-green 0) color)
+    ((green) (door-red 0)(door-green 1) color)
+    ((amber) (door-red 1)(door-green 1) color)
+    ((off) (door-red 0)(door-green 0) color)
+    ( else  (door-red 0)(door-green 0) 'off)))
+
+(define door-indicator
+  (make-parameter 'off door-led-work))
+
+  (define (voice-led-work color)
+    (case color
+      ((red) (voice-red 1)(voice-green 0) color)
+      ((green) (voice-red 0)(voice-green 1) color)
+      ((amber) (voice-red 1)(voice-green 1) color)
+      ((off) (voice-red 0)(voice-green 0) color)
+      ( else  (voice-red 0)(voice-green 0) 'off)))
+
+  (define voice-indicator
+    (make-parameter 'off voice-led-work))
+
 
 (define (connect-button-body)
   (if (and (= 0 connect-button-prev) (= 1 (phy-connect-button?)))
@@ -49,7 +77,9 @@
   (append
     `((fid . ,(fid (uid) "doorbell-in"))
       (unlockButton  . ,(phy-unlock-button?))
-      (callButton . ,(connect-button?)))
+      (callButton . ,(connect-button?))
+      (doorIndicator . ,(door-indicator))
+      (voiceIndicator . ,(voice-indicator)))
       (lph-status)))
 
 ;; The pure GET status (no PUT)
@@ -66,4 +96,19 @@
         (let ((val (alist-ref 'disconnect (current-json))))
           (if val (lph-terminate)))))
     (status?)))
+
+(define-handler /v1/sm/doorbell-in/door-indicator
+  (lambda ()
+    (if (current-json)
+      (let ((val (alist-ref 'color (current-json))))
+        (door-indicator val)))
+    (status?)))
+
+(define-handler /v1/sm/doorbell-in/voice-indicator
+  (lambda ()
+    (if (current-json)
+      (let ((val (alist-ref 'color (current-json))))
+        (voice-indicator val)))
+    (status?)))
+    
 )
