@@ -41,20 +41,26 @@
     ((off) (door-red 0)(door-green 0) color)
     ( else  (door-red 0)(door-green 0) 'off)))
 
-(define door-indicator
-  (make-parameter 'off door-led-work))
+(define (voice-led-work color)
+  (case color
+    ((red) (voice-red 1)(voice-green 0) color)
+    ((green) (voice-red 0)(voice-green 1) color)
+    ((amber) (voice-red 1)(voice-green 1) color)
+    ((off) (voice-red 0)(voice-green 0) color)
+    ( else  (voice-red 0)(voice-green 0) 'off)))
 
-  (define (voice-led-work color)
-    (case color
-      ((red) (voice-red 1)(voice-green 0) color)
-      ((green) (voice-red 0)(voice-green 1) color)
-      ((amber) (voice-red 1)(voice-green 1) color)
-      ((off) (voice-red 0)(voice-green 0) color)
-      ( else  (voice-red 0)(voice-green 0) 'off)))
+(define door-indicator #f)
+(define voice-indicator #f)
 
-  (define voice-indicator
-    (make-parameter 'off voice-led-work))
+(define (door-indicator?) door-indicator)
+(define (door-indicator! door)
+  (set! door-indicator (door-led-work color)))
+(door-indicator! 'off')
 
+(define (voice-indicator?) voice-indicator)
+(define (voice-indicator! color)
+  (set! voice-indicator (voice-led-work color)))
+(voice-indicator! 'off')
 
 (define (connect-button-body)
   (if (and (= 0 connect-button-prev) (= 1 (phy-connect-button?)))
@@ -78,8 +84,8 @@
     `((fid . ,(fid (uid) "doorbell-in"))
       (unlockButton  . ,(phy-unlock-button?))
       (callButton . ,(connect-button?))
-      (doorIndicator . ,(symbol->string (door-indicator)))
-      (voiceIndicator . ,(symbol->string (voice-indicator))))
+      (doorIndicator . ,(symbol->string (door-indicator?)))
+      (voiceIndicator . ,(symbol->string (voice-indicator?))))
       (lph-status)))
 
 ;; The pure GET status (no PUT)
@@ -101,14 +107,14 @@
   (lambda ()
     (if (current-json)
       (let ((val (alist-ref 'color (current-json))))
-        (door-indicator (string->symbol val))))
+        (door-indicator! (string->symbol val))))
     (status?)))
 
 (define-handler /v1/sm/doorbell-in/voice-indicator
   (lambda ()
     (if (current-json)
       (let ((val (alist-ref 'color (current-json))))
-        (voice-indicator (string->symbol val))))
+        (voice-indicator! (string->symbol val))))
     (status?)))
 
 )
