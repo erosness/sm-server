@@ -53,7 +53,7 @@
 (define voice-indicator #f)
 
 (define (door-indicator?) door-indicator)
-(define (door-indicator! door)
+(define (door-indicator! color)
   (set! door-indicator (door-led-work color)))
 (door-indicator! 'off')
 
