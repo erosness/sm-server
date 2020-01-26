@@ -78,8 +78,8 @@
     `((fid . ,(fid (uid) "doorbell-in"))
       (unlockButton  . ,(phy-unlock-button?))
       (callButton . ,(connect-button?))
-      (doorIndicator . ,(door-indicator))
-      (voiceIndicator . ,(voice-indicator)))
+      (doorIndicator . ,(symbol->string (door-indicator)))
+      (voiceIndicator . ,(symbol->string (voice-indicator))))
       (lph-status)))
 
 ;; The pure GET status (no PUT)
@@ -101,14 +101,14 @@
   (lambda ()
     (if (current-json)
       (let ((val (alist-ref 'color (current-json))))
-        (door-indicator val)))
+        (door-indicator (string->symbol val))))
     (status?)))
 
 (define-handler /v1/sm/doorbell-in/voice-indicator
   (lambda ()
     (if (current-json)
       (let ((val (alist-ref 'color (current-json))))
-        (voice-indicator val)))
+        (voice-indicator (string->symbol val))))
     (status?)))
-    
+
 )
