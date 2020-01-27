@@ -21,7 +21,7 @@
 
 ;; Parts implemented as physical connection via GPIO
 (define phy-doorbell? (invert(make-gpio-input   3)))
-(define phy-unlock?          (make-gpio-input   8))
+(define phy-unlock?          (make-gpio-input   11))
 (define phy-unlock!          (make-gpio-output  7))
 (define phy-dooropen?        (make-gpio-input   5))
 
