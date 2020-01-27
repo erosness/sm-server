@@ -71,7 +71,7 @@
   (thread-start!
     (->>
       connect-button-body
-      (loop/interval 0.5)
+      (loop/interval 0.1)
       (loop)
       ((flip make-thread) "Doorbell-thread"))))
 
@@ -83,7 +83,7 @@
   (append
     `((fid . ,(fid (uid) "doorbell-in"))
       (unlockButton  . ,(phy-unlock-button?))
-      (callButton . ,(connect-button?))
+      (callButton . ,(connect?))
       (doorIndicator . ,(symbol->string (door-indicator?)))
       (voiceIndicator . ,(symbol->string (voice-indicator?))))
       (lph-status)))
