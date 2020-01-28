@@ -25,18 +25,6 @@
 (define phy-unlock!          (make-gpio-output  7))
 (define phy-dooropen?        (make-gpio-input   5))
 
-(define lock-time 0)
-
-(define (unlock! val)
-(if (= 0 val)
-  (let ((off-age (- (time->seconds (current-time)) lock-time )))
-    (print "off-age=" off-age)
-    (if (< 8 off-age)
-      (phy-unlock! 0)))
-  (begin
-   (set! lock-time (time->seconds (current-time)))
-   (phy-unlock! 1))))
-
 ;; Parts implemented as SW modules
 (define doorbell-time #f)
 
@@ -80,7 +68,7 @@
 (define-handler /v1/sm/doorbell-out/lock
   (lambda ()
     (if (current-json)
-      (unlock! (alist-ref 'unlock (current-json))))
+      (phy-unlock! (alist-ref 'unlock (current-json))))
     (status?)))
 
 (define-handler /v1/sm/doorbell-out/connect
