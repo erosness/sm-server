@@ -83,8 +83,11 @@
       (unlock! (alist-ref 'unlock (current-json))))
     (status?)))
 
-(define-handler /v1/sm/doorbell-out/voice
+(define-handler /v1/sm/doorbell-out/connect
   (lambda ()
-  `((acvtive . #f))))
+    (if (current-json)
+      (let ((val (alist-ref 'disconnect (current-json))))
+        (if val (lph-terminate))))
+    (status?)))
 
 )
