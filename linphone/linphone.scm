@@ -122,6 +122,9 @@ void linphone_core_iterate(LinphoneCore* core);
   (lambda (core call cstate msg)
   (match cstate
     ( 7 (set! current-state "connected"))
+    (12 (begin
+          (set! current-state "idle")
+          (lph-terminate)))
     (13 (set! current-state "idle"))
     (18 (set! current-state "idle"))
     (else (print "Case not handled caller:" cstate)))))
@@ -134,6 +137,9 @@ void linphone_core_iterate(LinphoneCore* core);
           (set! current-state "connecting")
           (lph-answer)))
     ( 7 (set! current-state "connected"))
+    (12 (begin
+          (set! current-state "idle")
+          (lph-terminate)))
     (13 (set! current-state "idle"))
     (18 (set! current-state "idle"))
     (else (print "Case not handled answerer:" cstate)))))
